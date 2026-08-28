@@ -1,0 +1,9 @@
+{
+  "name": "@countersign/agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "@truefoundry/trueforge-sdk": "^0.1.1"
+  }
+}

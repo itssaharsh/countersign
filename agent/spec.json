@@ -1,7 +1,7 @@
 {
   "name": "countersign",
   "manifest": {
-    "model": { "name": "google-gemini/gemini-3.6-flash", "params": { "temperature": 0.1 } },
+    "model": { "name": "google-gemini/gemini-3-6-flash", "params": { "temperature": 0.1 } },
     "instructions": "@agent/instructions.md",
     "mcp_servers": [
       {
