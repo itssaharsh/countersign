@@ -102,6 +102,24 @@ function json(obj) { return { content: [{ type: 'text', text: JSON.stringify(obj
 const transports = new Map();
 
 const httpServer = createServer(async (req, res) => {
+  // CORS for the local console (read-only state + MCP preflight).
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin ?? '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Mcp-Session-Id, Last-Event-ID, Mcp-Protocol-Version');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  if (req.method === 'OPTIONS') { res.writeHead(204).end(); return; }
+  if (req.url === '/state') {
+    // Read-only engine truth for the console's evidence panel. No credentials, no SQL.
+    const sims = [...simulations.values()].map((s) => ({
+      simulation_id: s.simulation_id, change_sql: s.change_sql, kind: s.kind,
+      started_at: s.started_at, duration_ms: s.duration_ms,
+      tables: s.tables, fingerprint: s.fingerprint ? { ...s.fingerprint } : null,
+      undo: { verified: s.undo?.verified ?? false, verified_at: s.undo?.verified_at ?? null, report: s.undo?.report ?? null, statements: s.undo?.sql ? s.undo.sql.split(';\n').length : 0 },
+      policy: s.policy ?? null, committed: s.committed, committed_at: s.committed_at ?? null,
+      execution: s.execution ?? null,
+    }));
+    res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ simulations: sims, backends: describeBackends() }));
+    return;
+  }
   if (!req.url?.startsWith('/mcp')) { res.writeHead(404).end(); return; }
   const sessionId = req.headers['mcp-session-id'];
   try {
