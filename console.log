@@ -1,9 +1,71 @@
+12:05:34 PM [vite] (client) Re-optimizing dependencies because vite config has changed
 
-> console@0.0.0 dev
-> vite
-
-
-  VITE v8.2.2  ready in 671 ms
+  VITE v8.2.2  ready in 1335 ms
 
   ➜  Local:   http://localhost:5199/
   ➜  Network: use --host to expose
+12:05:36 PM [vite] (client) [optimizer] bundling dependencies...
+12:05:46 PM [vite] (client) [Unhandled error] Error: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+ > Object.throwInvalidHookError ../node_modules/react-dom/cjs/react-dom.development.js:15408:8
+ > Object.useRef ../node_modules/react/cjs/react.development.js:1630:20
+ > useRef$2 ../node_modules/@assistant-ui/tap/dist/react-shim/index.js:23:81
+ > useRef ../node_modules/@assistant-ui/core/dist/react/runtimes/useRemoteThreadListRuntime.js:54:24
+ > useTrueFoundryAgentRuntime node_modules/@truefoundry/trueforge-ui/node_modules/@truefoundry/assistant-ui-runtime/dist/index.js:4119:9
+ > ChatRuntimeScope node_modules/@truefoundry/trueforge-ui/dist/chunk-EKVN6QSO.js:58:18
+ > Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+
+12:05:46 PM [vite] (client) [console.warn] An error occurred in the <ChatRuntimeScope> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+12:05:46 PM [vite] (client) [console.error] Warning: Received `true` for a non-boolean attribute `inert`.
+
+If you want to write it to the DOM, pass a string instead: inert="true" or inert={value.toString()}.
+    at aside
+    at co (https://cdn.jsdelivr.net/npm/@openuidev/devtools@0/dist/devtools.browser.js?t=5959729:1:8075)
+    at rd (https://cdn.jsdelivr.net/npm/@openuidev/devtools@0/dist/devtools.browser.js?t=5959729:18:30580)
+12:05:51 PM [vite] (client) [Unhandled error] Error: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+ > Object.throwInvalidHookError ../node_modules/react-dom/cjs/react-dom.development.js:15408:8
+ > Object.useRef ../node_modules/react/cjs/react.development.js:1630:20
+ > useRef$2 ../node_modules/@assistant-ui/tap/dist/react-shim/index.js:23:81
+ > useRef ../node_modules/@assistant-ui/core/dist/react/runtimes/useRemoteThreadListRuntime.js:54:24
+ > useTrueFoundryAgentRuntime node_modules/@truefoundry/trueforge-ui/node_modules/@truefoundry/assistant-ui-runtime/dist/index.js:4119:9
+ > ChatRuntimeScope node_modules/@truefoundry/trueforge-ui/dist/chunk-EKVN6QSO.js:58:18
+ > Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+
+12:05:51 PM [vite] (client) [console.warn] An error occurred in the <ChatRuntimeScope> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+12:05:51 PM [vite] (client) [console.error] Warning: Received `true` for a non-boolean attribute `inert`.
+
+If you want to write it to the DOM, pass a string instead: inert="true" or inert={value.toString()}.
+    at aside
+    at co (https://cdn.jsdelivr.net/npm/@openuidev/devtools@0/dist/devtools.browser.js?t=5959729:1:8075)
+    at rd (https://cdn.jsdelivr.net/npm/@openuidev/devtools@0/dist/devtools.browser.js?t=5959729:18:30580)
+12:06:15 PM [vite] (client) page reload src/main.tsx
+12:06:15 PM [vite] vite.config.ts changed, restarting server...
+12:06:15 PM [vite] server restarted.
+1:14:06 PM [vite] (client) hmr update /src/index.css, /src/CountersignLayout.tsx
+1:23:41 PM [vite] (client) hmr update /src/CountersignLayout.tsx, /src/index.css
+1:23:41 PM [vite] (client) hmr update /src/index.css, /src/CountersignLayout.tsx
+1:23:41 PM [vite] (client) hmr update /src/index.css, /src/CountersignLayout.tsx
+1:23:41 PM [vite] (client) hmr update /src/index.css, /src/components/Gate.tsx
+1:29:52 PM [vite] (client) hmr update /src/index.css, /src/CountersignLayout.tsx
+1:33:21 PM [vite] (client) hmr update /src/index.css, /src/CountersignLayout.tsx

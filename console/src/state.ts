@@ -62,6 +62,8 @@ export function activeSimulation(s: EngineState): Simulation | undefined {
 export type Phase = 'IDLE' | 'INVESTIGATING' | 'DECIDING' | 'WITNESSING'
 export function phaseFor(sim: Simulation | undefined, hasPendingApproval: boolean): Phase {
   if (!sim) return 'IDLE'
+  // A pending approval outranks committed state: fire_undo's gate must surface
+  // in WITNESSING too, and it does — the Gate renders in both phases.
   if (sim.committed) return 'WITNESSING'
   if (hasPendingApproval) return 'DECIDING'
   return 'INVESTIGATING'

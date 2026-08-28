@@ -19,7 +19,39 @@ const ADD_COL_RE = /^\s*ALTER\s+TABLE\s+([a-z_][a-z0-9_]*)\s+ADD\s+COLUMN\s+([a-
 
 export const simulations = new Map(); // simulation_id -> record
 
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
+/** Reload persisted simulations after a restart so verified undo tokens survive (Qodo PR1#9). */
+export function restoreSimulations() {
+  if (!existsSync(EVIDENCE_DIR)) return 0;
+  let n = 0;
+  for (const f of readdirSync(EVIDENCE_DIR)) {
+    const m = f.match(/^sim_([0-9a-f]{8})\.json$/);
+    if (!m || simulations.has(m[1])) continue;
+    try {
+      const rec = JSON.parse(readFileSync(`${EVIDENCE_DIR}/${f}`, 'utf8'));
+      if (rec.undo && existsSync(`${EVIDENCE_DIR}/undo_${rec.simulation_id}.sql`)) {
+        rec.undo.sql = readFileSync(`${EVIDENCE_DIR}/undo_${rec.simulation_id}.sql`, 'utf8');
+      }
+      simulations.set(rec.simulation_id, rec);
+      n++;
+    } catch { /* skip corrupt evidence files */ }
+  }
+  return n;
+}
+
+/** Reject multi-statement SQL: a second statement after ; would ride along into exec. */
+export function isSingleStatement(sql) {
+  let inString = false;
+  for (let i = 0; i < sql.length; i++) {
+    const ch = sql[i];
+    if (ch === "'") inString = !inString;
+    else if (ch === ';' && !inString && sql.slice(i + 1).trim().length > 0) return false;
+  }
+  return true;
+}
+
 export function classifyChange(changeSql) {
+  if (!isSingleStatement(changeSql)) return { kind: 'unsupported', reason: 'multi-statement SQL is rejected' };
   const del = DELETE_RE.exec(changeSql);
   if (del) return { kind: 'delete', table: del[1].toLowerCase(), predicate: del[2]?.trim() ?? null };
   const add = ADD_COL_RE.exec(changeSql);
@@ -42,6 +74,12 @@ async function columnNames(db, table) {
     SELECT column_name FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = '${table}' ORDER BY ordinal_position`);
   return rows.map((r) => r.column_name);
+}
+
+export function hashRowContent(rows, cols) {
+  const h = createHash('sha256');
+  for (const r of rows) h.update(cols.map((c) => String(r[c] ?? '')).join('\u0000') + '\n');
+  return h.digest('hex');
 }
 
 export function hashPkSet(pks) {
@@ -77,10 +115,14 @@ export async function simulateChange(db, changeSql, { onProgress = () => {} } = 
     });
     const record = {
       simulation_id: id, change_sql: changeSql, kind: 'reversible',
-      verdict: 'REVERSIBLE — additive change; auto down-migration drops the new column',
+      verdict: 'REVERSIBLE — additive change; down-migration drops the new column (verified on shadow before commit)',
       tables: [{ name: change.table, delta: 0, edge: null, note: `+ column ${change.column}` }],
-      undo: { sql: undoSql, verified: false, token: null },
+      // Reversible changes get NO free pass: the token exists but verified stays false
+      // until verify_undo actually runs the up+down migration on the shadow DB
+      // (Qodo PR1#5/#6, PR3#1).
+      undo: { sql: undoSql, verified: false, token: randomUUID() },
       fingerprint: null, duration_ms: Date.now() - t0, started_at: startedAt, committed: false,
+      policy: null,
     };
     simulations.set(id, record);
     persist(record);
@@ -105,6 +147,8 @@ export async function simulateChange(db, changeSql, { onProgress = () => {} } = 
     const joinPathTo = buildJoinPaths(change.table, hops);
     const tables = [{ name: change.table, delta: doomedPks.length, edge: null, onDelete: null }];
     const snapshots = new Map();
+    const setNullPatches = []; // { table, column, rows: [{ id, value }] } — restored by the undo
+    const cascadeFingerprints = {}; // per-CASCADE-table affected PK hashes (drift coverage)
     snapshots.set(change.table, await tx.rows(`SELECT * FROM ${change.table} ${where} ORDER BY ${pk}`));
     for (const [table, path] of joinPathTo) {
       const joins = path.map((e, i) => {
@@ -117,7 +161,18 @@ export async function simulateChange(db, changeSql, { onProgress = () => {} } = 
       const n = Number(cntRows[0].n);
       tables.push({ name: table, delta: kind === 'CASCADE' ? n : 0, affected: n, edge: path.map((e) => e.constraint).join('→'), onDelete: kind });
       if (kind === 'CASCADE' && n > 0) {
-        snapshots.set(table, await tx.rows(`SELECT ${last}.* FROM ${change.table} t0 ${joins} ${where ? `WHERE ${qualify(change.predicate, 't0')}` : ''} ORDER BY ${last}.id`));
+        const probeSql = `SELECT ${last}.id AS pk FROM ${change.table} t0 ${joins} ${where ? `WHERE ${qualify(change.predicate, 't0')}` : ''} ORDER BY ${last}.id`;
+        const rows = await tx.rows(`SELECT ${last}.* FROM ${change.table} t0 ${joins} ${where ? `WHERE ${qualify(change.predicate, 't0')}` : ''} ORDER BY ${last}.id`);
+        snapshots.set(table, rows);
+        // probe_sql re-runs the exact same measurement at commit time (drift coverage).
+        cascadeFingerprints[table] = { count: rows.length, pk_hash: hashPkSet(rows.map((r) => Number(r.id))), probe_sql: probeSql };
+      }
+      if (kind === 'SET NULL' && n > 0) {
+        // Pre-image the references that the delete will null out, so the undo can
+        // restore the relationships, not just the root rows (Qodo PR1#3 / PR2#1).
+        const col = path[path.length - 1].childColumn;
+        const refRows = await tx.rows(`SELECT ${last}.id AS id, ${last}.${col} AS value FROM ${change.table} t0 ${joins} ${where ? `WHERE ${qualify(change.predicate, 't0')}` : ''} ORDER BY ${last}.id`);
+        setNullPatches.push({ table, column: col, rows: refRows.map((r) => ({ id: Number(r.id), value: r.value })) });
       }
       onProgress({ stage: 'measure', table, count: n, onDelete: kind });
     }
@@ -132,7 +187,8 @@ export async function simulateChange(db, changeSql, { onProgress = () => {} } = 
       if (t.onDelete === 'CASCADE' || t.edge === null) t.delta = measured; // trust execution over prediction
     }
 
-    // 4. Generate undo INSERTs from snapshots, parents before children.
+    // 4. Generate the undo: re-INSERT deleted rows (parents before children), then
+    //    restore the references that SET NULL edges cleared.
     const undoStmts = [];
     for (const [table, rows] of snapshots) {
       if (!rows.length) continue;
@@ -142,11 +198,31 @@ export async function simulateChange(db, changeSql, { onProgress = () => {} } = 
         undoStmts.push(`INSERT INTO ${table} (${cols.join(',')}) VALUES ${values}`);
       }
     }
+    for (const patch of setNullPatches) {
+      for (const batch of chunk(patch.rows, 500)) {
+        const cases = batch.map((r) => `WHEN ${r.id} THEN ${sqlLiteral(r.value)}`).join(' ');
+        const ids = batch.map((r) => r.id).join(',');
+        undoStmts.push(`UPDATE ${patch.table} SET ${patch.column} = CASE id ${cases} END WHERE id IN (${ids})`);
+      }
+    }
     const undoSql = undoStmts.join(';\n');
 
-    // 5. Fingerprint the target set as measured.
-    const fingerprint = { count: doomedPks.length, pk_hash: hashPkSet(doomedPks), pk_column: pk, measured_at: new Date().toISOString(), excluded_volatile_columns: [...VOLATILE_COLUMNS] };
-    return { doomedPks, tables, undoSql, fingerprint };
+    // 5. Fingerprint what the human will approve: root PK set, root row CONTENT
+    //    (volatile columns excluded), and each cascade table's affected PK set —
+    //    so added children or edited rows void the approval (Qodo PR1#1/#2).
+    const rootRows = snapshots.get(change.table);
+    const contentCols = Object.keys(rootRows[0] ?? {}).filter((c) => !VOLATILE_COLUMNS.has(c));
+    const fingerprint = {
+      count: doomedPks.length,
+      pk_hash: hashPkSet(doomedPks),
+      content_hash: hashRowContent(rootRows, contentCols),
+      content_columns: contentCols,
+      cascades: cascadeFingerprints,
+      pk_column: pk,
+      measured_at: new Date().toISOString(),
+      excluded_volatile_columns: [...VOLATILE_COLUMNS],
+    };
+    return { doomedPks, tables, undoSql, fingerprint, setNullPatches };
   }); // ROLLBACK — nothing happened to the live database.
 
   const undoToken = randomUUID();

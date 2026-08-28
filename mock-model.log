@@ -1,0 +1,18 @@
+mocksmith (scripted test model) on http://127.0.0.1:8990/v1
+#1 msgs=2 tools=21 -> run_investigation
+   tools: ask_user_question, get_current_datetime, call_tool, get_tool_info, get_tool_output_schema, list_tools, exec, create_sub_agent, commit_change, evaluate_policy, fingerprint_target, fire_undo, list_simulations, measure_actual, run_investigation, simulate_change, verify_undo, add_issue_comment, get_file_contents, list_pull_requests, pull_request_read
+#2 msgs=4 tools=21 -> commit_change
+   tools: ask_user_question, get_current_datetime, call_tool, get_tool_info, get_tool_output_schema, list_tools, exec, create_sub_agent, commit_change, evaluate_policy, fingerprint_target, fire_undo, list_simulations, measure_actual, run_investigation, simulate_change, verify_undo, add_issue_comment, get_file_contents, list_pull_requests, pull_request_read
+#3 msgs=2 tools=21 -> text
+   tools: ask_user_question, get_current_datetime, call_tool, get_tool_info, get_tool_output_schema, list_tools, exec, create_sub_agent, commit_change, evaluate_policy, fingerprint_target, fire_undo, list_simulations, measure_actual, run_investigation, simulate_change, verify_undo, add_issue_comment, get_file_contents, list_pull_requests, pull_request_read
+#4 msgs=2 tools=21 -> run_investigation
+#5 msgs=4 tools=21 -> commit_change
+#6 msgs=6 tools=21 -> measure_actual
+   DEBUG roles: [{"role":"system","tc":0,"keys":["role","content"],"content":"<system-prompt>\n<agent-identity>\nYou are the Agent, an AI assistant that helps u"},{"role":"user","tc":0,"keys":["role","content"],"content":"Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'."},{"role":"assistant","tc":1,"keys":["role","content","tool_calls"],"content":"Order received. Running the governed investigation pipeline: shadow simulation, "},{"role":"tool","tc":0,"keys":["role","tool_call_id","content"],"content":"{\n  \"simulation_id\": \"f26ad8ee\",\n  \"blast_radius\": [\n    {\n      \"name\": \"users\""},{"role":"assistant","tc":1,"keys":["role","content","tool_calls"],"content":"Investigation complete. Blast radius measured: users −6000, orders −17971, payme"},{"role":"tool","tc":0,"keys":["role","tool_call_id","content"],"content":"{\n  \"committed\": true,\n  \"scoped_to\": 6000,\n  \"deleted_root_rows\": 6000,\n  \"rece"},{"role":"assistant","tc":1,"keys":["role","content","tool_calls"],"content":"Commit executed: 6000 root rows removed, scoped to 6000 approved keys. Measuring"},{"role":"tool","tc":0,"keys":["role","tool_call_id","content"],"content":"{\n  \"simulation_
+#7 msgs=8 tools=21 -> text
+#8 msgs=2 tools=21 -> run_investigation
+#9 msgs=4 tools=21 -> commit_change
+   DEBUG roles: [{"role":"system","tc":0,"keys":["role","content"],"content":"<system-prompt>\n<agent-identity>\nYou are the Agent, an AI assistant that helps u"},{"role":"user","tc":0,"keys":["role","content"],"content":"Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'."},{"role":"assistant","tc":1,"keys":["role","content","tool_calls"],"content":"Order received. Running the governed investigation pipeline: shadow simulation, "},{"role":"tool","tc":0,"keys":["role","tool_call_id","content"],"content":"{\n  \"simulation_id\": \"f7376973\",\n  \"blast_radius\": [\n    {\n      \"name\": \"users\""},{"role":"assistant","tc":1,"keys":["role","content","tool_calls"],"content":"Investigation complete. Blast radius measured: users −6000, orders −17971, payme"},{"role":"tool","tc":0,"keys":["role","tool_call_id","content"],"content":"{\n  \"refused\": true,\n  \"code\": \"fingerprint_drift\",\n  \"message\": \"Approval void "}]
+#10 msgs=6 tools=21 -> text
+#11 msgs=2 tools=21 -> run_investigation
+#12 msgs=4 tools=21 -> commit_change
