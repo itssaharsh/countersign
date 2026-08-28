@@ -26,8 +26,8 @@ non-blocked item. Never push to main directly after PR#1 (scaffold).
 - [ ] Night: pre-record happy-path video take
 
 ## Backlog (Day 3)
-- [ ] MATCH control case + drift demo choreography (fixtures + live)
-- [ ] Reconnect insert; subagent lanes if stable
+- [x] MATCH control case + drift demo choreography (fixtures + live)
+- [x] Reconnect insert; subagent lanes if stable
 - [ ] README (setup, Qodo evidence, AI disclosure, PITR answer, prior-art line) + docs/EXPLAIN.md final
 - [ ] Record all takes → Descript edit → final video link
 - [ ] Follow-up Qodo review on final code; submit by 10 PM IST
