@@ -1,0 +1,6 @@
+# Countersign policy — evaluated by deterministic code, never by a model.
+max_rows_deleted: 50000
+protected_tables:
+  - audit_log
+  - invoices
+require_verified_undo: true

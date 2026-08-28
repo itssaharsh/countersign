@@ -1,0 +1,23 @@
+{
+  "simulation_id": "efca8905",
+  "change_sql": "ALTER TABLE users ADD COLUMN marketing_opt_out boolean NOT NULL DEFAULT false",
+  "kind": "reversible",
+  "verdict": "REVERSIBLE — additive change; auto down-migration drops the new column",
+  "tables": [
+    {
+      "name": "users",
+      "delta": 0,
+      "edge": null,
+      "note": "+ column marketing_opt_out"
+    }
+  ],
+  "undo": {
+    "sql": "ALTER TABLE users DROP COLUMN marketing_opt_out",
+    "verified": false,
+    "token": null
+  },
+  "fingerprint": null,
+  "duration_ms": 50,
+  "started_at": "2026-08-28T09:56:10.385Z",
+  "committed": false
+}

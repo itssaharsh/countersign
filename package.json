@@ -1,0 +1,13 @@
+{
+  "name": "countersign",
+  "private": true,
+  "version": "0.1.0",
+  "description": "The approval layer for destructive database changes — built on TrueForge",
+  "license": "MIT",
+  "workspaces": ["server", "console", "agent"],
+  "scripts": {
+    "seed": "node db/seed.mjs",
+    "server": "npm run dev -w server",
+    "e2e": "node agent/e2e.mjs"
+  }
+}
