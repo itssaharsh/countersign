@@ -36,7 +36,10 @@ const state = {
   backends: describeBackends(),
 };
 mkdirSync('fixtures', { recursive: true });
+mkdirSync('console/public/fixtures', { recursive: true });
 writeFileSync('fixtures/state-investigating.json', JSON.stringify(state, null, 2));
+// Published copy: the console's zero-key replay mode serves /fixtures/*.json from here.
+writeFileSync('console/public/fixtures/state-investigating.json', JSON.stringify(state, null, 2));
 console.log('fixture written:', state.simulations.length, 'sims —',
   state.simulations[0].tables.slice(0, 3).map((t) => `${t.name}:${t.delta}`).join(' '));
 process.exit(0);

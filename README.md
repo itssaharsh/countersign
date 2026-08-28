@@ -66,7 +66,7 @@ bypassing the button changes nothing.
 ```bash
 git clone https://github.com/itssaharsh/countersign && cd countersign
 npm install
-npm run dev -w console      # → http://localhost:5199/?replay=/fixtures-state-witnessing.json
+npm run dev -w console      # → http://localhost:5199/?replay=/fixtures/state-witnessing.json
 ```
 
 ### Full live setup (~15 min)
