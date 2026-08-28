@@ -80,7 +80,10 @@ function decide(messages, tools) {
       // get_files result: the patch carries the migration's added lines — extract
       // the statement straight from the diff (the PR-native artifact).
       const pathHit = last.text.match(/([\w\/.-]+\.sql)/);
-      const patchSql = last.text.match(/\+\s*((?:DELETE\s+FROM|ALTER\s+TABLE).+?)(?:;|\\n)/i);
+      // Join added-line continuations (\n+ in the JSON-escaped diff) so multi-line
+      // statements survive extraction intact (Qodo PR6#2).
+      const joined = last.text.replace(/\\n\+(?!\+)/g, ' ');
+      const patchSql = joined.match(/\+\s*((?:DELETE\s+FROM|ALTER\s+TABLE).+?)(?:;|\\n)/i);
       if (patchSql) {
         let changeSql = patchSql[1].trim();
         // The diff arrives JSON-encoded (e.g. \u003c for <) — decode the escapes.
@@ -131,6 +134,8 @@ function decide(messages, tools) {
     }
     if (n.endsWith('measure_actual')) {
       const prNum = Number(findInHistory(messages, /"pullNumber"\s*:\s*(\d+)/)?.[1] ?? (pr?.number ?? 0));
+      const prOwner = findInHistory(messages, /"owner"\s*:\s*"([\w-]+)"/)?.[1] ?? pr?.owner ?? 'itssaharsh';
+      const prRepo = findInHistory(messages, /"repo"\s*:\s*"([\w-]+)"/)?.[1] ?? pr?.repo ?? 'countersign';
       if (prNum) {
         const inv = findParsedInHistory(messages, 'run_investigation');
         const tick = String.fromCharCode(96);
@@ -151,7 +156,7 @@ function decide(messages, tools) {
           '',
           '_We only delete what we can prove we can restore._',
         ].join('\n');
-        return { tool: toolName(tools, 'add_issue_comment'), args: { owner: 'itssaharsh', repo: 'countersign', issue_number: prNum, body },
+        return { tool: toolName(tools, 'add_issue_comment'), args: { owner: prOwner, repo: prRepo, issue_number: prNum, body },
           preface: 'Posting the receipt back to the pull request, where reviewers live.' };
       }
       return { text: `RECEIPT — measured after execution: ${last.text.slice(0, 400)}\nThe verified undo remains armed. We only delete what we can prove we can restore.` };
