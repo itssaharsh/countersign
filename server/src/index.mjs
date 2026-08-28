@@ -11,9 +11,10 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
 import { live, shadow, describeBackends } from './db.mjs';
-import { simulateChange, simulations, publicView } from './simulate.mjs';
+import { simulateChange, simulations, publicView, restoreSimulations } from './simulate.mjs';
 import { verifyUndo, commitChange, fireUndo, measureActual, checkDrift, recordPolicy } from './verify.mjs';
 import { evaluatePolicy } from './policy.mjs';
+import { schemaSql, seedSql } from '../../db/schema.mjs';
 
 const PORT = Number(process.env.COUNTERSIGN_PORT ?? 8977);
 
@@ -29,6 +30,32 @@ function buildServer() {
     const db = await live();
     const result = await simulateChange(db, change_sql);
     return json(result);
+  });
+
+  mcp.registerTool('run_investigation', {
+    title: 'Run the full Countersign investigation pipeline',
+    description: 'One governed call: simulate the change in a shadow transaction (measured blast radius + generated undo + fingerprint), verify the undo against committed shadow state, and evaluate policy deterministically. Returns the three proofs and, when all pass, the undo_token needed for commit_change. Nothing is committed.',
+    inputSchema: { change_sql: z.string().describe('The DELETE or ALTER TABLE statement to investigate') },
+    annotations: { readOnlyHint: true },
+  }, async ({ change_sql }) => {
+    const liveDb = await live();
+    const sim = await simulateChange(liveDb, change_sql);
+    if (sim.error) return json(sim);
+    const undoReport = await verifyUndo(await shadow(), sim.simulation_id);
+    const rec = simulations.get(sim.simulation_id);
+    const verdict = evaluatePolicy({ tables: rec.tables, undo: rec.undo });
+    recordPolicy(sim.simulation_id, verdict);
+    return json({
+      simulation_id: sim.simulation_id,
+      blast_radius: sim.tables,
+      fingerprint: sim.fingerprint,
+      undo: undoReport,
+      policy: verdict,
+      ready_to_commit: Boolean(undoReport.verified) && verdict.verdict === 'PASS',
+      next_step: undoReport.verified && verdict.verdict === 'PASS'
+        ? `call commit_change with simulation_id=${sim.simulation_id} and the undo_token`
+        : 'blocked — do not call commit_change',
+    });
   });
 
   mcp.registerTool('verify_undo', {
@@ -101,12 +128,63 @@ function json(obj) { return { content: [{ type: 'text', text: JSON.stringify(obj
 // --- HTTP wiring (stateful streamable HTTP; one transport per MCP session) ---
 const transports = new Map();
 
+// Only the local console may call this server from a browser; a wildcard here
+// would let any website drive the tools through a visitor's browser (Qodo PR2#4).
+const ALLOWED_ORIGINS = new Set((process.env.COUNTERSIGN_ALLOWED_ORIGINS ?? 'http://localhost:5199,http://127.0.0.1:5199').split(','));
+
 const httpServer = createServer(async (req, res) => {
-  // CORS for the local console (read-only state + MCP preflight).
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin ?? '*');
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.has(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Mcp-Session-Id, Last-Event-ID, Mcp-Protocol-Version');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   if (req.method === 'OPTIONS') { res.writeHead(204).end(); return; }
+  if (req.url?.startsWith('/admin/')) {
+    // Admin routes rewrite the databases: localhost binding is the outer wall,
+    // an optional shared secret is the inner one (Qodo PR3#3).
+    const required = process.env.COUNTERSIGN_ADMIN_TOKEN;
+    if (required && req.headers['x-admin-token'] !== required) {
+      res.writeHead(403).end(JSON.stringify({ error: 'admin token required' }));
+      return;
+    }
+  }
+  if (req.url === '/admin/reseed' && req.method === 'POST') {
+    // Reset both databases to the deterministic seed — through THIS process's own
+    // handles (a second process must never attach to a PGlite dir; that corrupts it).
+    try {
+      for (const dbp of [live(), shadow()]) {
+        const db = await dbp;
+        const tables = await db.rows(`SELECT tablename FROM pg_tables WHERE schemaname='public'`);
+        for (const t of tables) await db.exec(`DROP TABLE IF EXISTS ${t.tablename} CASCADE`);
+        for (const q of schemaSql()) await db.exec(q);
+        for (const q of seedSql()) await db.exec(q);
+      }
+      simulations.clear();
+      res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ reseeded: true }));
+    } catch (err) {
+      res.writeHead(500).end(JSON.stringify({ error: String(err.message ?? err) }));
+    }
+    return;
+  }
+  if (req.url === '/admin/drift' && req.method === 'POST') {
+    // Dev-mode drift injection (PGlite owns the dir, so out-of-band writers route here).
+    // In the Postgres demo, drift comes from a genuinely separate process (tools/drift-writer.mjs).
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    let rows = 40;
+    try { rows = JSON.parse(body || '{}').rows ?? 40; } catch { /* malformed body defaults to 40 (Qodo PR3#2) */ }
+    try {
+      const db = await live();
+      const maxRow = await db.rows('SELECT coalesce(max(id),0) AS m FROM users');
+      const base = Number(maxRow[0].m) + 1;
+      const values = Array.from({ length: rows }, (_, i) =>
+        `(${base + i},'drift${base + i}@example.test','Drift User','2024-06-15')`).join(',');
+      await db.exec(`INSERT INTO users (id,email,full_name,last_active) VALUES ${values}`);
+      res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ inserted: rows, first_id: base }));
+    } catch (err) {
+      res.writeHead(500).end(JSON.stringify({ error: String(err.message ?? err) }));
+    }
+    return;
+  }
   if (req.url === '/state') {
     // Read-only engine truth for the console's evidence panel. No credentials, no SQL.
     const sims = [...simulations.values()].map((s) => ({
@@ -140,6 +218,8 @@ const httpServer = createServer(async (req, res) => {
 });
 
 httpServer.listen(PORT, '127.0.0.1', () => {
+  const restored = restoreSimulations();
   console.log(`countersign MCP server on http://127.0.0.1:${PORT}/mcp`);
   console.log('backends:', JSON.stringify(describeBackends()));
+  if (restored) console.log(`restored ${restored} persisted simulations (verified undo tokens survive restarts)`);
 });

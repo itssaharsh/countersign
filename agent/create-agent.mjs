@@ -5,8 +5,14 @@
 import { readFileSync } from 'node:fs';
 
 const BASE = process.env.TRUEFORGE_BASE_URL ?? 'http://localhost:8790';
+// --mock switches the agent to the zero-credit scripted model (tools/mock-model.mjs);
+// --real switches back to the configured Gemini model for demo runs.
+const MOCK = process.argv.includes('--mock');
+const REAL = process.argv.includes('--real');
 const specPath = new URL('./spec.json', import.meta.url);
 const spec = JSON.parse(readFileSync(specPath, 'utf8'));
+if (MOCK) spec.manifest.model = { name: 'mocksmith/scripted-1' };
+if (REAL) spec.manifest.model = { name: 'google-gemini/gemini-3-6-flash', params: { temperature: 0.1 } };
 if (spec.manifest.instructions?.startsWith('@')) {
   spec.manifest.instructions = readFileSync(new URL('../' + spec.manifest.instructions.slice(1), import.meta.url), 'utf8');
 }
