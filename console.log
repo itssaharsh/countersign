@@ -67,3 +67,4 @@ If you want to write it to the DOM, pass a string instead: inert="true" or inert
 1:23:41 PM [vite] (client) hmr update /src/index.css, /src/CountersignLayout.tsx
 1:23:41 PM [vite] (client) hmr update /src/index.css, /src/CountersignLayout.tsx
 1:23:41 PM [vite] (client) hmr update /src/index.css, /src/components/Gate.tsx
+1:29:52 PM [vite] (client) hmr update /src/index.css, /src/CountersignLayout.tsx

@@ -139,9 +139,12 @@ export async function commitChange(liveDb, { simulation_id, undo_token }) {
     }, { commit: true });
     if (executed.drift) {
       const d = executed.drift;
+      const setChanged = d.added.length || d.removed.length;
       const why = [
-        d.added.length || d.removed.length ? `root set +${d.added.length}/-${d.removed.length}` : null,
-        !d.content_fresh ? 'approved rows were edited' : null,
+        setChanged ? `root set +${d.added.length}/-${d.removed.length}` : null,
+        // Content-edit wording only when the SET is unchanged — otherwise the set
+        // change already explains the content hash difference.
+        !setChanged && !d.content_fresh ? 'approved rows were edited' : null,
         d.cascade_drift?.length ? `cascade children changed in ${d.cascade_drift.map((c) => c.table).join(', ')}` : null,
       ].filter(Boolean).join('; ');
       return refuse('fingerprint_drift', `Approval void — ${why}. Nothing was deleted; re-measure.`, { drift: { added: d.added.slice(0, 20), removed: d.removed.slice(0, 20), cascade_drift: d.cascade_drift, content_fresh: d.content_fresh, now_count: d.now_count } });
