@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* ── Countersign HUD theme ─────────────────────────────────────────────── */
+:root {
+  --cs-bg: #06090c;
+  --cs-panel: #0b1117;
+  --cs-panel-2: #0e161e;
+  --cs-line: #1c2a36;
+  --cs-text: #c7d5df;
+  --cs-dim: #61788a;
+  --cs-amber: #ffb454;
+  --cs-red: #ff5d5d;
+  --cs-green: #5dffa3;
+  --cs-cyan: #54d7ff;
+  --cs-mono: "JetBrains Mono", ui-monospace, monospace;
+  --cs-hud: "Share Tech Mono", ui-monospace, monospace;
+  --cs-stamp: "Special Elite", serif;
+}
+
+html, body, #root { height: 100%; }
+body {
+  background: var(--cs-bg);
+  color: var(--cs-text);
+  font-family: var(--cs-mono);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -10%, #0d1a2422, transparent),
+    repeating-linear-gradient(0deg, transparent 0 2px, #ffffff03 2px 4px);
+}
+
+.cs-panel {
+  background: linear-gradient(180deg, var(--cs-panel-2), var(--cs-panel));
+  border: 1px solid var(--cs-line);
+  clip-path: polygon(0 10px, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+.cs-title { font-family: var(--cs-hud); letter-spacing: .18em; }
+.cs-stamp { font-family: var(--cs-stamp); }
+.cs-scan { position: relative; overflow: hidden; }
+.cs-scan::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, #54d7ff0a 50%, transparent 100%);
+  animation: cs-scanline 5s linear infinite;
+}
+@keyframes cs-scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+@keyframes cs-blink { 50% { opacity: .35; } }
+.cs-blink { animation: cs-blink 1.1s steps(2) infinite; }
+@keyframes cs-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.cs-bar { transform-origin: left; animation: cs-grow .8s cubic-bezier(.2,.8,.2,1) both; }
+
+/* TrueForge chat lives inside the mission feed panel */
+.cs-thread-host { --font-agent-ui: var(--cs-mono); }
