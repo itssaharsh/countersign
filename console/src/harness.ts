@@ -153,6 +153,29 @@ export function useHarness() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Deterministic replay of a recorded event stream (?replayEvents=/fixtures/real-run.jsonl):
+  // the same reducer the live stream uses, fed from a file — judge mode for real-model runs.
+  useEffect(() => {
+    const src = new URLSearchParams(window.location.search).get('replayEvents')
+    if (!src) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const text = await (await fetch(src)).text()
+        const lines = text.split('\n').filter(Boolean)
+        upsertFeed({ kind: 'system', id: 'replay', text: `⟲ replaying ${lines.length} recorded harness events from ${src}` })
+        setRunning(true)
+        for (const line of lines) {
+          if (cancelled) return
+          consume(JSON.parse(line))
+          await new Promise((r) => setTimeout(r, 12))
+        }
+      } finally { setRunning(false) }
+    })()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const send = useCallback((text: string) => {
     upsertFeed({ kind: 'user', id: `u-${Date.now()}`, text })
     void stream([{ type: 'user.message', content: text }])
@@ -189,5 +212,18 @@ function unwrapCall(name: string, args: Record<string, unknown>): { name: string
 
 function safeParse(s: unknown): Record<string, unknown> {
   if (typeof s !== 'string') return {}
-  try { return JSON.parse(s) } catch { return {} }
+  try { return JSON.parse(s) } catch { /* fall through */ }
+  // Recovery: if a merged stream ever yields the arguments JSON twice back-to-back
+  // ({...}{...}), parse the first complete object.
+  const start = s.indexOf('{')
+  if (start < 0) return {}
+  let depth = 0, inStr = false, esc = false
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i]
+    if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue }
+    if (ch === '"') inStr = true
+    else if (ch === '{') depth++
+    else if (ch === '}') { depth--; if (depth === 0) { try { return JSON.parse(s.slice(start, i + 1)) } catch { return {} } } }
+  }
+  return {}
 }
