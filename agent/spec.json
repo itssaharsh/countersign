@@ -2,9 +2,11 @@
   "name": "countersign",
   "manifest": {
     "model": {
-      "name": "google-gemini/gemini-3-6-flash",
+      "name": "groq/gpt-oss-120b",
       "params": {
-        "temperature": 0.1
+        "temperature": 0.1,
+        "max_tokens": 2048,
+        "reasoning_effort": "low"
       }
     },
     "instructions": "@agent/instructions.md",
@@ -18,7 +20,7 @@
           "commit_change",
           "fire_undo"
         ],
-        "preload": true
+        "preload": false
       },
       {
         "name": "github",
@@ -29,7 +31,7 @@
           "add_issue_comment"
         ],
         "require_approval_for_tools": [],
-        "preload": true
+        "preload": false
       }
     ],
     "config": {

@@ -11,7 +11,7 @@ console.log('order transmitted');
 // Gemini free tier is 5 req/min — on a stream error, nudge the agent to continue.
 for (let attempt = 0; attempt < 5; attempt++) {
   try {
-    await page.waitForSelector('text=HUMAN GATE', { timeout: 90000 });
+    await page.waitForSelector('text=HUMAN GATE', { timeout: 180000 });
     break;
   } catch {
     const errVisible = await page.locator('text=stream error').first().isVisible().catch(() => false);
@@ -21,12 +21,12 @@ for (let attempt = 0; attempt < 5; attempt++) {
     await page.click('button:has-text("SEND")');
   }
 }
-await page.waitForSelector('text=HUMAN GATE', { timeout: 120000 });
+await page.waitForSelector('text=HUMAN GATE', { timeout: 300000 });
 await page.waitForTimeout(800);
 await page.screenshot({ path: `${dir}/phase-deciding.png` });
 console.log('gate armed — countersigning…');
 await page.click('button:has-text("COUNTERSIGN & COMMIT")');
-await page.waitForSelector('text=EXECUTION LEDGER', { timeout: 300000 });
+await page.waitForSelector('text=EXECUTION LEDGER', { timeout: 480000 });
 await page.waitForTimeout(1500);
 await page.screenshot({ path: `${dir}/phase-witnessing.png` });
 console.log('WITNESSING captured');

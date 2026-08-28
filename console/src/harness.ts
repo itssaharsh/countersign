@@ -57,6 +57,9 @@ export function useHarness() {
       return
     }
     events.set(event.id, event)
+    if (event.type === 'turn.done' && event.state?.status === 'error') {
+      upsertFeed({ kind: 'system', id: `turnerr-${event.id}`, text: `turn error: ${String(event.state?.message ?? '').slice(0, 300)}` })
+    }
     switch (event.type) {
       case 'model.message': {
         upsertFeed({ kind: 'assistant', id: event.id, threadId: event.threadId ?? 'main', text: event.content ?? '', streaming: false })
