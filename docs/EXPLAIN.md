@@ -59,6 +59,20 @@ still exist and are listed for step-by-step operation.
 - The policy verdict prints its scope: row deltas, protected tables, undo, RESTRICT
   edges — NOT grants/triggers/sequences.
 
+### Key rotor (tools/key-rotor.mjs) and the lean real-model profile
+A local pass-through in front of Groq's OpenAI-compatible API. Why it exists: free tiers
+are per-key rate/quota limited (8k TPM on gpt-oss-120b), and Groq counts `max_tokens`
+against TPM. The rotor fails over across up to three keys on 401/402/413/429, promotes
+the healthy key, waits out a throttled minute before the next cycle, times out hung
+upstreams, and strips the assistant `reasoning_content` echo TrueForge sends back in
+history (Groq rejects it — a genuine TrueForge↔Groq incompatibility). Keys live only in
+a gitignored `.env`; TrueForge sees a dummy key and a localhost base URL. The `--real`
+agent profile is deliberately lean (one preloaded server, no sandbox/subagent guidance,
+max_tokens 2048, low reasoning effort) so a full approval loop fits the budget; `--mock`
+keeps the full-capability profile for choreography. Judge question: "isn't the mock
+cheating?" Answer: mocksmith is a scripted *test driver* that exercises the real harness,
+tools and gates; the recorded demo runs the real model, and the README says so.
+
 ## 3. TrueForge usage map (Double-O track answers)
 - MCP tools: custom countersign server + shipped github (PR fetch, receipt comment)
   + supabase connector planned for independent post-commit verification.

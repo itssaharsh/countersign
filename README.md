@@ -77,11 +77,14 @@ node server/src/index.mjs                                          # countersign
 npx @truefoundry/trueforge@latest                                  # TrueForge :8790
 ```
 Then in TrueForge (http://localhost:8790):
-1. **Settings → Models** — add a provider key (Gemini free tier works; expect its 5 req/min limit).
+1. **Settings → Models** — add a provider. Two paths:
+   - *Any provider from the catalog* (OpenAI/Anthropic/Gemini) with its API key, then `node agent/create-agent.mjs` with the model name set in `agent/spec.json`.
+   - *Groq free tier via the key rotor* (what the demo used): put `GROQ_KEY_A`/`GROQ_KEY_B`/`GROQ_KEY_C` in a local `.env` (gitignored), run `node tools/key-rotor.mjs` (localhost:8991 — fails over between keys, strips the `reasoning_content` echo Groq rejects), add a **custom** provider in TrueForge with base URL `http://127.0.0.1:8991/v1`, model id `openai/gpt-oss-120b`, name `gpt-oss-120b`, then `node agent/create-agent.mjs --real` (lean profile sized for an 8k-TPM tier).
 2. **Settings → Connectors → Add MCP Server** — `http://127.0.0.1:8977/mcp`, name `countersign`
    (or launch TrueForge with `MCP_CATALOG_PATH=$PWD/catalog/mcp-catalog.yaml` for the one-click preset).
-3. `node agent/create-agent.mjs` — creates the `countersign` agent (pins the API-only
-   `require_approval_for_tools: ["commit_change","fire_undo"]`).
+3. `node agent/create-agent.mjs [--real | --mock]` — creates the `countersign` agent (pins the API-only
+   `require_approval_for_tools: ["commit_change","fire_undo"]`). `--mock` points it at `tools/mock-model.mjs`,
+   a scripted zero-credit driver for rehearsals; the recorded demo runs the real model.
 4. `npm run dev -w console` → http://localhost:5199 → transmit:
    *"Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'"*
 5. Watch the evidence board fill, the gate arm, and TrueForge pause. The decision is yours.

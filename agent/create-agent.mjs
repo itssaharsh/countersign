@@ -12,7 +12,16 @@ const REAL = process.argv.includes('--real');
 const specPath = new URL('./spec.json', import.meta.url);
 const spec = JSON.parse(readFileSync(specPath, 'utf8'));
 if (MOCK) spec.manifest.model = { name: 'mocksmith/scripted-1' };
-if (REAL) spec.manifest.model = { name: 'google-gemini/gemini-3-6-flash', params: { temperature: 0.1 } };
+if (REAL) {
+  // Lean demo profile for TPM-limited free tiers: one preloaded server, no
+  // discovery hops, no sandbox/subagent guidance. Same product, fewer calls.
+  spec.manifest.model = { name: 'groq/gpt-oss-120b', params: { temperature: 0.1, max_tokens: 2048, reasoning_effort: 'low' } };
+  spec.manifest.mcp_servers = [
+    { name: 'countersign', enable_tools: ['@all'], require_approval_for_tools: ['commit_change', 'fire_undo'], preload: true },
+  ];
+  spec.manifest.skills = [];
+  spec.manifest.config = { ...spec.manifest.config, sandbox: { enabled: false }, dynamic_sub_agents: { enabled: false }, ask_user_questions: { enabled: false }, generative_ui: { enabled: false } };
+}
 if (spec.manifest.instructions?.startsWith('@')) {
   spec.manifest.instructions = readFileSync(new URL('../' + spec.manifest.instructions.slice(1), import.meta.url), 'utf8');
 }
