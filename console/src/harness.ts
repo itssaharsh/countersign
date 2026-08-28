@@ -179,5 +179,18 @@ export function useHarness() {
 
 function safeParse(s: unknown): Record<string, unknown> {
   if (typeof s !== 'string') return {}
-  try { return JSON.parse(s) } catch { return {} }
+  try { return JSON.parse(s) } catch { /* fall through */ }
+  // Recovery: with some providers the SDK's delta merge yields the arguments JSON
+  // twice back-to-back ({...}{...}). Parse the first complete object.
+  const start = s.indexOf('{')
+  if (start < 0) return {}
+  let depth = 0, inStr = false, esc = false
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i]
+    if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue }
+    if (ch === '"') inStr = true
+    else if (ch === '{') depth++
+    else if (ch === '}') { depth--; if (depth === 0) { try { return JSON.parse(s.slice(start, i + 1)) } catch { return {} } } }
+  }
+  return {}
 }
