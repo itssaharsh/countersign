@@ -47,41 +47,54 @@ const server = createServer(async (req, res) => {
   // Up to 3 cycles over the key ring; when a whole cycle throttles, wait out the
   // per-minute window before the next cycle instead of failing the turn.
   const MAX_CYCLES = 3;
+  let lastThrottled = null;
   for (let cycle = 0; cycle < MAX_CYCLES; cycle++) {
-  if (cycle > 0) { console.log(`all keys throttled; waiting 20s (cycle ${cycle + 1}/${MAX_CYCLES})`); await new Promise((r) => setTimeout(r, 20000)); }
-  for (let attempt = 0; attempt < keys.length; attempt++) {
-    const key = keys[attempt];
-    let upstream;
-    try {
-      upstream = await fetch(url, {
-        method: req.method,
-        headers: { 'Content-Type': req.headers['content-type'] ?? 'application/json', Authorization: `Bearer ${key}` },
-        body,
-      });
-    } catch (err) {
-      console.error(`upstream error (key ${attempt + 1}):`, String(err.message ?? err).slice(0, 120));
-      continue;
-    }
-    if (FAILOVER_STATUS.has(upstream.status) && attempt < keys.length - 1) {
-      console.log(`key ${attempt + 1} -> ${upstream.status}; failing over`);
-      continue;
-    }
-    if (!FAILOVER_STATUS.has(upstream.status) && attempt > 0) {
-      keys = [...keys.slice(attempt), ...keys.slice(0, attempt)]; // promote the healthy key
-      console.log('promoted fallback key to primary');
-    }
-    res.writeHead(upstream.status, { 'Content-Type': upstream.headers.get('content-type') ?? 'application/json' });
-    if (upstream.body) {
-      const reader = upstream.body.getReader();
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        res.write(value);
+    if (cycle > 0) { console.log(`all keys throttled; waiting 20s (cycle ${cycle + 1}/${MAX_CYCLES})`); await new Promise((r) => setTimeout(r, 20000)); }
+    // Snapshot the ring per request: concurrent requests may promote keys mid-flight
+    // (Qodo PR7#2) — each request walks its own consistent order.
+    const ring = [...keys];
+    for (let attempt = 0; attempt < ring.length; attempt++) {
+      const key = ring[attempt];
+      let upstream;
+      try {
+        upstream = await fetch(url, {
+          method: req.method,
+          headers: { 'Content-Type': req.headers['content-type'] ?? 'application/json', Authorization: `Bearer ${key}` },
+          body,
+          signal: AbortSignal.timeout(120000), // a hung upstream must not block failover (Qodo PR7#5)
+        });
+      } catch (err) {
+        console.error(`upstream error (key ${attempt + 1}):`, String(err.message ?? err).slice(0, 120));
+        continue;
       }
+      if (FAILOVER_STATUS.has(upstream.status)) {
+        // Every throttled key — including the last one — yields to the next key or
+        // the next cycle; only after all cycles do we forward the failure (Qodo PR7#1).
+        console.log(`key ${attempt + 1} -> ${upstream.status}; failing over`);
+        lastThrottled = upstream;
+        continue;
+      }
+      if (key !== keys[0]) {
+        const i = keys.indexOf(key);
+        if (i > 0) { keys = [...keys.slice(i), ...keys.slice(0, i)]; console.log('promoted healthy key to primary'); }
+      }
+      res.writeHead(upstream.status, { 'Content-Type': upstream.headers.get('content-type') ?? 'application/json' });
+      if (upstream.body) {
+        const reader = upstream.body.getReader();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          res.write(value);
+        }
+      }
+      res.end();
+      return;
     }
-    res.end();
-    return;
   }
+  if (lastThrottled) {
+    res.writeHead(lastThrottled.status, { 'Content-Type': lastThrottled.headers.get('content-type') ?? 'application/json' });
+    res.end(await lastThrottled.text().catch(() => ''));
+    return;
   }
   res.writeHead(502).end(JSON.stringify({ error: 'all keys failed after retries' }));
 });
