@@ -12,11 +12,11 @@ I do not know. And I am the safety layer. This is not a control. It is a consent
 SAY: "Countersign fixes this. It runs the change first, on a copy. It measures what dies.
 It proves the undo. Only then, the Allow button exists."
 
-[0:32–1:10] THE RUN — screen: PR opens; agent starts; cascade tree grows live; undo check on
-shadow DB; policy PASS.
+[0:32–1:10] THE RUN — screen: PR #4 opens; agent extracts the migration from the diff; cascade
+tree grows live; undo check on shadow DB; policy PASS (+ sandbox re-verification line).
 SAY: "A migration lands in a pull request. The TrueForge agent picks it up. It runs the delete
-inside a shadow transaction. These are real MCP tools. Watch the blast radius. Twelve thousand
-users. They pull forty-eight thousand orders. Orders pull fifty-one thousand payments. Every arrow
+inside a shadow transaction. These are real MCP tools. Watch the blast radius. Six thousand
+users. They pull eighteen thousand orders. Orders pull nineteen thousand payments. Every arrow
 is a real foreign key. Next, the undo. Countersign restores a second database, and checks every
 row came back. Same keys. Proven. Last, the policy check runs as code. The model proposes.
 Only code approves."
@@ -38,8 +38,11 @@ approval event. I approve. The commit runs on the live database. Look — the ro
 was real. Now the armed undo. Fire. Count them again. Every row is back. Same keys. That is the
 whole promise: we only delete what we can prove we can restore."
 
-[2:35–3:00] RECEIPT + CLOSE — screen: receipt comment lands on the PR; repo; disclosure line;
-(optional 3s: our filed TrueForge issue).
+[2:35–3:00] RECEIPT + CLOSE — screen: the REAL receipt comment on PR #4; repo; disclosure
+line; 3s flash: our upstream contribution on truefoundry/trueforge#482.
+OPTIONAL INSERT (8s, after 1:10): the reconnect beat — kill the tab mid-run, reopen,
+'reconnected to running turn', the gate still arms. SAY: 'And if I close the tab? The
+session survives. TrueForge holds the run; the console just re-attaches.'
 SAY: "The receipt posts to the pull request, where reviewers live. Every project this week ships
 an Allow button. Countersign is the button that shows you the consequence — before you sign.
 Built solo in three days, with AI assistance, disclosed in the repo. Thank you."
