@@ -16,7 +16,12 @@ for (let attempt = 0; attempt < 5; attempt++) {
   } catch {
     const errVisible = await page.locator('text=stream error').first().isVisible().catch(() => false);
     console.log(`gate not yet (attempt ${attempt + 1}); stream error visible: ${errVisible} — waiting out quota + nudging`);
-    await page.waitForTimeout(45000);
+    // Poll for the gate while waiting — never nudge over a pause that has already arrived.
+    let seen = false;
+    for (let i = 0; i < 12 && !seen; i++) { await page.waitForTimeout(5000); seen = await page.locator('text=HUMAN GATE').first().isVisible().catch(() => false); }
+    if (seen) break;
+    const busy = await page.locator('text=HARNESS RUNNING').first().isVisible().catch(() => false);
+    if (busy) continue; // the turn is still working — give it another window
     await page.fill('input[placeholder^="transmit"]', 'Continue: the simulation is done — proceed to commit_change with the latest simulation_id and undo_token.');
     await page.click('button:has-text("SEND")');
   }
