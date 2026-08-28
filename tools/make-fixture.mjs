@@ -5,6 +5,15 @@ import { live, shadow, describeBackends } from '../server/src/db.mjs';
 import { simulateChange, simulations } from '../server/src/simulate.mjs';
 import { verifyUndo, recordPolicy } from '../server/src/verify.mjs';
 import { evaluatePolicy } from '../server/src/policy.mjs';
+// corruption guard: a PGlite data dir must have exactly one attached process.
+try {
+  const r = await fetch('http://127.0.0.1:8977/state', { signal: AbortSignal.timeout(1500) });
+  if (r.ok) {
+    console.error('REFUSED: countersign server is running and owns the PGlite dirs. Use POST /admin/reseed, or stop the server first.');
+    process.exit(2);
+  }
+} catch { /* server down — safe to proceed */ }
+
 
 const CHANGE = process.argv[2] ?? "DELETE FROM users WHERE last_active < '2025-01-01'";
 const liveDb = await live();

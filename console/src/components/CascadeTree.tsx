@@ -11,15 +11,26 @@ const EDGE_COLOR: Record<string, string> = {
 export function CascadeTree({ sim }: { sim: Simulation }) {
   const root = sim.tables.find((t) => t.edge === null)
   const children = sim.tables.filter((t) => t.edge !== null)
+  // Rows that lose rows (or would abort) lead, ordered by FK depth then size;
+  // untouched SET NULL / NO ACTION satellites collapse into one summary line.
+  const losing = children.filter((t) => (t.delta ?? 0) > 0 || (t.onDelete === 'RESTRICT' && (t.affected ?? 0) > 0))
+  const spared = children.filter((t) => !losing.includes(t))
+  const sparedTouched = spared.filter((t) => (t.affected ?? 0) > 0)
   const max = Math.max(1, ...sim.tables.map((t) => t.delta || t.affected || 0))
   return (
     <div className="cs-panel cs-scan p-4">
       <div className="cs-title text-xs text-[var(--cs-dim)] mb-3">BLAST RADIUS · MEASURED, NOT ESTIMATED</div>
       {root && <Row t={root} max={max} depth={0} />}
-      {children
+      {losing
         .slice()
         .sort((a, b) => depthOf(a) - depthOf(b) || (b.delta || b.affected || 0) - (a.delta || a.affected || 0))
         .map((t) => <Row key={t.name} t={t} max={max} depth={depthOf(t)} />)}
+      {spared.length > 0 && (
+        <div className="mt-2 text-[11px] text-[var(--cs-dim)]" style={{ paddingLeft: 18 }}>
+          └─· {spared.length} more tables reachable · <span style={{ color: 'var(--cs-amber)' }}>0 rows lost</span>
+          {sparedTouched.length > 0 && ` · ${sparedTouched.reduce((s, t) => s + (t.affected ?? 0), 0).toLocaleString()} references set NULL in ${sparedTouched.length} tables`}
+        </div>
+      )}
       <div className="mt-3 text-[10px] text-[var(--cs-dim)]">
         every edge is a real foreign key from pg_constraint · simulated in {sim.duration_ms} ms · rolled back
       </div>

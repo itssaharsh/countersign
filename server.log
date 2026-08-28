@@ -1,6 +1,2 @@
-
-> @countersign/server@0.1.0 start
-> node src/index.mjs
-
 countersign MCP server on http://127.0.0.1:8977/mcp
 backends: {"live":"pglite:/home/saharsh/contri/wemk/countersign/pglite-data/live","shadow":"pglite:/home/saharsh/contri/wemk/countersign/pglite-data/shadow"}

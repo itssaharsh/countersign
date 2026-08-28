@@ -14,6 +14,7 @@ import { live, shadow, describeBackends } from './db.mjs';
 import { simulateChange, simulations, publicView } from './simulate.mjs';
 import { verifyUndo, commitChange, fireUndo, measureActual, checkDrift, recordPolicy } from './verify.mjs';
 import { evaluatePolicy } from './policy.mjs';
+import { schemaSql, seedSql } from '../../db/schema.mjs';
 
 const PORT = Number(process.env.COUNTERSIGN_PORT ?? 8977);
 
@@ -29,6 +30,32 @@ function buildServer() {
     const db = await live();
     const result = await simulateChange(db, change_sql);
     return json(result);
+  });
+
+  mcp.registerTool('run_investigation', {
+    title: 'Run the full Countersign investigation pipeline',
+    description: 'One governed call: simulate the change in a shadow transaction (measured blast radius + generated undo + fingerprint), verify the undo against committed shadow state, and evaluate policy deterministically. Returns the three proofs and, when all pass, the undo_token needed for commit_change. Nothing is committed.',
+    inputSchema: { change_sql: z.string().describe('The DELETE or ALTER TABLE statement to investigate') },
+    annotations: { readOnlyHint: true },
+  }, async ({ change_sql }) => {
+    const liveDb = await live();
+    const sim = await simulateChange(liveDb, change_sql);
+    if (sim.error) return json(sim);
+    const undoReport = await verifyUndo(await shadow(), sim.simulation_id);
+    const rec = simulations.get(sim.simulation_id);
+    const verdict = evaluatePolicy({ tables: rec.tables, undo: rec.undo });
+    recordPolicy(sim.simulation_id, verdict);
+    return json({
+      simulation_id: sim.simulation_id,
+      blast_radius: sim.tables,
+      fingerprint: sim.fingerprint,
+      undo: undoReport,
+      policy: verdict,
+      ready_to_commit: Boolean(undoReport.verified) && verdict.verdict === 'PASS',
+      next_step: undoReport.verified && verdict.verdict === 'PASS'
+        ? `call commit_change with simulation_id=${sim.simulation_id} and the undo_token`
+        : 'blocked — do not call commit_change',
+    });
   });
 
   mcp.registerTool('verify_undo', {
@@ -107,6 +134,43 @@ const httpServer = createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Mcp-Session-Id, Last-Event-ID, Mcp-Protocol-Version');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   if (req.method === 'OPTIONS') { res.writeHead(204).end(); return; }
+  if (req.url === '/admin/reseed' && req.method === 'POST') {
+    // Reset both databases to the deterministic seed — through THIS process's own
+    // handles (a second process must never attach to a PGlite dir; that corrupts it).
+    try {
+      for (const dbp of [live(), shadow()]) {
+        const db = await dbp;
+        const tables = await db.rows(`SELECT tablename FROM pg_tables WHERE schemaname='public'`);
+        for (const t of tables) await db.exec(`DROP TABLE IF EXISTS ${t.tablename} CASCADE`);
+        for (const q of schemaSql()) await db.exec(q);
+        for (const q of seedSql()) await db.exec(q);
+      }
+      simulations.clear();
+      res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ reseeded: true }));
+    } catch (err) {
+      res.writeHead(500).end(JSON.stringify({ error: String(err.message ?? err) }));
+    }
+    return;
+  }
+  if (req.url === '/admin/drift' && req.method === 'POST') {
+    // Dev-mode drift injection (PGlite owns the dir, so out-of-band writers route here).
+    // In the Postgres demo, drift comes from a genuinely separate process (tools/drift-writer.mjs).
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    const { rows = 40 } = JSON.parse(body || '{}');
+    try {
+      const db = await live();
+      const maxRow = await db.rows('SELECT coalesce(max(id),0) AS m FROM users');
+      const base = Number(maxRow[0].m) + 1;
+      const values = Array.from({ length: rows }, (_, i) =>
+        `(${base + i},'drift${base + i}@example.test','Drift User','2024-06-15')`).join(',');
+      await db.exec(`INSERT INTO users (id,email,full_name,last_active) VALUES ${values}`);
+      res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ inserted: rows, first_id: base }));
+    } catch (err) {
+      res.writeHead(500).end(JSON.stringify({ error: String(err.message ?? err) }));
+    }
+    return;
+  }
   if (req.url === '/state') {
     // Read-only engine truth for the console's evidence panel. No credentials, no SQL.
     const sims = [...simulations.values()].map((s) => ({

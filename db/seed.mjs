@@ -3,6 +3,15 @@
 //   node db/seed.mjs --dir ./pglite-data/shadow
 //   DATABASE_URL=postgres://... node db/seed.mjs --pg
 import { schemaSql, seedSql } from './schema.mjs';
+// corruption guard: a PGlite data dir must have exactly one attached process.
+try {
+  const r = await fetch('http://127.0.0.1:8977/state', { signal: AbortSignal.timeout(1500) });
+  if (r.ok) {
+    console.error('REFUSED: countersign server is running and owns the PGlite dirs. Use POST /admin/reseed, or stop the server first.');
+    process.exit(2);
+  }
+} catch { /* server down — safe to proceed */ }
+
 
 const args = process.argv.slice(2);
 const usePg = args.includes('--pg');
