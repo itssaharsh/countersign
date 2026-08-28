@@ -63,12 +63,10 @@ export function useHarness() {
         }
         break
       }
-      case 'tool.message': {
-        for (const r of event.results ?? [event]) {
-          const id = r.toolCallId ?? event.id
-          const preview = typeof r.content === 'string' ? r.content.slice(0, 400) : JSON.stringify(r.content)?.slice(0, 400)
-          setFeed((f) => f.map((x) => (x.kind === 'tool' && x.id === id ? { ...x, status: 'done', resultPreview: preview } : x)))
-        }
+      case 'tool.response': {
+        const id = event.toolCallId ?? event.id
+        const preview = typeof event.content === 'string' ? event.content.slice(0, 400) : JSON.stringify(event.content)?.slice(0, 400)
+        setFeed((f) => f.map((x) => (x.kind === 'tool' && x.id === id ? { ...x, status: 'done', resultPreview: preview } : x)))
         break
       }
       case 'thread.created':
@@ -116,15 +114,17 @@ export function useHarness() {
     void stream([{ type: 'user.message', content: text }])
   }, [stream, upsertFeed])
 
-  /** Resolve ALL pending approvals with one decision (the demo gates one call at a time). */
-  const respond = useCallback((status: 'allow' | 'deny', reason?: string) => {
-    const inputs = pending.map((p) => ({
+  /** Resolve one pending approval by id — or the oldest one when unspecified. */
+  const respond = useCallback((status: 'allow' | 'deny', reason?: string, toolCallId?: string) => {
+    const target = toolCallId ? pending.filter((p) => p.toolCallId === toolCallId) : pending.slice(0, 1)
+    if (!target.length) return
+    const inputs = target.map((p) => ({
       type: 'user.tool_approval',
       threadId: p.threadId,
       toolCallId: p.toolCallId,
       approval: status === 'allow' ? { status } : { status, reason: reason ?? 'denied by operator' },
     }))
-    setPending([])
+    setPending((prev) => prev.filter((p) => !target.includes(p)))
     void stream(inputs)
   }, [pending, stream])
 

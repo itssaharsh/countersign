@@ -11,7 +11,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
 import { live, shadow, describeBackends } from './db.mjs';
-import { simulateChange, simulations, publicView } from './simulate.mjs';
+import { simulateChange, simulations, publicView, restoreSimulations } from './simulate.mjs';
 import { verifyUndo, commitChange, fireUndo, measureActual, checkDrift, recordPolicy } from './verify.mjs';
 import { evaluatePolicy } from './policy.mjs';
 import { schemaSql, seedSql } from '../../db/schema.mjs';
@@ -128,12 +128,25 @@ function json(obj) { return { content: [{ type: 'text', text: JSON.stringify(obj
 // --- HTTP wiring (stateful streamable HTTP; one transport per MCP session) ---
 const transports = new Map();
 
+// Only the local console may call this server from a browser; a wildcard here
+// would let any website drive the tools through a visitor's browser (Qodo PR2#4).
+const ALLOWED_ORIGINS = new Set((process.env.COUNTERSIGN_ALLOWED_ORIGINS ?? 'http://localhost:5199,http://127.0.0.1:5199').split(','));
+
 const httpServer = createServer(async (req, res) => {
-  // CORS for the local console (read-only state + MCP preflight).
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin ?? '*');
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.has(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Mcp-Session-Id, Last-Event-ID, Mcp-Protocol-Version');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   if (req.method === 'OPTIONS') { res.writeHead(204).end(); return; }
+  if (req.url?.startsWith('/admin/')) {
+    // Admin routes rewrite the databases: localhost binding is the outer wall,
+    // an optional shared secret is the inner one (Qodo PR3#3).
+    const required = process.env.COUNTERSIGN_ADMIN_TOKEN;
+    if (required && req.headers['x-admin-token'] !== required) {
+      res.writeHead(403).end(JSON.stringify({ error: 'admin token required' }));
+      return;
+    }
+  }
   if (req.url === '/admin/reseed' && req.method === 'POST') {
     // Reset both databases to the deterministic seed — through THIS process's own
     // handles (a second process must never attach to a PGlite dir; that corrupts it).
@@ -157,7 +170,8 @@ const httpServer = createServer(async (req, res) => {
     // In the Postgres demo, drift comes from a genuinely separate process (tools/drift-writer.mjs).
     let body = '';
     for await (const chunk of req) body += chunk;
-    const { rows = 40 } = JSON.parse(body || '{}');
+    let rows = 40;
+    try { rows = JSON.parse(body || '{}').rows ?? 40; } catch { /* malformed body defaults to 40 (Qodo PR3#2) */ }
     try {
       const db = await live();
       const maxRow = await db.rows('SELECT coalesce(max(id),0) AS m FROM users');
@@ -204,6 +218,8 @@ const httpServer = createServer(async (req, res) => {
 });
 
 httpServer.listen(PORT, '127.0.0.1', () => {
+  const restored = restoreSimulations();
   console.log(`countersign MCP server on http://127.0.0.1:${PORT}/mcp`);
   console.log('backends:', JSON.stringify(describeBackends()));
+  if (restored) console.log(`restored ${restored} persisted simulations (verified undo tokens survive restarts)`);
 });

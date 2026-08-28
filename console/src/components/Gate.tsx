@@ -12,7 +12,7 @@ type GateState = 'BLOCKED' | 'ARMED' | 'STALE'
 export function Gate({ sim, approvals, respond }: {
   sim: Simulation
   approvals: PendingApproval[]
-  respond: (status: 'allow' | 'deny', reason?: string) => void
+  respond: (status: 'allow' | 'deny', reason?: string, toolCallId?: string) => void
 }) {
   const pending = approvals.find((a) => a.toolName === 'commit_change' || a.toolName === 'fire_undo')
   const [reason, setReason] = useState('')
@@ -80,13 +80,13 @@ export function Gate({ sim, approvals, respond }: {
       <div className="mt-4 flex gap-2">
         <button
           disabled={state !== 'ARMED'}
-          onClick={() => respond('allow')}
+          onClick={() => respond('allow', undefined, pending.toolCallId)}
           className="cs-title flex-1 py-2 text-sm border disabled:opacity-30 disabled:cursor-not-allowed"
           style={{ borderColor: 'var(--cs-green)', color: 'var(--cs-green)' }}>
           {state === 'ARMED' ? '■ COUNTERSIGN & COMMIT' : state === 'STALE' ? 'STALE — RE-MEASURE FIRST' : 'BLOCKED'}
         </button>
         <button
-          onClick={() => respond('deny', reason || 'denied by operator')}
+          onClick={() => respond('deny', reason || 'denied by operator', pending.toolCallId)}
           className="cs-title px-4 py-2 text-sm border"
           style={{ borderColor: 'var(--cs-red)', color: 'var(--cs-red)' }}>
           DENY

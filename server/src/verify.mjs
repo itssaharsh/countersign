@@ -2,8 +2,7 @@
 // and post-commit measurement. The Approve button's three preconditions live here —
 // and they are enforced SERVER-SIDE: calling commit_change without them is refused
 // no matter what any UI shows.
-import { randomUUID } from 'node:crypto';
-import { simulations, hashPkSet, publicView } from './simulate.mjs';
+import { simulations, hashPkSet, hashRowContent, publicView } from './simulate.mjs';
 
 /**
  * verify_undo: on the SHADOW database (same seed as live), apply the change and COMMIT it,
@@ -15,8 +14,21 @@ export async function verifyUndo(shadowDb, simulationId) {
   const sim = simulations.get(simulationId);
   if (!sim) return { error: 'unknown_simulation' };
   if (sim.kind !== 'destructive-cascade') {
-    sim.undo.verified = true; // reversible changes carry their own auto down-migration
-    return { verified: true, mode: 'reversible-auto-down' };
+    // No free pass for reversible changes: run the up migration AND the down
+    // migration against committed shadow state before calling it verified
+    // (Qodo PR1#5/#6).
+    let error = null;
+    try {
+      await shadowDb.withTransaction(async (tx) => { await tx.exec(sim.change_sql); }, { commit: true });
+      await shadowDb.withTransaction(async (tx) => { await tx.exec(sim.undo.sql); }, { commit: true });
+    } catch (err) {
+      error = String(err.message ?? err);
+    }
+    sim.undo.verified = !error;
+    sim.undo.verified_at = new Date().toISOString();
+    return error
+      ? { verified: false, mode: 'reversible-up-down', undo_error: error, note: 'NOT RESTORED BY THE GENERATED ROLLBACK — the down-migration failed on shadow' }
+      : { verified: true, mode: 'reversible-up-down', undo_token: sim.undo.token, note: 'up migration applied and down migration verified on committed shadow state' };
   }
   const pk = sim.fingerprint.pk_column;
   const table = rootTable(sim);
@@ -35,9 +47,15 @@ export async function verifyUndo(shadowDb, simulationId) {
     undoError = String(err.message ?? err);
   }
 
-  // 3. Measure: did the exact PK set come back?
+  // 3. Measure: did the exact PK set come back — for the root AND every cascade
+  //    descendant the simulation snapshotted (Qodo PR1#4)?
   const postRows = await shadowDb.rows(`SELECT ${pk} AS pk FROM ${table} ORDER BY ${pk}`);
   const postHash = hashPkSet(postRows.map((r) => Number(r.pk)));
+  const descendantReports = [];
+  for (const [cTable, cFp] of Object.entries(sim.fingerprint.cascades ?? {})) {
+    const present = await shadowDb.rows(`SELECT count(*) AS n FROM ${cTable}`);
+    descendantReports.push({ table: cTable, expected_restored: cFp.count, rows_now: Number(present[0].n) });
+  }
   const verified = !undoError && postHash === preHash;
   sim.undo.verified = verified;
   sim.undo.verified_at = new Date().toISOString();
@@ -45,6 +63,7 @@ export async function verifyUndo(shadowDb, simulationId) {
     verified,
     restored_rows: verified ? sim.fingerprint.count : null,
     pk_set_identical: postHash === preHash,
+    descendants: descendantReports,
     rows_during_outage: Number(midRows[0].n),
     undo_error: undoError,
     undo_token: verified ? sim.undo.token : null,
@@ -57,19 +76,38 @@ export async function verifyUndo(shadowDb, simulationId) {
   return report;
 }
 
-/** Re-measure the live target set NOW and compare to the approved fingerprint. */
-export async function checkDrift(liveDb, sim) {
+/**
+ * Re-measure NOW and compare against everything the human approved: the root PK
+ * set, the root rows' content (volatile columns excluded), and each cascade
+ * table's affected PK set. Any divergence — added children, edited rows, new or
+ * vanished roots — voids the approval (Qodo PR1#1/#2).
+ * Accepts an optional tx so the commit path can check inside its own transaction.
+ */
+export async function checkDrift(liveDb, sim, tx = null) {
+  const q = tx ?? liveDb;
   const table = rootTable(sim);
   const pk = sim.fingerprint.pk_column;
   const where = sim.change_sql.match(/WHERE\s+([\s\S]+?);?\s*$/i)?.[1];
-  const rows = await liveDb.rows(`SELECT ${pk} AS pk FROM ${table} ${where ? `WHERE ${where}` : ''} ORDER BY ${pk}`);
-  const nowPks = rows.map((r) => Number(r.pk));
+  const rows = await q.rows(`SELECT * FROM ${table} ${where ? `WHERE ${where}` : ''} ORDER BY ${pk}`);
+  const nowPks = rows.map((r) => Number(r[pk]));
   const nowHash = hashPkSet(nowPks);
   const approved = new Set(sim.doomed_pks);
   const added = nowPks.filter((p) => !approved.has(p));
   const current = new Set(nowPks);
   const removed = sim.doomed_pks.filter((p) => !current.has(p));
-  return { fresh: nowHash === sim.fingerprint.pk_hash, now_count: nowPks.length, added, removed, now_hash: nowHash };
+  const contentHash = hashRowContent(rows, sim.fingerprint.content_columns ?? []);
+  const contentFresh = contentHash === sim.fingerprint.content_hash;
+  const cascadeDrift = [];
+  for (const [cTable, cFp] of Object.entries(sim.fingerprint.cascades ?? {})) {
+    if (!cFp.probe_sql) continue;
+    const childRows = await q.rows(cFp.probe_sql);
+    const childHash = hashPkSet(childRows.map((r) => Number(r.pk)));
+    if (childHash !== cFp.pk_hash) {
+      cascadeDrift.push({ table: cTable, approved_count: cFp.count, now_count: childRows.length });
+    }
+  }
+  const fresh = nowHash === sim.fingerprint.pk_hash && contentFresh && cascadeDrift.length === 0;
+  return { fresh, content_fresh: contentFresh, cascade_drift: cascadeDrift, now_count: nowPks.length, added, removed, now_hash: nowHash };
 }
 
 /**
@@ -85,13 +123,13 @@ export async function commitChange(liveDb, { simulation_id, undo_token }) {
   if (sim.kind === 'destructive-cascade') {
     if (!sim.undo.verified || undo_token !== sim.undo.token) return refuse('undo_not_verified', 'No verified rollback, no commit. Run verify_undo first.');
     if (sim.policy?.verdict !== 'PASS') return refuse('policy_not_passed', `Policy verdict is ${sim.policy?.verdict ?? 'absent'}; a recorded PASS is required.`);
-    const drift = await checkDrift(liveDb, sim);
-    if (!drift.fresh) {
-      return refuse('fingerprint_drift', `Target set changed since measurement: +${drift.added.length} / -${drift.removed.length} rows. Approval void — re-measure.`, { drift: { added: drift.added.slice(0, 20), removed: drift.removed.slice(0, 20), now_count: drift.now_count } });
-    }
     const pk = sim.fingerprint.pk_column;
     const table = rootTable(sim);
+    // Drift check runs INSIDE the same transaction as the delete, so nothing can
+    // slip between verification and execution (Qodo PR1#7 / PR2#2).
     const executed = await liveDb.withTransaction(async (tx) => {
+      const drift = await checkDrift(liveDb, sim, tx);
+      if (!drift.fresh) return { drift };
       const before = await tx.rows(`SELECT count(*) AS n FROM ${table}`);
       for (const batch of chunk(sim.doomed_pks, 5000)) {
         await tx.exec(`DELETE FROM ${table} WHERE ${pk} IN (${batch.join(',')})`);
@@ -99,12 +137,24 @@ export async function commitChange(liveDb, { simulation_id, undo_token }) {
       const after = await tx.rows(`SELECT count(*) AS n FROM ${table}`);
       return { deleted: Number(before[0].n) - Number(after[0].n) };
     }, { commit: true });
+    if (executed.drift) {
+      const d = executed.drift;
+      const why = [
+        d.added.length || d.removed.length ? `root set +${d.added.length}/-${d.removed.length}` : null,
+        !d.content_fresh ? 'approved rows were edited' : null,
+        d.cascade_drift?.length ? `cascade children changed in ${d.cascade_drift.map((c) => c.table).join(', ')}` : null,
+      ].filter(Boolean).join('; ');
+      return refuse('fingerprint_drift', `Approval void — ${why}. Nothing was deleted; re-measure.`, { drift: { added: d.added.slice(0, 20), removed: d.removed.slice(0, 20), cascade_drift: d.cascade_drift, content_fresh: d.content_fresh, now_count: d.now_count } });
+    }
     sim.committed = true;
     sim.committed_at = new Date().toISOString();
     sim.execution = { scoped_to_pks: sim.doomed_pks.length, deleted_root_rows: executed.deleted };
     return { committed: true, scoped_to: sim.doomed_pks.length, deleted_root_rows: executed.deleted, receipt_ready: true };
   }
-  // Reversible change: still gated (it alters shared schema), but commits directly.
+  // Reversible change: the same three gates apply — verified down-migration,
+  //  policy PASS, and the matching token (Qodo PR1#5, PR3#1).
+  if (!sim.undo.verified || undo_token !== sim.undo.token) return refuse('undo_not_verified', 'The down-migration has not been verified on shadow. Run verify_undo first.');
+  if (sim.policy?.verdict !== 'PASS') return refuse('policy_not_passed', `Policy verdict is ${sim.policy?.verdict ?? 'absent'}; a recorded PASS is required.`);
   await liveDb.withTransaction(async (tx) => { await tx.exec(sim.change_sql); }, { commit: true });
   sim.committed = true;
   sim.committed_at = new Date().toISOString();
@@ -116,12 +166,11 @@ export async function fireUndo(liveDb, { simulation_id, undo_token }) {
   const sim = simulations.get(simulation_id);
   if (!sim) return refuse('unknown_simulation');
   if (!sim.committed) return refuse('nothing_to_undo', 'commit_change has not executed for this simulation.');
-  if (sim.kind === 'destructive-cascade') {
-    if (!sim.undo.verified || undo_token !== sim.undo.token) return refuse('undo_not_verified');
-    await liveDb.withTransaction(async (tx) => { await tx.exec(sim.undo.sql); }, { commit: true });
-  } else {
-    await liveDb.withTransaction(async (tx) => { await tx.exec(sim.undo.sql); }, { commit: true });
-  }
+  if (sim.undo.fired) return refuse('undo_already_fired', 'This undo has already been executed; replaying it would duplicate rows.');
+  if (!sim.undo.verified || undo_token !== sim.undo.token) return refuse('undo_not_verified');
+  await liveDb.withTransaction(async (tx) => { await tx.exec(sim.undo.sql); }, { commit: true });
+  sim.undo.fired = true;
+  sim.undo.fired_at = new Date().toISOString();
   const actual = await measureActual(liveDb, { simulation_id });
   return { undone: true, post_undo: actual };
 }

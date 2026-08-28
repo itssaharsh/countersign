@@ -6,7 +6,8 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { TrueForge, isEventDelta, mergeEventDelta } from '@truefoundry/trueforge-sdk';
 
 const BASE = process.env.TRUEFORGE_BASE_URL ?? 'http://localhost:8790';
-const ORDER = process.argv[2] ?? "Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'. Simulate, verify the undo, evaluate policy, then commit.";
+const ORDER = process.argv.slice(2).find((a) => !a.startsWith('--'))
+  ?? "Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'. Simulate, verify the undo, evaluate policy, then commit.";
 const AUTO_APPROVE = process.argv.includes('--approve');
 
 const client = new TrueForge({ baseUrl: BASE, timeoutInSeconds: 600 });
@@ -63,4 +64,6 @@ if (AUTO_APPROVE && pendingApprovals.length) {
 mkdirSync('fixtures', { recursive: true });
 writeFileSync('fixtures/e2e-events.jsonl', recorded.map((e) => JSON.stringify(e)).join('\n'));
 console.log(`recorded ${recorded.length} events -> fixtures/e2e-events.jsonl`);
-process.exit(0);
+// Exit code mirrors the outcome so CI and scripts can trust it (Qodo PR3#7).
+const lastDone = [...recorded].reverse().find((e) => e.type === 'turn.done');
+process.exit(lastDone?.state?.status === 'error' ? 1 : 0);

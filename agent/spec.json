@@ -23,8 +23,7 @@
       {
         "name": "github",
         "enable_tools": [
-          "get_pull_request",
-          "get_pull_request_files",
+          "pull_request_read",
           "get_file_contents",
           "list_pull_requests",
           "add_issue_comment"
@@ -35,7 +34,7 @@
     ],
     "config": {
       "sandbox": {
-        "enabled": false
+        "enabled": true
       },
       "generative_ui": {
         "enabled": false
@@ -47,6 +46,11 @@
         "enabled": true
       },
       "iteration_limit": 40
-    }
+    },
+    "skills": [
+      {
+        "name": "countersign-dossier"
+      }
+    ]
   }
 }

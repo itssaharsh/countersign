@@ -65,6 +65,7 @@ export function CountersignLayout() {
           {sim && phase === 'WITNESSING' && (
             <>
               <Ledger sim={sim} />
+              <Gate sim={sim} approvals={pending} respond={respond} />
               <ProofLanes sim={sim} />
               <CascadeTree sim={sim} />
             </>
