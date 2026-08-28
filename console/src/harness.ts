@@ -44,7 +44,13 @@ export function useHarness() {
       if (base) mergeEventDelta(base as never, event as never)
       const b = events.get(event.id)
       if (b?.type === 'model.message') {
-        upsertFeed({ kind: 'assistant', id: b.id, threadId: b.threadId ?? 'main', text: b.content ?? '', streaming: true })
+        if (b.content) upsertFeed({ kind: 'assistant', id: b.id, threadId: b.threadId ?? 'main', text: b.content, streaming: true })
+        // Tool calls accumulate through deltas too — surface them as they form.
+        for (const tc of b.toolCalls ?? []) {
+          if (tc?.id && (tc.toolInfo?.name || tc.function?.name)) {
+            upsertFeed({ kind: 'tool', id: tc.id, threadId: b.threadId ?? 'main', name: tc.toolInfo?.name ?? tc.function?.name, args: tc.function?.arguments ?? '', status: 'running' })
+          }
+        }
       }
       return
     }

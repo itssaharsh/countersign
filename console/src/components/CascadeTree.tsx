@@ -17,8 +17,9 @@ export function CascadeTree({ sim }: { sim: Simulation }) {
       <div className="cs-title text-xs text-[var(--cs-dim)] mb-3">BLAST RADIUS · MEASURED, NOT ESTIMATED</div>
       {root && <Row t={root} max={max} depth={0} />}
       {children
-        .sort((a, b) => (b.delta || b.affected || 0) - (a.delta || a.affected || 0))
-        .map((t) => <Row key={t.name} t={t} max={max} depth={1} />)}
+        .slice()
+        .sort((a, b) => depthOf(a) - depthOf(b) || (b.delta || b.affected || 0) - (a.delta || a.affected || 0))
+        .map((t) => <Row key={t.name} t={t} max={max} depth={depthOf(t)} />)}
       <div className="mt-3 text-[10px] text-[var(--cs-dim)]">
         every edge is a real foreign key from pg_constraint · simulated in {sim.duration_ms} ms · rolled back
       </div>
@@ -26,12 +27,17 @@ export function CascadeTree({ sim }: { sim: Simulation }) {
   )
 }
 
+function depthOf(t: TableRow): number {
+  // edge is the constraint chain root→…→table; arrows count the hops past the first.
+  return t.edge ? 1 + (t.edge.match(/→/g)?.length ?? 0) : 0
+}
+
 function Row({ t, max, depth }: { t: TableRow; max: number; depth: number }) {
   const n = t.delta || t.affected || 0
   if (n === 0 && depth > 0 && t.onDelete !== 'RESTRICT') return null
   const color = t.onDelete ? EDGE_COLOR[t.onDelete] : 'var(--cs-red)'
   return (
-    <div className="mb-2" style={{ paddingLeft: depth * 18 }}>
+    <div className="mb-2" style={{ paddingLeft: Math.min(depth, 4) * 18 }}>
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm">
           {depth > 0 && <span style={{ color }}>└─{t.onDelete === 'CASCADE' ? '✕ ' : '· '}</span>}
