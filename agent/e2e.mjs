@@ -21,7 +21,7 @@ console.log('session:', session.id);
 async function runTurn(input) {
   const stream = await client.sessions.createTurnStream(session.id, { input });
   for await (const { data: event } of stream.withMetadata()) {
-    recorded.push(event);
+    recorded.push(structuredClone(event)); // record a faithful copy — merging mutates the base
     if (isEventDelta(event)) {
       const base = events.get(event.id);
       if (base) mergeEventDelta(base, event);

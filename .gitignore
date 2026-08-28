@@ -12,3 +12,7 @@ videos/
 *.mp4
 .DS_Store
 pglite-data/
+console.log
+server.log
+mock-model.log
+key-rotor.log

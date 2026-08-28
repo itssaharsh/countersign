@@ -53,6 +53,8 @@ A migration lands in a GitHub PR. The Countersign agent (running on TrueForge):
 |---|---|---|
 | ![investigating](docs/screenshots/phase-investigating.png) | ![deciding](docs/screenshots/phase-deciding.png) | ![witnessing](docs/screenshots/phase-witnessing.png) |
 
+*Real-model run (Groq-hosted `openai/gpt-oss-120b`): the agent investigated, TrueForge paused on the gated commit, the operator countersigned, and the scoped commit executed — [gate](docs/screenshots/real-model-deciding.png) · [ledger](docs/screenshots/real-model-witnessing.png).*
+
 The layout adapts to what you're doing: evidence board fills while the agent investigates
 → collapses to a single decision surface when TrueForge pauses (`BLOCKED → ARMED → STALE`
 gate with a draining freshness meter) → becomes a live verification ledger after execution.
