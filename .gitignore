@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.sqlite
+.trueforge/
+dist/
+build/
+.next/
+videos/
+*.webm
+*.mp4
+.DS_Store
+pglite-data/
