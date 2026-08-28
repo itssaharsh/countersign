@@ -5,7 +5,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 page.on('pageerror', (e) => console.log('PAGEERROR:', String(e).slice(0, 160)));
 await page.goto('http://localhost:5199', { waitUntil: 'networkidle' });
-await page.fill('input[placeholder^="transmit"]', "Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'. Simulate, verify the undo, evaluate policy, then commit.");
+await page.fill('input[placeholder^="transmit"]', process.env.DEMO_ORDER ?? "Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'. Simulate, verify the undo, evaluate policy, then commit.");
 await page.click('button:has-text("SEND")');
 console.log('order transmitted');
 // Gemini free tier is 5 req/min — on a stream error, nudge the agent to continue.
