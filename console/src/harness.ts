@@ -50,7 +50,8 @@ export function useHarness() {
         // Tool calls accumulate through deltas too — surface them as they form.
         for (const tc of b.toolCalls ?? []) {
           if (tc?.id && (tc.toolInfo?.name || tc.function?.name)) {
-            upsertFeed({ kind: 'tool', id: tc.id, threadId: b.threadId ?? 'main', name: tc.toolInfo?.name ?? tc.function?.name, args: tc.function?.arguments ?? '', status: 'running' })
+            const u = unwrapCall(tc.toolInfo?.name ?? tc.function?.name, safeParse(tc.function?.arguments))
+            upsertFeed({ kind: 'tool', id: tc.id, threadId: b.threadId ?? 'main', name: u.name, args: u.name !== (tc.toolInfo?.name ?? tc.function?.name) ? JSON.stringify(u.args) : (tc.function?.arguments ?? ''), status: 'running' })
           }
         }
       }
@@ -64,7 +65,8 @@ export function useHarness() {
       case 'model.message': {
         upsertFeed({ kind: 'assistant', id: event.id, threadId: event.threadId ?? 'main', text: event.content ?? '', streaming: false })
         for (const tc of event.toolCalls ?? []) {
-          upsertFeed({ kind: 'tool', id: tc.id, threadId: event.threadId ?? 'main', name: tc.toolInfo?.name ?? tc.function?.name ?? 'tool', args: tc.function?.arguments ?? '', status: 'running' })
+          const u = unwrapCall(tc.toolInfo?.name ?? tc.function?.name ?? 'tool', safeParse(tc.function?.arguments))
+          upsertFeed({ kind: 'tool', id: tc.id, threadId: event.threadId ?? 'main', name: u.name, args: u.name !== (tc.toolInfo?.name ?? tc.function?.name) ? JSON.stringify(u.args) : (tc.function?.arguments ?? ''), status: 'running' })
         }
         break
       }
@@ -85,12 +87,8 @@ export function useHarness() {
         for (const ref of event.toolCalls ?? []) {
           const msg = events.get(ref.sourceEventId)
           const call = msg?.toolCalls?.find((tc: TurnEvent) => tc.id === ref.id)
-          found.push({
-            threadId: event.threadId ?? 'main',
-            toolCallId: ref.id,
-            toolName: call?.toolInfo?.name ?? call?.function?.name ?? 'unknown',
-            args: safeParse(call?.function?.arguments),
-          })
+          const { name, args } = unwrapCall(call?.toolInfo?.name ?? call?.function?.name ?? 'unknown', safeParse(call?.function?.arguments))
+          found.push({ threadId: event.threadId ?? 'main', toolCallId: ref.id, toolName: name, args })
         }
         setPending((p) => [...p, ...found])
         break
@@ -177,20 +175,19 @@ export function useHarness() {
   return { feed, running, pending, send, respond, sessionId: sessionRef.current }
 }
 
+/**
+ * Models may invoke MCP tools through TrueForge's `call_tool` meta-tool
+ * ({ mcp_server, tool_name, input }) instead of the direct tool. The gate cares
+ * about the effective tool, so unwrap it.
+ */
+function unwrapCall(name: string, args: Record<string, unknown>): { name: string; args: Record<string, unknown> } {
+  if (name === 'call_tool' && typeof args.tool_name === 'string') {
+    return { name: args.tool_name, args: (args.input as Record<string, unknown>) ?? {} }
+  }
+  return { name, args }
+}
+
 function safeParse(s: unknown): Record<string, unknown> {
   if (typeof s !== 'string') return {}
-  try { return JSON.parse(s) } catch { /* fall through */ }
-  // Recovery: with some providers the SDK's delta merge yields the arguments JSON
-  // twice back-to-back ({...}{...}). Parse the first complete object.
-  const start = s.indexOf('{')
-  if (start < 0) return {}
-  let depth = 0, inStr = false, esc = false
-  for (let i = start; i < s.length; i++) {
-    const ch = s[i]
-    if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue }
-    if (ch === '"') inStr = true
-    else if (ch === '{') depth++
-    else if (ch === '}') { depth--; if (depth === 0) { try { return JSON.parse(s.slice(start, i + 1)) } catch { return {} } } }
-  }
-  return {}
+  try { return JSON.parse(s) } catch { return {} }
 }
