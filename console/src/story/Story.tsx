@@ -109,7 +109,7 @@ export function Story() {
             <Small v={42} label="tables in the estate" />
             <Small v={6000} label="of 6,000 rows returned by the undo" />
             <Small v={11} label="engine tests, one per claim" />
-            <Small v={56} label="review findings, all answered" />
+            <Small v={59} label="review findings, all answered" />
           </div>
           <Reveal delay={0.1}><p className="body mt-16" style={{ color: 'var(--ink-dim)', maxWidth: '54ch' }}>Model: gpt-oss-120b on TrueForge. The pause, the countersign and the commit on the stage above are that run, replayed from its recorded harness events.</p></Reveal>
         </div>
@@ -140,7 +140,7 @@ export function Story() {
       <section className="section world-trust" data-shot="trust">
         <div className="wrap">
           <Reveal><div className="eyebrow" style={{ color: 'var(--rose)' }}>Reviewed like production</div></Reveal>
-          <Reveal delay={0.05}><h2 className="h-lg mt-6" style={{ maxWidth: '16ch' }}>Eleven pull requests. Fifty six findings. Every one answered.</h2></Reveal>
+          <Reveal delay={0.05}><h2 className="h-lg mt-6" style={{ maxWidth: '16ch' }}>Twelve pull requests. Fifty nine findings. Every one answered.</h2></Reveal>
           <div className="trust-grid mt-14">
             <Reveal delay={0.1}><p className="body" style={{ maxWidth: '46ch', opacity: 0.92 }}>Every substantive change went through a pull request reviewed by Qodo before merge. The first review found a real hole in the core promise: the drift fingerprint covered only root keys, so a cascade child added after measurement could be deleted without undo coverage. The fingerprint was rebuilt around it. Each finding is fixed or dismissed with a reason in the thread, and the whole trail is in the repo.</p></Reveal>
             <Reveal delay={0.15}>
