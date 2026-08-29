@@ -44,7 +44,14 @@ export default function App() {
       />
       <div className="console-body">
         <Transcript feed={feed} />
-        <Dossier phase={phase} sim={sim} running={running} gateOpen={pending.length > 0} onSend={send} />
+        <Dossier
+          phase={phase}
+          sim={sim}
+          running={running}
+          approvalOpen={pending.some((a) => a.kind !== 'question')}
+          questionOpen={pending.some((a) => a.kind === 'question')}
+          onSend={send}
+        />
       </div>
       <GateBar
         sim={sim}

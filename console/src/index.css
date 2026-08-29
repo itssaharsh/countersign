@@ -321,6 +321,9 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 .tx-you, .tx-tool { color: var(--ink); }
 .tx-status { color: var(--graphite); }
 .tx-args { color: var(--graphite); font-size: var(--t-11); margin-top: 2px; word-break: break-all; }
+/* A failed call is stated, not implied by a missing success. Graphite, not seal:
+   the seal belongs to the destructive count and the countersign control alone. */
+.tx-failed, .tx-failed .tx-status { color: var(--graphite); font-weight: 500; }
 .tx-sys { color: var(--graphite); }
 .submit-input {
   font-size: var(--t-20); color: var(--ink); background: transparent;

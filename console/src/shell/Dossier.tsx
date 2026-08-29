@@ -18,13 +18,18 @@ type Props = {
   phase: Phase
   sim?: Simulation
   running: boolean
-  gateOpen: boolean
+  // An approval and a question are different states and read differently: one is
+  // countersigned or denied, the other answered or declined. Conflating them
+  // shows the operator the wrong active state.
+  approvalOpen: boolean
+  questionOpen: boolean
   onSend: (text: string) => void
 }
 
 export function Dossier(p: Props) {
   const [draft, setDraft] = useState('')
   const idle = p.phase === 'IDLE'
+  const blocked = p.approvalOpen || p.questionOpen
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,9 +45,11 @@ export function Dossier(p: Props) {
           <p className="panel-empty">
             {p.phase === 'WITNESSING'
               ? 'The commit is done. The per-table figures, the fingerprint and the armed undo appear here.'
-              : p.gateOpen
-                ? 'The evidence for this approval appears here.'
-                : 'Measuring. The per-table counts appear here when the shadow transaction reports.'}
+              : p.questionOpen
+                ? 'The agent is asking you something. Answer or decline it below.'
+                : p.approvalOpen
+                  ? 'The evidence for this approval appears here.'
+                  : 'Measuring. The per-table counts appear here when the shadow transaction reports.'}
           </p>
         </>
       )}
@@ -61,16 +68,18 @@ export function Dossier(p: Props) {
           spellCheck={false}
           // The harness refuses an order while a gate is open and explains why;
           // saying so here is better than letting the send fail.
-          disabled={p.gateOpen}
+          disabled={blocked}
         />
         <p className="submit-note">
-          {p.gateOpen
-            ? 'A gate is open. Countersign or deny it below before sending anything else — the deny reason goes back to the agent.'
-            : idle
-              ? 'Paste a destructive statement. Nothing runs until you countersign.'
-              : 'Ask for a re-measurement, or say "fire the undo" to bring the rows back. Nothing runs until you countersign.'}
+          {p.questionOpen
+            ? 'The agent asked a question. Answer or decline it below before sending anything else.'
+            : p.approvalOpen
+              ? 'A gate is open. Countersign or deny it below before sending anything else — the deny reason goes back to the agent.'
+              : idle
+                ? 'Paste a destructive statement. Nothing runs until you countersign.'
+                : 'Ask for a re-measurement, or say "fire the undo" to bring the rows back. Nothing runs until you countersign.'}
         </p>
-        <button type="submit" className="submit-go" disabled={p.running || p.gateOpen}>
+        <button type="submit" className="submit-go" disabled={p.running || blocked}>
           {idle ? 'Measure it' : 'Send'}
         </button>
       </form>
