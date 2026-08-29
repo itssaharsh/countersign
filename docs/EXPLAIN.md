@@ -91,6 +91,15 @@ and Deny, and a glass receipt slab. Reduced-motion users get a still stage.
 Judge question: "is the 3D just decoration?" Answer: it is state. Every scene is a
 second read of what the engine measured, and the gate ring is the actual freshness
 timer that the server enforces.
+Cost: every frame lerps all 14k points toward their phase target and re-uploads the
+position and colour arrays (one 168 KB upload). That is deliberate: the galaxy is the
+readout, so it must move when state moves; there are no per-frame allocations, the
+DPR is capped at 1.5, and reduced-motion users get a stage that settles and holds.
+Judge mode: `?replayEvents=` feeds the recorded gpt-oss-120b stream through the same
+reducer the live console uses and holds at `tool.approval_required` until Countersign,
+then `?replayAfter=` supplies the post-commit state snapshot of that run. Fixture note:
+the recorder that captured `real-run.jsonl` had already merged deltas into base events,
+so base `content`/`arguments` were cleared (the deltas rebuild them byte-for-byte).
 
 ## 3. TrueForge usage map (Double-O track answers)
 - MCP tools: custom countersign server + shipped github (PR fetch, receipt comment)

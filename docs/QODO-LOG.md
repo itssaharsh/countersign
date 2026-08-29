@@ -40,3 +40,17 @@ every finding across the review trail. (Severities as assigned by Qodo.)
 | 6 | Verification failures abort pipeline | Medium | Accepted behavior — `run_investigation` reports `ready_to_commit:false` with the failing proof; the agent stops per doctrine. |
 | 7 | E2E failures exit successfully | Medium | **FIXED** — exit code mirrors the final turn status. |
 | 8 | Escape fingerprint count | Medium | Noted — display-only value from our own server; revisit if user content ever reaches that surface. |
+
+## PR #11 — console v4 cinematic stage (9 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Approval arms without evidence | High | **FIXED** — the pending approval's `args.simulation_id` is matched against engine simulations; no loaded match = gate **BLOCKED · missing: simulation evidence** (verified in replay-only mode). |
+| 2 | Reversible changes bypass proofs | High | **FIXED** — verified undo + policy PASS required for every kind; blast-radius requirement stays kind-specific; `fire_undo` requires a committed change. |
+| 3 | Failed undo warning removed | Rule | **FIXED** — proof line reads `NOT RESTORED BY THE GENERATED ROLLBACK` when an undo report exists and verification failed. |
+| 4 | Console v4 design undocumented | Rule | **FIXED** — `docs/EXPLAIN.md` v4 "cinematic stage" entry replaces the v3 one. |
+| 5 | Transcript cannot be scrolled | Medium | **FIXED** — rail is interactive (`.hit`), auto-follows the newest line. |
+| 6 | Critical panels clip on phones | Medium | **FIXED** — viewport-constrained `.panel` widths + `max-width: 720px` layout block with internal overflow. |
+| 7 | Reduced motion still animates | Medium | **FIXED** — `useReducedMotion` gates the stage: settle for 2.5 s after a phase change, then hold; autorotate and beam dashes stop. |
+| 8 | Reduced-motion cursor disappears | Medium | **FIXED** — native cursor restored on `a, button, input, .hit` under the media query. |
+| 9 | Stage performs excessive frame work | Medium | **PARTIALLY FIXED (reason in-thread)** — per-point `Vector3` allocations removed; the full-array lerp per frame is kept because the galaxy *is* the state readout (one 168 KB upload per frame at 14k points). |
+
