@@ -19,6 +19,7 @@ export type PendingApproval = {
   toolCallId: string
   toolName: string
   args: Record<string, unknown>
+  kind: 'approval' | 'question'
 }
 
 type TurnEvent = Record<string, any>
@@ -108,7 +109,20 @@ export function useHarness() {
           const msg = events.get(ref.sourceEventId)
           const call = msg?.toolCalls?.find((tc: TurnEvent) => tc.id === ref.id)
           const { name, args } = unwrapCall(call?.toolInfo?.name ?? call?.function?.name ?? 'unknown', safeParse(call?.function?.arguments))
-          found.push({ threadId: event.threadId ?? 'main', toolCallId: ref.id, toolName: name, args })
+          found.push({ threadId: event.threadId ?? 'main', toolCallId: ref.id, toolName: name, args, kind: 'approval' })
+        }
+        setPending((p) => [...p, ...found])
+        break
+      }
+      case 'tool.response_required': {
+        // A question from the agent (ask_user_question): held like a gate, answered with
+        // user.tool_response. Rebuilt on reload the same way approvals are.
+        const found: PendingApproval[] = []
+        for (const ref of event.toolCalls ?? []) {
+          const msg = events.get(ref.sourceEventId)
+          const call = msg?.toolCalls?.find((tc: TurnEvent) => tc.id === ref.id)
+          const { name, args } = unwrapCall(call?.toolInfo?.name ?? call?.function?.name ?? 'question', safeParse(call?.function?.arguments))
+          found.push({ threadId: event.threadId ?? 'main', toolCallId: ref.id, toolName: name, args, kind: 'question' })
         }
         setPending((p) => [...p, ...found])
         break
@@ -134,7 +148,11 @@ export function useHarness() {
       const msg = String((err as Error).message ?? err)
       if (/approvals or questions are pending/i.test(msg) && sessionRef.current && turnRef.current.turnId) {
         upsertFeed({ kind: 'system', id: `err-${Date.now()}`, text: 'the harness is waiting on a gate this page did not show; reopening it' })
-        try { await rehydrateRef.current?.(sessionRef.current, turnRef.current.turnId) } catch { /* fall through to the raw error */ }
+        try {
+          await rehydrateRef.current?.(sessionRef.current, turnRef.current.turnId)
+        } catch (e2) {
+          upsertFeed({ kind: 'system', id: `err2-${Date.now()}`, text: `could not reopen the gate: ${String((e2 as Error).message ?? e2)} · original error: ${msg}` })
+        }
       } else {
         upsertFeed({ kind: 'system', id: `err-${Date.now()}`, text: `stream error: ${msg}` })
       }
@@ -218,7 +236,7 @@ export function useHarness() {
           consume(event)
           // Judge mode holds at the gate exactly like the live harness does: the recorded
           // stream only continues once the operator countersigns or denies.
-          if (event.type === 'tool.approval_required') {
+          if (event.type === 'tool.approval_required' || event.type === 'tool.response_required') {
             setRunning(false)
             await new Promise<void>((resolve) => { replayGateRef.current = resolve })
             if (cancelled) return
@@ -236,7 +254,7 @@ export function useHarness() {
 
   const send = useCallback((text: string) => {
     if (pending.length) {
-      upsertFeed({ kind: 'system', id: `gate-${Date.now()}`, text: 'a gate is open: countersign or deny it first. To send this text back to the agent instead, put it in the deny reason and press Deny.' })
+      upsertFeed({ kind: 'system', id: `gate-${Date.now()}`, text: 'a gate is open: countersign, deny, or answer the question first. To send this text back to the agent instead, put it in the deny reason and press Deny.' })
       return
     }
     upsertFeed({ kind: 'user', id: `u-pending-${Date.now()}`, text })
@@ -265,7 +283,16 @@ export function useHarness() {
     void stream(inputs)
   }, [pending, stream])
 
-  return { feed, running, pending, send, respond, replayReleased, sessionId: sessionRef.current }
+  /** Answer a pending question (tool.response_required) with user.tool_response. */
+  const answer = useCallback((toolCallId: string, content: string) => {
+    const q = pending.find((p) => p.toolCallId === toolCallId && p.kind === 'question')
+    if (!q) return
+    setPending((prev) => prev.filter((p) => p !== q))
+    if (replayGateRef.current) { const release = replayGateRef.current; replayGateRef.current = null; setReplayReleased(true); release(); return }
+    void stream([{ type: 'user.tool_response', threadId: q.threadId, toolCallId: q.toolCallId, content }])
+  }, [pending, stream])
+
+  return { feed, running, pending, send, respond, answer, replayReleased, sessionId: sessionRef.current }
 }
 
 /**

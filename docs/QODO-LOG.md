@@ -115,3 +115,10 @@ Qodo posted a summary and a clean review ("Great, no issues found!"); no finding
 | 2 | Counters ignore reduced motion | Bug | **FIXED** — `NumberTicker` writes the final value immediately under `prefers-reduced-motion`; no spring is subscribed. |
 | 3 | Mobile dock exceeds height | Bug | **FIXED** — mobile `--dock-h` is 204px; measured content 38+38+1+48 with gaps and padding fits with no overflow. |
 
+## PR #14 — reopen pending gates after reload (3 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Questions cannot be reopened | Bug | **FIXED** — `tool.response_required` is held like a gate (rehydrated on reload too), rendered in the rail with the question text, and answered with `user.tool_response`. |
+| 2 | Recovery failure hides error | Bug | **FIXED** — if rehydration fails, both the rehydration error and the original stream error are posted. |
+| 3 | Gate rehydration design undocumented | Rule | **FIXED** — EXPLAIN "Reopening a gate after a reload" covers the ordering, the reducer replay, questions, error handling and the trade-off. |
+
