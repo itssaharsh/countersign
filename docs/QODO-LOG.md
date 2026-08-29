@@ -122,3 +122,10 @@ Qodo posted a summary and a clean review ("Great, no issues found!"); no finding
 | 2 | Recovery failure hides error | Bug | **FIXED** — if rehydration fails, both the rehydration error and the original stream error are posted. |
 | 3 | Gate rehydration design undocumented | Rule | **FIXED** — EXPLAIN "Reopening a gate after a reload" covers the ordering, the reducer replay, questions, error handling and the trade-off. |
 
+## PR #15 — start-over escape hatch (3 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Undo stale guidance loops | Bug | **FIXED** — the freshness timer applies to the commit gate only; `fire_undo` is never marked STALE and its line states the one-shot, committed-state condition instead. |
+| 2 | startOver exits fixture replay | Rule | **FIXED** — the reload keeps the query string, so in judge mode start over restarts the fixture stream rather than entering live mode. |
+| 3 | Start-over decision undocumented | Rule | **FIXED** — EXPLAIN "Start over" entry: why the saved session is removed, why a full reload, what URL state is kept, replay trade-off. |
+

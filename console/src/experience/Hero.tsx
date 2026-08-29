@@ -50,7 +50,9 @@ export function Hero(p: Props) {
     : isUndo
       ? (p.sim.committed ? [] : ['committed change'])
       : ([p.sim.kind === 'destructive-cascade' && !p.sim.fingerprint && 'blast radius', !p.sim.undo.verified && 'verified undo', p.sim.policy?.verdict !== 'PASS' && 'policy pass'].filter(Boolean) as string[])
-  const gate: 'BLOCKED' | 'ARMED' | 'STALE' = missing.length ? 'BLOCKED' : p.freshnessLeft <= 0 ? 'STALE' : 'ARMED'
+  // Freshness belongs to the commit fingerprint only; fire_undo is gated by committed state,
+  // verification and its one-shot token, never by the pre-commit timer.
+  const gate: 'BLOCKED' | 'ARMED' | 'STALE' = missing.length ? 'BLOCKED' : (!isUndo && p.freshnessLeft <= 0) ? 'STALE' : 'ARMED'
   const [t1, t2] = TITLE[p.phase]
   const railRef = useRef<HTMLDivElement>(null)
   useEffect(() => { const el = railRef.current; if (el) el.scrollTop = el.scrollHeight }, [p.feed])
@@ -135,7 +137,7 @@ export function Hero(p: Props) {
             <motion.div key="gate" className="text-right hit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
               <div className="t-tag">{isUndo ? 'fire the verified undo' : 'commit the change'} · {pending.toolName} · <span style={{ color: gate === 'ARMED' ? 'var(--green)' : gate === 'STALE' ? 'var(--amber)' : 'var(--coral)' }}>{gate.toLowerCase()}</span></div>
               <div className="t-mono mt-2 text-[12px]" style={{ color: 'var(--ink-dim)' }}>
-                {gate === 'BLOCKED' ? `missing: ${missing.join(', ')}` : gate === 'STALE' ? 'this approval expired: deny it, then send the order again for a fresh measurement' : `${isUndo ? '+' : '−'}${p.sim?.fingerprint?.count.toLocaleString()} rows in the fingerprinted set · fresh for ${Math.ceil(p.freshnessLeft)}s of ${FRESHNESS_SECONDS}`}
+                {gate === 'BLOCKED' ? `missing: ${missing.join(', ')}` : gate === 'STALE' ? 'this approval expired: deny it, then send the order again for a fresh measurement' : isUndo ? `+${p.sim?.fingerprint?.count.toLocaleString()} rows come back · one shot, verified on committed state` : `−${p.sim?.fingerprint?.count.toLocaleString()} rows in the fingerprinted set · fresh for ${Math.ceil(p.freshnessLeft)}s of ${FRESHNESS_SECONDS}`}
               </div>
               <div className="mt-4 flex items-end justify-end gap-7">
                 <Magnetic><button className="tbtn" disabled={gate !== 'ARMED'} onClick={() => p.respond('allow', undefined, pending.toolCallId)} style={{ fontSize: 40, color: gate === 'ARMED' ? 'var(--green)' : 'var(--ink-faint)' }}>{isUndo ? 'Restore' : 'Countersign'}<span className="underline" /></button></Magnetic>
