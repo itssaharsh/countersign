@@ -48,3 +48,10 @@ session survives. TrueForge holds the run; the console just re-attaches.'
 SAY: "The receipt posts to the pull request, where reviewers live. Every project this week ships
 an Allow button. Countersign is the button that shows you the consequence — before you sign.
 Built solo in three days, with AI assistance, disclosed in the repo. Thank you."
+
+## Closer (v5, optional, ~10 s)
+After the undo restores the rows, scroll once: the camera pulls back from the galaxy and
+the story slides over it. Let the orange "You approved a command. You did not approve what
+it did." fill the frame for two seconds, then cut. Narration: "Everything you just watched
+is measured, not predicted. The code, the review trail and a zero-key replay are in the
+repo."
