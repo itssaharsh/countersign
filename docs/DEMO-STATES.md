@@ -160,10 +160,20 @@ two-minute-old measurement, but surprising if you re-record and rehearse straigh
 
 ---
 
-## Known deviations
+### Narration point: the total stays red
 
-- **The total keeps `--seal` on the STALE screen.** §5 says it should drop to `--ink` when
-  the measurement expires. The seal is withheld on failed evidence but not on expired
-  evidence; measured at `rgb(179, 36, 28)` after expiry.
+When the gate expires the countersign control withdraws, but **the 43,413 stays `--seal`**.
+§5 says it should drop to `--ink`, and it does not: the seal is withheld on *failed* evidence
+and not on *expired* evidence. Measured at `rgb(179, 36, 28)` after expiry.
+
+Worth naming on camera rather than hoping nobody looks, and it reads well either way:
+
+> The control is gone, but the number is still red. That is my own spec compliance slipping —
+> red is supposed to leave when the measurement expires. What has not changed is the part that
+> matters: there is no longer any way to approve this.
+
+---
+
+## Known deviations
 - **The send-another-order note mentions the undo in phases where nothing has been
   committed.** Harmless, but it offers a restore that does not exist yet.
