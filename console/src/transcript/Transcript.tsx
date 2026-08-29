@@ -103,7 +103,7 @@ export function Transcript({ feed, pending }: { feed: FeedItem[]; pending: Pendi
                 <div key={`t-${item.id}`} className={`tx-line tx-call${failedWith(item.resultPreview) ? ' tx-call-failed' : ''}`} data-tool={item.name} data-failed={failedWith(item.resultPreview) ? 'true' : undefined}>
                   <div className="tx-head">
                     <Stamp at={item.createdAt} />
-                    <span className="tx-tool" title={item.args || undefined}>{item.name}</span>
+                    <span className="tx-tool" title={redact(item.args) || undefined}>{item.name}</span>
                     {ms != null && (
                       // §6 — a number changing, not an animation, and exempt from the budget.
                       // It is the honest answer to "is it stuck?" across the 16.9s in which
@@ -125,8 +125,8 @@ export function Transcript({ feed, pending }: { feed: FeedItem[]; pending: Pendi
                           // destructive count and the countersign control alone.
                           const failure = failedWith(item.resultPreview)
                           return failure
-                            ? <span className="tx-result tx-failed" title={item.resultPreview}>failed · {failure}</span>
-                            : <span className="tx-result tx-graphite" title={item.resultPreview}>{flatten(item.resultPreview)}</span>
+                            ? <span className="tx-result tx-failed" title={redact(item.resultPreview)}>failed · {redact(failure)}</span>
+                            : <span className="tx-result tx-graphite" title={redact(item.resultPreview)}>{redact(flatten(item.resultPreview))}</span>
                         })()}
                   </div>
                 </div>
@@ -197,6 +197,26 @@ function failedWith(preview: string | undefined): string | null {
     return null
   }
 }
+
+/**
+ * Capability values must not reach the screen. `undo_token` authorises a rollback
+ * against the live database, and the transcript renders tool arguments and results
+ * verbatim — so a recorded demo would put a working credential on video. Redacted
+ * at the point of display, which protects every source at once: live runs, replays,
+ * and any screenshot taken of either.
+ */
+const SECRET_KEYS = /(token|secret|password|api[_-]?key|authorization)/i
+export function redact(text: string | undefined): string {
+  if (!text) return ''
+  return text
+    // "undo_token": "…"  and  undo_token=…  in any escaping the payload arrives in
+    .replace(/(\\?"?[a-z_]*(?:token|secret|password|api[_-]?key)[a-z_]*\\?"?\s*[:=]\s*\\?"?)([^",}\s\\]{6,})/gi,
+      (_m, head: string) => `${head}<redacted>`)
+    // bare credential shapes, wherever they appear in prose
+    .replace(/\bgsk_[A-Za-z0-9]{20,}/g, 'gsk_<redacted>')
+    .replace(/\bsk-[A-Za-z0-9]{20,}/g, 'sk-<redacted>')
+}
+export { SECRET_KEYS }
 
 function flatten(s?: string): string {
   return (s ?? '').replace(/\s+/g, ' ').trim()
