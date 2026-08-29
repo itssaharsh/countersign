@@ -61,7 +61,11 @@ function Galaxy({ phase, sim, scroll }: Props) {
   useEffect(() => { settle.current = 2.5 }, [phase])
 
   useFrame((state, dt) => {
-    if (scroll.get() > 0.99) return
+    // Scroll-derived visual state is applied first: a jump straight into the story must
+    // land on the faded galaxy, whether or not the geometry loop keeps running.
+    const sc = scroll.get()
+    ;(ref.current!.material as THREE.PointsMaterial).opacity = 0.95 * (1 - 0.92 * Math.min(1, sc * 1.4))
+    if (sc > 0.99) return
     if (reduced) { settle.current -= dt; if (settle.current <= 0) return }
     const t = reduced ? 0 : state.clock.elapsedTime
     const p = phaseRef.current
@@ -93,8 +97,6 @@ function Galaxy({ phase, sim, scroll }: Props) {
     burst.current *= 0.985
     geom.attributes.position.needsUpdate = true; geom.attributes.color.needsUpdate = true
     ref.current!.rotation.y += dt * (p === 'IDLE' ? 0.03 : 0.006)
-    const sc = scroll.get()
-    ;(ref.current!.material as THREE.PointsMaterial).opacity = 0.95 * (1 - 0.92 * Math.min(1, sc * 1.4))
   })
   return (
     <points ref={ref}>

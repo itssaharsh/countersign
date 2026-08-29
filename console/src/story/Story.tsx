@@ -54,7 +54,7 @@ export function Story() {
                   <Row name="orders" count={17971} note="ON DELETE CASCADE" />
                   <Row name="payments" count={19442} note="ON DELETE CASCADE" />
                 </div>
-                <div className="h-md mt-8">One click. 43,413 rows. No undo.</div>
+                <div className="h-md mt-8">One click. 43,413 rows. No rollback was ever generated.</div>
                 <p className="body mt-3" style={{ opacity: 0.75 }}>Two foreign keys away from the table you named, and nothing in the prompt said so.</p>
               </div>
             </Reveal>

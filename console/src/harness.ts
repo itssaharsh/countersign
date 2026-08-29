@@ -79,12 +79,19 @@ export function useHarness() {
         break
       }
       case 'turn.created': {
-        // The turn carries its input; replays have no send(). Skip when send() already
-        // placed the same text (live runs), so the order appears exactly once.
+        // The turn carries its input. Identity is the turn, not the text: a live send()
+        // places an optimistic item that is reconciled with its turn here; replays and
+        // reconnects (no send()) get one item per turn, repeated orders included.
         for (const input of (event.input ?? []) as Array<{ type?: string; content?: unknown }>) {
           if (input?.type !== 'user.message' || typeof input.content !== 'string' || !input.content) continue
           const text = input.content
-          setFeed((f) => (f.some((x) => x.kind === 'user' && x.text === text) ? f : [...f, { kind: 'user', id: `u-${event.id}`, text }]))
+          const id = `u-${event.turnId ?? event.id}`
+          setFeed((f) => {
+            if (f.some((x) => x.kind === 'user' && x.id === id)) return f
+            const i = f.findIndex((x) => x.kind === 'user' && x.id.startsWith('u-pending-') && x.text === text)
+            if (i >= 0) return f.map((x, k) => (k === i ? { ...x, id } : x))
+            return [...f, { kind: 'user', id, text }]
+          })
         }
         break
       }
@@ -200,7 +207,7 @@ export function useHarness() {
   }, [])
 
   const send = useCallback((text: string) => {
-    upsertFeed({ kind: 'user', id: `u-${Date.now()}`, text })
+    upsertFeed({ kind: 'user', id: `u-pending-${Date.now()}`, text })
     void stream([{ type: 'user.message', content: text }])
   }, [stream, upsertFeed])
 
