@@ -38,9 +38,11 @@ export function Dossier(p: Props) {
           <h2 className="t-label">{p.phase === 'WITNESSING' ? 'Receipt' : 'Blast radius'}</h2>
           {p.sim && <p className="dossier-sql t-data">{p.sim.change_sql}</p>}
           <p className="panel-empty">
-            {p.gateOpen
-              ? 'The evidence for this approval appears here.'
-              : 'Measuring. The per-table counts appear here when the shadow transaction reports.'}
+            {p.phase === 'WITNESSING'
+              ? 'The commit is done. The per-table figures, the fingerprint and the armed undo appear here.'
+              : p.gateOpen
+                ? 'The evidence for this approval appears here.'
+                : 'Measuring. The per-table counts appear here when the shadow transaction reports.'}
           </p>
         </>
       )}

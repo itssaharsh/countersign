@@ -320,6 +320,7 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 .tx-line:first-child { border-top: 0; }
 .tx-you, .tx-tool { color: var(--ink); }
 .tx-status { color: var(--graphite); }
+.tx-args { color: var(--graphite); font-size: var(--t-11); margin-top: 2px; word-break: break-all; }
 .tx-sys { color: var(--graphite); }
 .submit-input {
   font-size: var(--t-20); color: var(--ink); background: transparent;

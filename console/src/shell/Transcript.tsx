@@ -30,7 +30,15 @@ export function Transcript({ feed }: { feed: FeedItem[] }) {
 function Line({ f }: { f: FeedItem }) {
   if (f.kind === 'user') return <div className="tx-line tx-you"><span className="t-label">You</span> {f.text}</div>
   if (f.kind === 'assistant') return f.text ? <div className="tx-line">{f.text}</div> : null
-  if (f.kind === 'tool') return <div className="tx-line tx-tool">{f.name}<span className="tx-status">{f.status === 'done' ? ' done' : ' working'}</span></div>
+  if (f.kind === 'tool') return (
+    <div className="tx-line tx-tool">
+      {f.name}<span className="tx-status">{f.status === 'done' ? ' done' : ' working'}</span>
+      {/* The arguments are what the call actually asked for — dropping them
+          leaves a tool name with no content, which is the consent-form problem
+          this project exists to refuse. */}
+      {f.args && <div className="tx-args">{f.args.length > 160 ? `${f.args.slice(0, 160)}…` : f.args}</div>}
+    </div>
+  )
   if (f.kind === 'thread') return <div className="tx-line">subagent · {f.title}</div>
   return <div className="tx-line tx-sys">{f.text}</div>
 }
