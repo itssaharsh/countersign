@@ -64,8 +64,9 @@ function Galaxy({ phase, sim, scroll }: Props) {
     // Scroll-derived visual state is applied first: a jump straight into the story must
     // land on the faded galaxy, whether or not the geometry loop keeps running.
     const sc = scroll.get()
-    ;(ref.current!.material as THREE.PointsMaterial).opacity = 0.95 * (1 - 0.92 * Math.min(1, sc * 1.4))
-    if (sc > 0.99) return
+    ;(ref.current!.material as THREE.PointsMaterial).opacity = 0.95 * (1 - 0.70 * Math.min(1, sc * 1.4))
+    // Under the story the galaxy is depth, not state: keep a slow drift, skip the point loop.
+    if (sc > 0.99) { ref.current!.rotation.y += dt * 0.012; return }
     if (reduced) { settle.current -= dt; if (settle.current <= 0) return }
     const t = reduced ? 0 : state.clock.elapsedTime
     const p = phaseRef.current

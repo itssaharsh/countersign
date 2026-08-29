@@ -129,6 +129,23 @@ sticky stack, text reveal) rebuilt in src/story/fx.tsx. The MagicUI, shadcn and 
 MCP servers were not connected in the build session, so nothing was fetched from them;
 the patterns are reimplementations, not copies.
 
+### One world (console v5.1): colour as accent, not background
+Feedback on v5: the coloured section backgrounds read as too much. Decision: every
+section now sits on the stage's own ground with the galaxy showing through; each section
+gets one soft glow (ember for the problem and the numbers, ice for the harness,
+ultramarine for the review trail) and colour is spent only on numerals and labels. The
+four proof tiles are tinted glass over the same ground, not solid fills, so they read as
+one family. The Problem section is the single bold moment: an unboxed ledger whose ember
+numbers count up. A wayfinder rail on the right names every section, marks the one in
+view and jumps on click; the example order in the dock is clickable. Numbered markers
+survive only on the four proofs, because that list is a real sequence; the harness list
+is not, so it lost its numbers.
+What judges of a UI prize reward, and how this maps: a clear identity (one ground, one
+display face, one accent), motion that means something (phase-driven stage, scrubbed
+reveals, counting numbers), obvious usability (four regions that never collide, a
+wayfinder, a clickable example, a gate that says why it is blocked), and no visual
+defects at desktop or phone widths (tools/design-review.mjs reports zero).
+
 ## 3. TrueForge usage map (Double-O track answers)
 - MCP tools: custom countersign server + shipped github (PR fetch, receipt comment)
   + supabase connector planned for independent post-commit verification.

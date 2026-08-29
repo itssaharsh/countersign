@@ -15,6 +15,8 @@ type Props = {
   onSend: (t: string) => void; respond: (status: 'allow' | 'deny', reason?: string, toolCallId?: string) => void
 }
 
+const EXAMPLE = "Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'"
+
 const TITLE: Record<Phase, [string, string]> = {
   IDLE: ['Show me the', 'consequence.'],
   INVESTIGATING: ['Measuring what', 'would die.'],
@@ -139,7 +141,7 @@ export function Hero(p: Props) {
               <span className="t-mono text-[12.5px] truncate" style={{ color: 'var(--ink)' }}>{lastOrder.text}</span>
             </>
           ) : (
-            <span className="t-mono text-[12.5px]" style={{ color: 'var(--ink-faint)' }}>try: Process this change request: DELETE FROM users WHERE last_active &lt; '2025-01-01'</span>
+            <button type="button" className="linkish t-mono text-[12.5px]" onClick={() => setDraft(EXAMPLE)} title="Put this order in the command line">try: {EXAMPLE}</button>
           )}
         </div>
         <div className="say">
