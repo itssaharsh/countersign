@@ -8,6 +8,7 @@ import { useEngineState, activeSimulation, simulationFor, phaseFor } from './sta
 import { Experience } from './experience/Experience'
 import { Cursor, Hero } from './experience/Hero'
 import { Story } from './story/Story'
+import { Wayfinder } from './story/Wayfinder'
 import { useFreshness } from './experience/useFreshness'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -55,6 +56,7 @@ export default function App() {
         <Hero phase={phase} sim={sim} feed={feed} running={running} pending={pending} freshnessLeft={left} modelName={modelName} engineOnline={Boolean(engine.backends.live)} scroll={scrollYProgress} onSend={send} respond={respond} />
       </div>
       <Story />
+      <Wayfinder scroll={scrollYProgress} />
     </>
   )
 }

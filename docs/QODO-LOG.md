@@ -108,3 +108,10 @@ Qodo posted a summary and a clean review ("Great, no issues found!"); no finding
 | 2 | Repeated orders disappear | Bug | **FIXED** — user orders are identified by turn (`u-<turnId>`); a live `send()` places a `u-pending-*` item that is reconciled with its `turn.created`, so repeated identical orders each keep their own line. |
 | 3 | Scroll jump skips fade | Bug | **FIXED** — the scroll-derived material opacity is applied before the geometry loop's early return, so a jump straight into the story lands on the faded galaxy. |
 
+## PR #13 — console v5.1 one world (3 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Invisible wayfinder receives focus | Bug | **FIXED** — the rail is `inert` and `aria-hidden` while transparent (tracked from the scroll motion value) and focused labels are shown. |
+| 2 | Counters ignore reduced motion | Bug | **FIXED** — `NumberTicker` writes the final value immediately under `prefers-reduced-motion`; no spring is subscribed. |
+| 3 | Mobile dock exceeds height | Bug | **FIXED** — mobile `--dock-h` is 204px; measured content 38+38+1+48 with gaps and padding fits with no overflow. |
+

@@ -60,9 +60,9 @@ the gate). Scroll down and the page becomes the story: the problem, the four pro
 tiles with the real evidence, the numbers from the recorded run, how TrueForge is
 load-bearing, the review trail, and how to run it.
 
-| the problem | four proofs | the numbers |
-|---|---|---|
-| ![problem](docs/screenshots/story-problem.png) | ![proofs](docs/screenshots/story-mechanism.png) | ![numbers](docs/screenshots/story-numbers.png) |
+| what it is | the problem | four proofs | the numbers |
+|---|---|---|---|
+| ![what it is](docs/screenshots/story-manifesto.png) | ![problem](docs/screenshots/story-problem.png) | ![proofs](docs/screenshots/story-mechanism.png) | ![numbers](docs/screenshots/story-numbers.png) |
 
 The UI is a *window* onto the gate, not the gate itself: `commit_change` refuses
 server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint;
