@@ -51,9 +51,9 @@ A migration lands in a GitHub PR. The Countersign agent (running on TrueForge):
 
 | IDLE | INVESTIGATING | DECIDING | WITNESSING |
 |---|---|---|---|
-| ![idle](docs/screenshots/phase-idle.png) | ![investigating](docs/screenshots/phase-investigating.png) | ![deciding](docs/screenshots/phase-deciding.png) | ![witnessing](docs/screenshots/phase-witnessing.png) |
+| _re-capture pending_ | _re-capture pending_ | _re-capture pending_ | _re-capture pending_ |
 
-*Real-model run (Groq-hosted `openai/gpt-oss-120b`): the agent investigated, TrueForge paused on the gated commit, the operator countersigned, and the scoped commit executed — [gate](docs/screenshots/real-model-deciding.png) · [ledger](docs/screenshots/real-model-witnessing.png).*
+*Real-model run (Groq-hosted `openai/gpt-oss-120b`): the agent investigated, TrueForge paused on the gated commit, the operator countersigned, and the scoped commit executed. Screenshots are being re-captured against the current console.*
 
 The stage is the live console (drag the galaxy when idle, transmit an order, countersign at
 the gate). Scroll down and the page becomes the story: the problem, the four proofs as stacked
@@ -62,7 +62,7 @@ load-bearing, the review trail, and how to run it.
 
 | what it is | the problem | four proofs | the numbers |
 |---|---|---|---|
-| ![what it is](docs/screenshots/story-manifesto.png) | ![problem](docs/screenshots/story-problem.png) | ![proofs](docs/screenshots/story-mechanism.png) | ![numbers](docs/screenshots/story-numbers.png) |
+| _the scroll story was removed with the v5 stage_ | | | |
 
 The UI is a *window* onto the gate, not the gate itself: `commit_change` refuses
 server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint;
