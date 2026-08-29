@@ -503,3 +503,31 @@ html.lenis, html.lenis body { height: auto; }
 .linkish:hover { color: var(--ink); }
 .wf.on .dot { box-shadow: none; }
 .wf:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Qodo #1 — the restored structural rules carry `outline: none` on .cmd and on
+   focused .tbtn, and they win the cascade over the global :focus-visible above.
+   §8 says never outline:none, so the ring is put back on every legacy control
+   explicitly. The .tbtn underline stays as a second, non-substituting cue. */
+.cmd:focus-visible,
+.tbtn:focus-visible,
+.btn-pill:focus-visible,
+.linkish:focus-visible,
+.chip:focus-visible {
+  outline: 2px solid var(--ink) !important;
+  outline-offset: 2px !important;
+}
+
+/* Qodo #2 — the mobile dock reserves a fixed 204px, but its own first line (the
+   example order) wraps to three lines at 390 and overflows upward into the
+   title zone. Inter Tight sits taller than the italic it replaced, which is what
+   made the existing overflow visible. Bound the order line and reserve the real
+   height; the geometry goes away entirely with the legacy hero. */
+@media (max-width: 760px) {
+  :root { --dock-h: 232px; }
+  .dock .linkish {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

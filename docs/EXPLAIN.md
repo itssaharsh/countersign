@@ -73,6 +73,45 @@ keeps the full-capability profile for choreography. Judge question: "isn't the m
 cheating?" Answer: mocksmith is a scripted *test driver* that exercises the real harness,
 tools and gates; the recorded demo runs the real model, and the README says so.
 
+### The visual system (console v6): the counterfoil
+Superseded v4/v5 below, which is kept for the record of what was tried and why.
+Why the change: the v4 stage answered "make it cinematic" but not the thing the Best UI
+track is actually judged on — *shows what the agent is doing, what it is waiting on, what
+it did, and asks before the irreversible step*. A galaxy is a second read of the
+measurement; it is not an answer to "what is it waiting on from me". So the console is now
+an operator console, and `DESIGN.md` at the repo root is its single source of truth.
+The direction is the paperwork of authorised destruction — a munitions release form, a bank
+counterfoil — because that is what a countersignature is. Paper ground, ink text, hairline
+rules, one seal. The inversion that makes it work: the calm surface is the default and
+danger is *rationed*. Most agent UIs are dark and alarming all the time, which means nothing
+in them reads as alarming. Here at most one element on screen may be red, and it is either
+the destructive row count or the countersign control, never both — the total hands the red
+over when the control materialises. Six colours, three faces (Bricolage Grotesque for
+display, Inter Tight for prose, IBM Plex Mono for **anything that came out of the
+database**, which is the whole type system: you can tell at a glance what is measured data
+and what is Countersign talking), a 1.25 type scale, 2px radius, no box shadows anywhere,
+and a hard budget of five animations on the page.
+Judge question: "isn't light just a safer choice?" Answer: it is the riskier one in a
+judging queue where every other submission is dark, and it is the only ground on which
+rationing a single red element reads at all.
+Cost and trade-off: the three.js stage, the scroll story and their dependencies come out.
+That is a real loss of spectacle, taken deliberately — the spectacle was not answering the
+judging line, and every animation kept has to earn a slot in the budget of five.
+Written against the running system, not against a mockup: `DESIGN.md` §9 records ten places
+where the first draft of the spec described behaviour the harness does not have (a
+fine-grained tool transcript that does not exist, a ledger that cannot stream row by row, a
+RESTRICT edge coexisting with a passing policy) and what was changed instead. The rule the
+spec states for itself: if a screen cannot be drawn from data the console actually receives,
+that is a bug in the spec, not a licence to invent the data.
+Migration note: the ground (tokens, type, focus, motion budget, layout frame) landed before
+any component moved, so it could be reviewed on its own. Until the components are rewritten,
+a block marked `LEGACY BRIDGE — TEMPORARY` at the bottom of `console/src/index.css` keeps the
+v5.1 layout rules and re-points the old dark-stage variables at the six new tokens; it is
+deleted with the components it serves. Dark mode needed three values `DESIGN.md` §2 does not
+give: on an ink ground the light graphite, seal and proof measure 3.4:1, 2.9:1 and 1.7:1,
+under the 4.5:1 floor the spec calls non-negotiable, so they are re-struck lighter at the
+same roles and the measured ratios are recorded beside them in the file.
+
 ### The visual system (console v4): a cinematic stage
 Why not a dashboard: the Best UI track is judged on the demo video and usability, and
 the brief was explicit about the references (Lusion, Unseen Studio, Active Theory,
