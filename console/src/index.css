@@ -53,12 +53,15 @@ a, button, input { cursor: none; }
 .rail { scrollbar-width: none; } .rail::-webkit-scrollbar { display: none; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
-@media (prefers-reduced-motion: reduce) { .caret { animation: none; } .rise { animation: none; } body { cursor: auto; } .cursor-dot, .cursor-ring { display: none; } }
-
-/* Reduced motion: the custom cursor is hidden, so every control must show the native one. */
+/* Reduced motion: no CSS motion, hide the custom cursor and restore the native one on
+   every control (the base rule sets cursor:none directly on a, button, input). */
 @media (prefers-reduced-motion: reduce) {
-  a, button, input, .hit { cursor: auto; }
+  .caret { animation: none; }
+  .rise { animation: none; }
+  .cursor-dot, .cursor-ring { display: none; }
+  body, a, button, input, .hit { cursor: auto; }
 }
+
 
 /* Narrow viewports: the page never scrolls, so every panel must fit and scroll internally. */
 .panel { width: min(380px, calc(100vw - 4rem)); }
