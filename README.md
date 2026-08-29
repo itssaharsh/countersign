@@ -105,7 +105,7 @@ Then in TrueForge (http://localhost:8790):
 5. Watch the evidence board fill, the gate arm, and TrueForge pause. The decision is yours.
 
 End-to-end scripted proof (pause → approve → commit → undo → restore): `node agent/e2e.mjs --approve`
-Engine test suite (10 tests, every demo claim): `node --test server/tests/`
+Engine test suite (11 tests, every demo claim): `npm test -w server`
 
 ## How it uses TrueForge
 

@@ -41,6 +41,53 @@ every finding across the review trail. (Severities as assigned by Qodo.)
 | 7 | E2E failures exit successfully | Medium | **FIXED** — exit code mirrors the final turn status. |
 | 8 | Escape fingerprint count | Medium | Noted — display-only value from our own server; revisit if user content ever reaches that surface. |
 
+## PR #4 — demo migration: purge inactive users (0 findings)
+No Qodo review on this PR — it is the demo *target* PR (unmerged; `migrations/0042_purge_inactive_users.sql`); its only comment is the Countersign receipt posted by the agent.
+
+## PR #5 — README Qodo evidence section (0 findings)
+Qodo posted a summary and a clean review ("Great, no issues found!"); no findings.
+
+## PR #6 — PR-origin storyline + sandbox re-verification + receipt-to-PR (7 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Sandbox verification fails open | High | **DISMISSED (reason in-thread)** — mocksmith is the scripted *test driver*, not the enforcement layer; `commit_change` refuses server-side without a recorded deterministic policy PASS regardless of what any model does. The sandbox re-run is redundant evidence; an explicit sandbox FAIL still blocks in the script, and unavailability is reported honestly in the transcript (upstream truefoundry/trueforge#482 on WSL2). |
+| 2 | Multiline migrations are corrupted | High | **FIXED** — added-line continuations in the JSON-escaped diff are joined before extraction, so multi-line statements survive intact (downstream also fails safe: a truncated statement fails the server's classifier/simulation, which blocks the flow). |
+| 3 | Additional migrations are ignored | High | **DISMISSED (reason in-thread)** — one migration per PR is the v1 demo contract for the scripted driver; the real-model agent doctrine handles multi-file PRs naturally. Noted in the script header. |
+| 4 | Receipt targets wrong repository | High | **FIXED** — owner/repo now come from the `pull_request_read` call recorded in history, with the parsed order as fallback. |
+| 5 | PR flow lacks design rationale | Rule | Noted — design rationale lives in `prompts/00-mission.md` and `docs/EXPLAIN.md`. |
+| 6 | Receipt JSON is truncated | Medium | Noted — the receipt embeds a truncated measurement preview by design; the full JSON persists in the evidence dir. |
+| 7 | Evidence claims unperformed verification | Medium | Noted — the receipt's verification claims are read from the `run_investigation` result, not asserted. |
+
+## PR #7 — Groq real-model profile + key rotor (5 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Final key bypasses retries | High | **FIXED** — every throttled key (including the last) yields to the next key/cycle; the throttled response is forwarded only after all cycles are exhausted. |
+| 2 | Rotation races skip keys | High | **FIXED** — each request snapshots the key ring at start and walks its own consistent order; promotion rotates the shared ring by key identity. |
+| 3 | Live setup selects unconfigured provider | High | **FIXED** — README's live setup now documents both paths (catalog provider, or Groq via the rotor with the custom-provider registration and `--real`). |
+| 4 | key-rotor design undocumented | Rule | **FIXED** — `docs/EXPLAIN.md` has a design entry for the rotor and the lean profile, including the "isn't the mock cheating?" judge answer. |
+| 5 | Hung upstream blocks failover | Medium | **FIXED** — upstream fetch carries a 120 s AbortSignal timeout, so a stalled connection falls through to the next key. |
+
+## PR #8 — same-turn commit doctrine + gate-aware demo driver (1 finding)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Null arguments crash event handling | Medium | **OPEN — no in-thread outcome** — no itssaharsh reply addresses it; Qodo's re-review, updated to fd92677 after the merge, still lists it. |
+
+## PR #9 — console doubled tool-call argument recovery (2 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Recovery cannot unblock gate | High | **FIXED** — the branch lacked the `call_tool` unwrap, so `toolName` stayed `call_tool`; both are now in the branch, verified by replaying a recorded gpt-oss-120b session through the console (`?replayEvents=/fixtures/real-run.jsonl` → `HUMAN GATE · commit_change` renders). |
+| 2 | Argument recovery is undocumented | Rule | **FIXED** — `docs/EXPLAIN.md` entry added (also notes the retracted upstream report). |
+
+## PR #10 — console redesign: bright, colourful, animated (6 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Stale evidence becomes fresh | High | **FIXED** — the page-load anchor now applies only when `?replay` / `?replayEvents` is present; live runs keep the true measurement timestamp, so stale live evidence renders STALE and the button stays disabled. |
+| 2 | Redesign decisions remain undocumented | Rule | **FIXED** — `docs/EXPLAIN.md` has a "visual system" entry (rationale, references, what the 3D world represents, reduced-motion behaviour). |
+| 3 | App lacks TrueForgeUI provider | Rule | **FIXED** as a docs bug — the console is deliberately built on `@truefoundry/trueforge-sdk` directly (the UI embed loops against server 0.1.4, documented in EXPLAIN.md); CLAUDE.md's stale architecture section is now synced. |
+| 4 | Replay still polls live server | Rule | **FIXED** — event replay without a state fixture no longer polls `/state`. |
+| 5 | Backend status is fabricated | Medium | **FIXED** — the header chip reads the countersign agent's model from TrueForge (`/api/v1/agents`) and shows "engine offline" when the engine is unreachable. |
+| 6 | Motion preference is ignored | Medium | **FIXED** — `prefers-reduced-motion` disables the decorative animations and skips mounting the 3D scene and particle field. |
+
 ## PR #11 — console v4 cinematic stage (9 findings)
 | # | Finding | Sev | Outcome |
 |---|---|---|---|
