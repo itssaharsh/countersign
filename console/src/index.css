@@ -119,7 +119,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
   min-height: 100svh;
   max-width: var(--max-content);
   margin: 0 auto;
-  padding-bottom: var(--gate-h);
+  padding-bottom: calc(var(--gate-h-actual) + var(--section-gap));
 }
 
 .console-header {
@@ -288,339 +288,43 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   LEGACY BRIDGE — TEMPORARY.
-
-   The v5.1 components (Hero, Experience, Story, Wayfinder, fx) are still on
-   screen and still reference the old dark-stage variables inline. This block
-   re-points those names at the six new tokens so the ground change can be
-   reviewed on its own, before any component is rewritten. It applies the
-   rationing rule rather than dodging it: every old state colour collapses to
-   --graphite except destructive counts (--seal) and verified states (--proof).
-
-   Delete this entire block with the components it serves.
-   ═══════════════════════════════════════════════════════════════════════════ */
-/* ── part 1: the v5.1 component layout, verbatim from main ────────────────
-   Positions, grids and sizes only — these components have not been rewritten
-   yet, and without their layout there is no ground change to look at, just an
-   unstyled page. The colour, type, radius and elevation declarations inside
-   are superseded by part 2 below. Deleted wholesale with the components. */
-
-/* Lenis' required CSS contract — dropping it collapses the scroll container
-   and every absolutely-positioned hero region with it. */
-html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
-.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-.lenis.lenis-stopped { overflow: hidden; }
-
-/* ── stage ── */
-.stage-canvas { position: fixed; inset: 0; z-index: 0; }
-.hero { position: relative; z-index: 2; height: 100svh; min-height: 640px; pointer-events: none; }
-.hero .hit { pointer-events: auto; }
-
-.t-giant { font-family: var(--display); font-weight: 800; letter-spacing: -0.035em; line-height: 0.92; text-transform: uppercase; }
-.t-serif { font-family: var(--serif); font-weight: 400; }
-.t-mono { font-family: var(--mono); }
-.t-tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-faint); }
-.glow-text { text-shadow: 0 0 24px rgba(139,125,255,0.45), 0 0 2px rgba(255,255,255,0.4); }
-
-/* hero grid: nothing overlaps. top bar / title zone (left) / rail (right) / dock (bottom) */
-.hero-top { position: absolute; left: var(--gutter); right: var(--gutter); top: 26px; display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
-.hero-title { container-type: inline-size; position: absolute; left: var(--gutter); bottom: calc(var(--dock-h) + 28px); width: min(58vw, calc(100vw - 2 * var(--gutter) - 440px)); }
-.hero-rail { position: absolute; right: var(--gutter); top: 128px; bottom: calc(var(--dock-h) + 20px); width: min(400px, calc(100vw - 2 * var(--gutter))); display: flex; flex-direction: column; justify-content: flex-end; gap: 16px; min-height: 0; }
-.transcript { flex: 0 1 auto; min-height: 0; max-height: 46vh; overflow-y: auto; scrollbar-width: none; padding: 16px 18px; border-radius: 14px; background: rgba(12, 10, 26, 0.55); border: 1px solid rgba(255,255,255,0.09); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
-.transcript::-webkit-scrollbar { display: none; }
-.transcript .row { display: grid; grid-template-columns: 14px 1fr; gap: 10px; align-items: start; font-family: var(--mono); font-size: 11.5px; line-height: 1.5; color: var(--ink-dim); padding: 5px 0; border-top: 1px solid rgba(255,255,255,0.05); }
-.transcript .row:first-child { border-top: 0; }
-.transcript .order { background: rgba(255,180,84,0.10); border: 1px solid rgba(255,180,84,0.28); border-radius: 10px; padding: 8px 10px; margin: 6px 0; color: var(--ink); }
-.dock { position: absolute; left: 0; right: 0; bottom: 0; height: var(--dock-h); padding: 18px var(--gutter) 22px; background: linear-gradient(180deg, rgba(7,6,15,0) 0%, rgba(7,6,15,0.82) 28%, rgba(7,6,15,0.96) 100%); display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
-.dock .say { font-family: var(--mono); font-size: 12.5px; line-height: 1.5; color: var(--ink-dim); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 38px; }
-.chip { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; border: 1px solid currentColor; }
-.scroll-cue { position: absolute; right: var(--gutter); bottom: calc(var(--dock-h) + 2px); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); }
-
-/* command line */
-.cmd { font-family: var(--mono); background: transparent; border: 0; outline: none; color: var(--ink); width: 100%; font-size: 15px; letter-spacing: 0.01em; }
-.cmd::placeholder { color: var(--ink-faint); }
-.caret { display: inline-block; width: 9px; height: 18px; background: var(--ink); vertical-align: -3px; margin-left: 2px; animation: blink 1s steps(2) infinite; }
-@keyframes blink { 50% { opacity: 0; } }
-.hairline { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent); }
-
-/* typographic buttons */
-.tbtn { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1; background: transparent; border: 0; color: var(--ink); position: relative; }
-.tbtn .underline { position: absolute; left: 0; right: 0; bottom: -6px; height: 3px; background: currentColor; transform-origin: left; transform: scaleX(0); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
-.tbtn:hover .underline { transform: scaleX(1); }
-.tbtn:disabled { opacity: 0.25; }
-.tbtn:focus-visible { outline: none; }
-.tbtn:focus-visible .underline { transform: scaleX(1); }
-.btn-pill:focus-visible, .linkish:focus-visible { outline: 1px solid rgba(243,239,255,0.7); outline-offset: 4px; }
-.dock:focus-within .hairline { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent); }
-.wf:focus-visible .lbl { opacity: 1; transform: none; }
-
-/* glass slab (the receipt) */
-.slab { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16); border-radius: 16px; backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 30px 80px -30px rgba(0,0,0,0.8); }
-
-/* custom cursor */
-.cursor-dot { position: fixed; z-index: 50; width: 8px; height: 8px; border-radius: 999px; background: var(--ink); pointer-events: none; mix-blend-mode: difference; transform: translate(-50%, -50%); }
-.cursor-ring { position: fixed; z-index: 50; width: 36px; height: 36px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.7); pointer-events: none; transform: translate(-50%, -50%); mix-blend-mode: difference; }
-
-@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-.rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
-
-/* ── story ── */
-.story { position: relative; z-index: 3; }
-.section { position: relative; padding: clamp(110px, 14vw, 210px) var(--gutter); overflow: clip; }
-.wrap { max-width: 1480px; margin: 0 auto; }
-.bleed { margin-left: calc(-1 * var(--gutter)); margin-right: calc(-1 * var(--gutter)); }
-.offset-r { margin-left: clamp(0px, 9vw, 200px); }
-/* one world: the stage's ground under every section, the galaxy showing through; colour
-   is spent on numerals and one soft glow per section, never on a background */
-.world-manifesto { background-color: rgba(9, 8, 16, 0.70); color: var(--ink); }
-.world-problem { background-color: rgba(9, 8, 16, 0.84); color: var(--ink); background-image: radial-gradient(1100px 620px at 6% 8%, rgba(255,122,61,0.16), transparent 62%); }
-.world-mechanism { background-color: rgba(9, 8, 16, 0.90); color: var(--ink); }
-.world-numbers { background-color: rgba(9, 8, 16, 0.74); color: var(--ink); background-image: radial-gradient(900px 520px at 92% 28%, rgba(255,122,61,0.10), transparent 60%); }
-.world-harness { background-color: rgba(9, 8, 16, 0.90); color: var(--ink); background-image: radial-gradient(900px 520px at 10% 90%, rgba(159,216,255,0.08), transparent 60%); }
-.world-trust { background-color: rgba(9, 8, 16, 0.86); color: var(--ink); background-image: radial-gradient(1000px 620px at 88% 18%, rgba(28,46,255,0.22), transparent 60%); }
-.world-run { background-color: rgba(9, 8, 16, 0.95); color: var(--ink); }
-.section + .section::before { content: ""; position: absolute; left: var(--gutter); right: var(--gutter); top: 0; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.14), transparent 70%); }
-
-.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.8; }
-.h-xl { font-family: var(--display); font-weight: 800; letter-spacing: -0.04em; line-height: 0.95; font-size: clamp(44px, 7vw, 124px); }
-.h-lg { font-family: var(--display); font-weight: 800; letter-spacing: -0.03em; line-height: 1; font-size: clamp(32px, 4.4vw, 72px); }
-.h-md { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; font-size: clamp(22px, 2.2vw, 34px); }
-.lede { font-family: var(--serif); font-size: clamp(22px, 2.4vw, 38px); line-height: 1.25; }
-.body { font-family: var(--sans); font-size: clamp(16px, 1.15vw, 19px); line-height: 1.55; }
-.reveal-words .w { display: inline-block; opacity: 0.16; transition: none; will-change: opacity; }
-
-.card { border-radius: 18px; padding: clamp(26px, 3vw, 44px); position: relative; overflow: hidden; }
-.glass { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(16px) saturate(130%); -webkit-backdrop-filter: blur(16px) saturate(130%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 40px 90px -40px rgba(0,0,0,0.7); }
-.glass-dark { background: rgba(14,13,18,0.94); color: var(--bone); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 40px 90px -40px rgba(0,0,0,0.7); }
-.card-spot { --mx: 50%; --my: 50%; }
-.card-spot::before { content: ""; position: absolute; inset: 0; background: radial-gradient(480px circle at var(--mx) var(--my), rgba(255,255,255,0.16), transparent 42%); opacity: 0; transition: opacity .35s; pointer-events: none; }
-.card-spot:hover::before { opacity: 1; }
-.problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px clamp(32px, 6vw, 120px); align-items: start; }
-.problem-grid > :nth-child(2) { margin-top: 56px; }
-.ledger { border-top: 1px solid rgba(255,255,255,0.14); }
-.ledger-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.10); }
-.ledger-row > :last-child { text-align: right; }
-
-/* stacked tiles (sticky) */
-.stack { position: relative; }
-.stack-card { --tint: #5b5f6e; position: sticky; top: 9vh; margin-bottom: 8vh; border-radius: 22px; min-height: 68vh; padding: clamp(28px, 3.6vw, 56px); display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(24px, 4vw, 64px); align-items: stretch; box-shadow: 0 -20px 60px -30px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.10); transform-origin: top center; will-change: transform, filter; background-color: color-mix(in srgb, var(--tint) 30%, #0b0a12); background-image: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0) 45%), radial-gradient(700px 400px at 100% 0%, color-mix(in srgb, var(--tint) 45%, transparent), transparent 60%); border: 1px solid color-mix(in srgb, var(--tint) 55%, transparent); color: #f4f1ff; }
-.stack-card { grid-template-rows: auto 1fr; }
-.tile-head { grid-column: 1; grid-row: 1 / span 2; align-self: start; }
-.tile-aside { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; font-size: 12.5px; line-height: 1.7; padding: 16px 18px; border-radius: 12px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(10px); max-width: 100%; overflow-x: auto; white-space: nowrap; opacity: 0.92; }
-.tile-body { grid-column: 2; grid-row: 2; align-self: end; }
-.stack-card .num { font-family: var(--display); font-weight: 800; font-size: clamp(64px, 11vw, 190px); line-height: 0.85; letter-spacing: -0.05em; opacity: 0.9; }
-
-/* numbers */
-.anchor-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 48px clamp(24px, 6vw, 120px); align-items: end; }
-.anchor-num { font-size: clamp(72px, 12.5vw, 220px); line-height: 0.85; white-space: nowrap; }
-.satellites { display: grid; gap: 36px; padding-bottom: 12px; }
-.satellites > :nth-child(2) { margin-left: clamp(0px, 4vw, 80px); }
-.satellites > :nth-child(3) { margin-left: clamp(0px, 8vw, 160px); }
-.smalls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 22px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.14); }
-
-/* harness index */
-.index { border-top: 1px solid rgba(159,216,255,0.16); }
-.entry { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 24px clamp(20px, 3vw, 56px); align-items: start; padding: 34px 12px; border-bottom: 1px solid rgba(159,216,255,0.12); border-left: 2px solid transparent; transition: background .3s, border-color .3s, padding-left .4s cubic-bezier(.2,.8,.2,1); }
-.entry:hover { background: rgba(159,216,255,0.05); border-left-color: var(--ice); padding-left: 24px; }
-.index > :nth-child(even) .entry { padding-left: clamp(12px, 5vw, 96px); }
-
-/* trust */
-.trust-grid { display: grid; grid-template-columns: 5fr 6fr; gap: 48px clamp(32px, 6vw, 120px); align-items: start; }
-.trust-grid > :nth-child(2) { margin-top: 64px; }
-
-/* marquee (MagicUI pattern) */
-.marquee { display: flex; overflow: hidden; gap: 0; user-select: none; }
-.marquee .track { display: flex; flex-shrink: 0; gap: 0; min-width: 100%; animation: marquee 38s linear infinite; }
-.marquee:hover .track { animation-play-state: paused; }
-@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
-
-/* rotating border beam */
-@property --beam { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-.beam { position: relative; }
-.beam::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px; background: conic-gradient(from var(--beam), transparent 0 70%, var(--ice) 85%, transparent 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: beam 4.5s linear infinite; pointer-events: none; }
-@keyframes beam { to { --beam: 360deg; } }
-
-.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
-.kbd { font-family: var(--mono); font-size: 13px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 14px 16px; overflow-x: auto; white-space: nowrap; }
-.btn-pill { display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 0.01em; padding: 14px 22px; border-radius: 999px; border: 1.5px solid currentColor; background: transparent; color: inherit; transition: background .25s, color .25s; }
-.btn-pill:hover { background: currentColor; }
-.btn-pill:hover, .btn-pill:hover * { color: var(--ink-0); }
-.world-problem .btn-pill:hover { color: var(--bone); }
-
-@media (max-width: 1100px) {
-  .stack-card { grid-template-columns: 1fr; grid-template-rows: auto auto auto; align-items: start; min-height: 60vh; }
-  .tile-head, .tile-aside, .tile-body { grid-column: 1; grid-row: auto; justify-self: stretch; }
-  .anchor-grid, .trust-grid, .problem-grid { grid-template-columns: 1fr; }
-  .problem-grid > :nth-child(2) { margin-top: 0; }
-  .trust-grid > :nth-child(2) { margin-top: 0; }
-  .entry, .index > :nth-child(even) .entry { grid-template-columns: 1fr; padding-left: 12px; }
-  .stagger > :nth-child(2) { margin-top: 0; }
+/* ── the shell ────────────────────────────────────────────────────────── */
+.brand { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+.brand-mark { font-family: var(--display); font-weight: 800; font-variation-settings: "wdth" 100; font-size: var(--t-16); letter-spacing: 0.06em; }
+.brand-sub { font-size: var(--t-11); color: var(--graphite); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+.rig { font-size: var(--t-11); color: var(--graphite); white-space: nowrap; }
+.linkish {
+  background: transparent; border: 0; padding: 0; font-size: var(--t-11); color: var(--graphite);
+  text-decoration: underline; text-underline-offset: 3px;
 }
-@media (max-width: 760px) {
-  :root { --dock-h: 204px; }
-  .hero-title { width: calc(100vw - 2 * var(--gutter)); bottom: calc(var(--dock-h) + 12px); }
-  .hero-title .t-giant { font-size: clamp(24px, 7.3cqw, 56px) !important; }
-  .hero-top .model { display: none; }
-  .h-xl { font-size: clamp(34px, 10.4vw, 124px); max-width: none !important; }
-  .h-lg { font-size: clamp(28px, 8.4vw, 72px); }
-  .anchor-num { font-size: clamp(56px, 20vw, 220px); }
-  .hero-rail { top: 112px; bottom: auto; max-height: 34vh; }
-  .transcript { max-height: 26vh; }
-  .grid-2 { grid-template-columns: 1fr; }
-  .smalls { grid-template-columns: 1fr 1fr; }
-  .offset-r { margin-left: 0; }
-  .satellites > :nth-child(2), .satellites > :nth-child(3) { margin-left: 0; }
-  .scroll-cue { display: none; }
-  .dock .cmd { min-height: 44px; font-size: 16px; }
-  .dock form .tbtn { min-height: 44px; padding: 0 12px; }
-}
-
-/* wayfinder rail */
-.wayfinder { position: fixed; right: 14px; top: 50%; transform: translateY(-50%); z-index: 20; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
-.wf { display: flex; align-items: center; gap: 10px; background: transparent; border: 0; color: var(--ink-faint); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; padding: 4px 2px; transition: color .25s; }
-.wf .lbl { opacity: 0; transform: translateX(6px); transition: opacity .25s, transform .25s; }
-.wayfinder:hover .wf .lbl, .wf.on .lbl { opacity: 1; transform: none; }
-.wf .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; box-shadow: 0 0 0 0 rgba(255,255,255,0); transition: transform .25s, box-shadow .25s; }
-.wf.on { color: var(--ink); }
-.wf.on .dot { transform: scale(1.5); box-shadow: 0 0 12px rgba(255,255,255,0.6); }
-.wf:hover { color: var(--ink); }
-.wf:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
-.linkish { background: transparent; border: 0; padding: 0; color: var(--ink-faint); text-align: left; text-decoration: underline dotted rgba(255,255,255,0.35); text-underline-offset: 4px; transition: color .25s; }
-.linkish:hover { color: var(--ink-dim); }
-@media (max-width: 1100px) { .wayfinder { display: none; } }
-
-/* ── part 2: re-ground it ─────────────────────────────────────────────── */
-:root {
-  --stage: var(--bone);
-  --ink-0: var(--ink);
-  --ink-dim: var(--graphite);
-  --ink-faint: var(--graphite);
-  /* state colours → graphite. "If a second thing wants to be red, it becomes
-     --graphite." (§2) */
-  --violet: var(--graphite);
-  --amber: var(--graphite);
-  --coral: var(--graphite);
-  /* verified / proven / receipt → proof */
-  --green: var(--proof);
-  --teal: var(--proof);
-  --ice: var(--proof);
-  /* the one seal: destructive row counts */
-  --ember: var(--seal);
-  /* old --bone was near-white text on a dark stage; it is the paper ground
-     now, so anything that used it as a text colour is re-pointed to ink. */
-  --sand: var(--rule);
-  --ivory: var(--bone);
-  --rose: var(--rule);
-  --orange: var(--seal);
-  --lime: var(--graphite);
-  --cobalt: var(--proof);
-  --forest: var(--proof);
-  --plum: var(--graphite);
-  --graphite-legacy: var(--graphite);
-  --ultra: var(--proof);
-  --dock-h: 164px;
-  --serif: var(--sans);
-}
-/* Old --bone was near-white text on a dark stage; it is the paper ground now.
-   Re-point only the places that used it as a text colour — never as a variable
-   on a container, or the container's own ground inverts with it. */
-.lede, .marquee .t-giant, .tile-body p, .receipt .t-mono, .slab, .stack-card { color: var(--ink) !important; }
-/* Structural labels never take the seal — it belongs to counts alone (§2). */
-.eyebrow, .t-tag { color: var(--graphite) !important; }
-
-/* The 3D stage is not in the spec and its canvas paints its own dark ground
-   over the paper. Hidden here (CSS only — the component is untouched). */
-.stage-canvas { display: none !important; }
-.cursor-dot, .cursor-ring { display: none !important; }
-
-/* Faces: old class names, new three-role system. */
-.t-giant { font-family: var(--display); font-weight: 800; font-variation-settings: "wdth" 100; letter-spacing: -0.02em; line-height: 0.95; text-transform: uppercase; }
-.t-serif { font-family: var(--sans); font-style: normal !important; font-weight: 400; }
-.t-mono, .kbd, .cmd, .transcript, .tile-aside { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.t-tag, .eyebrow { font-family: var(--sans); font-weight: 500; font-size: var(--t-11); letter-spacing: 0.08em; text-transform: uppercase; color: var(--graphite); }
-.h-xl, .h-lg, .h-md, .tbtn, .btn-pill, .stack-card .num { font-family: var(--display); font-variation-settings: "wdth" 100; }
-.lede, .body { font-family: var(--sans); }
-.lede { font-size: var(--t-20); line-height: 1.4; }
-.glow-text { text-shadow: none; }
-
-/* §2 — no shadows, no glass, no blur. Elevation is rules and ground shifts. */
-.slab, .glass, .glass-dark, .card, .stack-card, .transcript, .tile-aside, .kbd {
-  background: var(--bone) !important;
-  background-image: none !important;
-  border: 1px solid var(--rule) !important;
-  border-radius: var(--radius) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  color: var(--ink);
-}
-.card-spot::before, .beam::after { display: none !important; }
-
-/* Grounds: one paper, hairline separations, no colour worlds. */
-.hero { background: var(--bone); }
-.section, .world-manifesto, .world-problem, .world-mechanism,
-.world-numbers, .world-harness, .world-trust, .world-run {
-  background-color: var(--bone) !important;
-  background-image: none !important;
-  color: var(--ink);
-}
-.section + .section::before { background: var(--rule) !important; }
-.dock { background: var(--bone) !important; background-image: none !important; border-top: 1px solid var(--ink); }
-.hairline { background: var(--rule); }
-.dock:focus-within .hairline { background: var(--ink); }
-.transcript .row { border-top: 1px solid var(--rule); color: var(--graphite); }
-.transcript .order { background: transparent; border: 1px solid var(--rule); border-radius: var(--radius); color: var(--ink); }
-.ledger, .ledger-row, .index, .entry, .smalls { border-color: var(--rule) !important; }
-.entry:hover { background: transparent; border-left-color: var(--ink); }
-.stack-card { border-radius: var(--radius) !important; }
-
-/* Radius: 2px everywhere. */
-.chip, .kbd, .btn-pill, .cmd, .card, .slab, .transcript, .tile-aside, .stack-card, .wf { border-radius: var(--radius) !important; }
-.btn-pill { border: 1px solid var(--ink); color: var(--ink); }
-.btn-pill:hover { background: var(--ink); }
-.btn-pill:hover, .btn-pill:hover * { color: var(--bone); }
-.tbtn .underline { background: currentColor; }
-.caret { background: var(--ink); }
-.linkish { color: var(--graphite); text-decoration-color: var(--rule); }
 .linkish:hover { color: var(--ink); }
-.wf.on .dot { box-shadow: none; }
-.wf:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-/* Qodo #1 — the restored structural rules carry `outline: none` on .cmd and on
-   focused .tbtn, and they win the cascade over the global :focus-visible above.
-   §8 says never outline:none, so the ring is put back on every legacy control
-   explicitly. The .tbtn underline stays as a second, non-substituting cue. */
-.cmd:focus-visible,
-.tbtn:focus-visible,
-.btn-pill:focus-visible,
-.linkish:focus-visible,
-.chip:focus-visible {
-  outline: 2px solid var(--ink) !important;
-  outline-offset: 2px !important;
+.col-transcript h2, .col-dossier h2 { margin-bottom: 16px; }
+.panel-empty { font-size: var(--t-13); color: var(--graphite); max-width: 46ch; }
+.dossier-sql { font-size: var(--t-13); color: var(--ink); margin-bottom: 16px; word-break: break-word; }
+
+/* §5 empty state — the one screen a stranger has to be able to drive. */
+.submit { display: grid; gap: 12px; max-width: 72ch; }
+.submit-input {
+  font-size: var(--t-20); color: var(--ink); background: transparent;
+  border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; padding: 10px 0; width: 100%;
 }
+.submit-input::placeholder { color: var(--graphite); }
+.submit-input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.submit-note { font-size: var(--t-13); color: var(--graphite); }
+.submit-go {
+  justify-self: start; font-family: var(--sans); font-weight: 500; font-size: var(--t-13);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 10px 20px; border: 1px solid var(--ink); border-radius: var(--radius);
+  background: transparent; color: var(--ink);
+}
+.submit-go:hover:not(:disabled) { background: var(--ink); color: var(--bone); }
+.submit-go:disabled { color: var(--graphite); border-color: var(--rule); }
 
-/* The gate bar is fixed inside .hero, which sets pointer-events:none and opts its
-   children back in with .hit. It must always be operable. */
-.gate-bar { pointer-events: auto; }
-/* And it occupies the bottom 88px the legacy dock and rail were anchored to. */
-.dock { bottom: var(--gate-h-actual); }
-.hero-title { bottom: calc(var(--dock-h) + var(--gate-h-actual) + 28px); }
-.hero-rail { bottom: calc(var(--dock-h) + var(--gate-h-actual) + 20px); }
-.scroll-cue { bottom: calc(var(--dock-h) + var(--gate-h-actual) + 2px); }
-
-/* Qodo #2 — the mobile dock reserves a fixed 204px, but its own first line (the
-   example order) wraps to three lines at 390 and overflows upward into the
-   title zone. Inter Tight sits taller than the italic it replaced, which is what
-   made the existing overflow visible. Bound the order line and reserve the real
-   height; the geometry goes away entirely with the legacy hero. */
-@media (max-width: 760px) {
-  :root { --dock-h: 232px; }
-  .dock .linkish {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+@media (max-width: 900px) {
+  .brand { flex-direction: column; gap: 2px; }
+  .brand-sub { display: none; }
+  .console-header { height: auto; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+  .submit-input { font-size: var(--t-16); }
 }
