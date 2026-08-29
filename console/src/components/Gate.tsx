@@ -9,6 +9,7 @@ import type { Simulation } from '../state'
 
 const FRESHNESS_SECONDS = 120
 const LOAD_TIME = Date.now()
+const REPLAY_MODE = typeof window !== 'undefined' && (new URLSearchParams(window.location.search).has('replay') || new URLSearchParams(window.location.search).has('replayEvents'))
 type GateState = 'BLOCKED' | 'ARMED' | 'STALE'
 
 export function Gate({ sim, approvals, respond }: { sim: Simulation; approvals: PendingApproval[]; respond: (status: 'allow' | 'deny', reason?: string, toolCallId?: string) => void }) {
@@ -24,9 +25,10 @@ export function Gate({ sim, approvals, respond }: { sim: Simulation; approvals: 
     if (sim.policy?.verdict !== 'PASS') missing.push('policy pass')
   }
   const measuredRaw = sim.fingerprint ? new Date(sim.fingerprint.measured_at).getTime() : now
-  // Replayed sessions carry old timestamps; anchor freshness to page load so the
-  // meter still tells the story instead of opening expired.
-  const measuredAt = measuredRaw < LOAD_TIME - 10 * 60_000 ? LOAD_TIME : measuredRaw
+  // Replayed sessions carry old timestamps; ONLY in replay mode anchor freshness to
+  // page load so the meter still tells the story. Live runs keep the true timestamp,
+  // so stale live evidence reads STALE (Qodo PR10#1).
+  const measuredAt = REPLAY_MODE && measuredRaw < LOAD_TIME - 10 * 60_000 ? LOAD_TIME : measuredRaw
   const freshLeft = Math.max(0, FRESHNESS_SECONDS - (now - measuredAt) / 1000)
   const state: GateState = missing.length ? 'BLOCKED' : freshLeft <= 0 ? 'STALE' : 'ARMED'
   const color = state === 'ARMED' ? 'var(--cs-green)' : state === 'STALE' ? 'var(--cs-amber)' : 'var(--cs-coral)'

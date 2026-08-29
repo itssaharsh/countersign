@@ -40,10 +40,11 @@ server/  countersign MCP server (TypeScript, @modelcontextprotocol/sdk)
    Databases: LIVE = Supabase project 1 (demo) / PGlite (dev). SHADOW = Supabase project 2 / PGlite.
    DB creds stay in server env — never in model context, never in sandbox.
    ▼
-console/  React app — custom layout INSIDE TrueForgeUI provider stack (@truefoundry/trueforge-ui)
-   agentConfig: { mode: "SingleAgent", name: "countersign" }; three phases: INVESTIGATING →
-   DECIDING → WITNESSING. Reuse ToolApprovalContainer, useTrueFoundryRespondToToolApproval,
-   useComposerPauseView; overrides for ToolApprovalBar/ToolCallCard. Custom dark theme tokens.
+console/  React app built DIRECTLY on @truefoundry/trueforge-sdk (createTurnStream, delta merging,
+   tool.approval_required -> user.tool_approval, subscribeToTurn reconnect). The trueforge-ui embed
+   was dropped (it loops against server 0.1.4; see EXPLAIN.md). Three phases: INVESTIGATING ->
+   DECIDING -> WITNESSING. Bright animated visual system: three.js point-cloud world that morphs
+   with phase, glass cards over it, Instrument Serif kinetic type (see EXPLAIN.md "visual system").
 skills/countersign-dossier/  SKILL.md + policy.yaml evaluator + dossier renderer (sandbox path;
    dual path: same engine callable inside server/ when sandbox is unavailable)
 catalog/  branded MCP + skill catalog overlays (MCP_CATALOG_PATH / SKILL_CATALOG_PATH)
@@ -68,8 +69,8 @@ catalog/  branded MCP + skill catalog overlays (MCP_CATALOG_PATH / SKILL_CATALOG
   Hooks prefix is useTrueFoundry* (NOT useTrueForge*).
 - MCP registration: Settings → Connectors → "Add MCP Server" (any remote URL; header auth or none).
   Catalog overlays: MCP_CATALOG_PATH / SKILL_CATALOG_PATH env vars (override REPLACES file — copy shipped + append).
-- Sandbox: Daytona only; key needs Sandboxes + Snapshots write. Skills materialize at /opt/tfy/skills/{name}.
-  Sandbox status: DEFERRED (user decision) — dual-path the policy engine.
+- Sandbox: local fallback (bwrap+socat+rg on PATH) is ARMED; Daytona optional. Skills materialize at
+  /opt/tfy/skills/{name}. WSL2 bootstrap blocked upstream (#482); policy engine is dual-pathed.
 
 ## Working agreements
 - Branch per feature → PR → **wait for Qodo review** → address Highs → merge. PR titles: imperative,

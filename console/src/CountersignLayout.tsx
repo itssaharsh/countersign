@@ -11,7 +11,7 @@ import { Ledger } from './components/Ledger'
 import { Hero } from './components/Hero'
 import { Reveal } from './components/fx/Reveal'
 import { announcePhase } from './components/fx/Backdrop'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 const PHASE: Record<Phase, { color: string; label: string }> = {
   IDLE: { color: 'var(--cs-ink-faint)', label: 'Standing by' },
@@ -27,6 +27,14 @@ export function CountersignLayout() {
   const phase = phaseFor(sim, pending.length > 0)
   const ph = PHASE[phase]
   useEffect(() => { announcePhase(phase) }, [phase])
+  const [modelName, setModelName] = useState<string>('')
+  useEffect(() => {
+    // Ask TrueForge which model the countersign agent actually runs on.
+    fetch('/api/v1/agents').then((r) => r.json()).then((d) => {
+      const a = (d?.data ?? []).find((x: { name: string }) => x.name === 'countersign')
+      if (a?.manifest?.model?.name) setModelName(String(a.manifest.model.name).split('/').pop() ?? '')
+    }).catch(() => {})
+  }, [])
 
   return (
     <div className="h-screen flex flex-col p-5 gap-5">
@@ -39,7 +47,7 @@ export function CountersignLayout() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="pill" style={{ color: 'var(--cs-ink-dim)' }}>TrueForge · gpt-oss-120b</span>
+          <span className="pill" style={{ color: 'var(--cs-ink-dim)' }}>TrueForge{modelName ? ` · ${modelName}` : ''}{engine.backends.live ? '' : ' · engine offline'}</span>
           <motion.span key={phase} initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="pill" style={{ color: ph.color, borderColor: ph.color, background: `${ph.color}12` }}>
             <span className={`inline-block w-1.5 h-1.5 rounded-full ${phase !== 'IDLE' ? 'cs-pulse' : ''}`} style={{ background: ph.color }} />
             {ph.label}

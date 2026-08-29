@@ -73,6 +73,19 @@ keeps the full-capability profile for choreography. Judge question: "isn't the m
 cheating?" Answer: mocksmith is a scripted *test driver* that exercises the real harness,
 tools and gates; the recorded demo runs the real model, and the README says so.
 
+### The visual system (console v3): bright, animated, a world under glass
+Why not a dark HUD: the Best UI track is judged on the demo video and usability, and a
+dark terminal reads as generic. The references were Lusion, Unseen Studio and Stripe:
+a full-screen generative world with the interface floating over it as glass. So the
+backdrop is a three.js point cloud that IS the database, and it morphs with the harness
+state (sphere while idle, cascade clusters while investigating, a breathing green core
+inside a ring when the gate is armed, a burst then a calm disk after commit). Glass cards
+sit over it (rgba white + blur), display type is Instrument Serif with a kinetic hero,
+buttons are gradient pills with a shimmer, cards carry a cursor spotlight, and the armed
+gate has a travelling light plus a pulse ring. Reduced-motion users get a still canvas.
+Judge question: "is the 3D just decoration?" Answer: it is state. The world is a second
+read of the evidence board: what you see in the air is what the engine measured.
+
 ## 3. TrueForge usage map (Double-O track answers)
 - MCP tools: custom countersign server + shipped github (PR fetch, receipt comment)
   + supabase connector planned for independent post-commit verification.

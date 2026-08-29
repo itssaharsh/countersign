@@ -33,7 +33,10 @@ const SERVER = import.meta.env.VITE_COUNTERSIGN_SERVER ?? 'http://127.0.0.1:8977
 export function useEngineState(pollMs = 1500): EngineState {
   const [state, setState] = useState<EngineState>({ simulations: [], backends: {} })
   useEffect(() => {
-    const replay = new URLSearchParams(window.location.search).get('replay')
+    const params = new URLSearchParams(window.location.search)
+    const replay = params.get('replay')
+    // Replaying a recorded event stream without a state fixture: nothing to poll.
+    if (!replay && params.has('replayEvents')) return
     let stop = false
     async function tick() {
       try {

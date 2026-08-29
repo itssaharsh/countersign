@@ -105,3 +105,9 @@ body { background: var(--cs-bg); color: var(--cs-ink); font-family: var(--cs-san
 /* Gate pulse ring on arming. */
 .gate-pulse { position: absolute; inset: -2px; border-radius: inherit; border: 2px solid rgba(34,197,94,0.6); animation: cs-ring 1.6s ease-out 2; pointer-events: none; }
 @keyframes cs-ring { 0% { transform: scale(0.98); opacity: 0.9; } 100% { transform: scale(1.06); opacity: 0; } }
+
+/* Respect reduced-motion: freeze decorative motion, keep state changes readable. */
+@media (prefers-reduced-motion: reduce) {
+  .cs-aurora, .cs-pulse, .cs-float, .btn-primary::after, .btn-go::after, .gate-pulse { animation: none !important; }
+  .card::after { display: none; }
+}

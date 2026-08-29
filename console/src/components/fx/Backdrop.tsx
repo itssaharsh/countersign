@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react'
 import { Scene } from './Scene'
 
 type Phase = 'IDLE' | 'INVESTIGATING' | 'DECIDING' | 'WITNESSING'
+const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 const PHASE_EVENT = 'cs:phase'
 export function announcePhase(phase: Phase) { window.dispatchEvent(new CustomEvent(PHASE_EVENT, { detail: phase })) }
 
@@ -23,8 +24,8 @@ export function Backdrop() {
     <div className="cs-backdrop" aria-hidden>
       <div className="cs-aurora" />
       <div className="cs-grid" />
-      <Scene />
-      <Particles count={40} />
+      {!prefersReducedMotion() && <Scene />}
+      {!prefersReducedMotion() && <Particles count={40} />}
       <div className="cs-vignette" />
     </div>
   )
