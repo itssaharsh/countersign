@@ -292,7 +292,10 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 .brand { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
 .brand-mark { font-family: var(--display); font-weight: 800; font-variation-settings: "wdth" 100; font-size: var(--t-16); letter-spacing: 0.06em; }
 .brand-sub { font-size: var(--t-11); color: var(--graphite); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+.header-right { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: flex-end; }
+/* Hairline separators: the phase track, the rig readout and the escape hatch are
+   three different kinds of fact and ran together as one line without them. */
+.header-right > * + * { padding-left: 20px; border-left: 1px solid var(--rule); }
 .rig { font-size: var(--t-11); color: var(--graphite); white-space: nowrap; }
 .linkish {
   background: transparent; border: 0; padding: 0; font-size: var(--t-11); color: var(--graphite);
