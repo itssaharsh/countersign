@@ -52,14 +52,14 @@ body { background: var(--cs-bg); color: var(--cs-ink); font-family: var(--cs-san
 /* Cards */
 .card {
   position: relative;
-  background: rgba(255,255,255,0.86);
-  border: 1px solid var(--cs-line);
-  border-radius: 24px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.76);
+  border: 1px solid rgba(255,255,255,0.9);
+  border-radius: 26px;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
   box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 12px 40px -18px rgba(23,25,35,0.18), 0 2px 6px -2px rgba(23,25,35,0.06);
 }
-.card-strong { background: #ffffff; }
+.card-strong { background: rgba(255,255,255,0.84); }
 .ring-green { box-shadow: 0 0 0 2px rgba(34,197,94,0.35), 0 18px 50px -20px rgba(34,197,94,0.45); border-color: rgba(34,197,94,0.5); }
 .ring-red { box-shadow: 0 0 0 2px rgba(255,90,95,0.35), 0 18px 50px -20px rgba(255,90,95,0.45); border-color: rgba(255,90,95,0.5); }
 .ring-amber { box-shadow: 0 0 0 2px rgba(255,176,32,0.4), 0 18px 50px -20px rgba(255,176,32,0.45); border-color: rgba(255,176,32,0.55); }

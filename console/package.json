@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/fiber": "^9.7.0",
     "@truefoundry/trueforge-sdk": "^0.1.1",
     "@truefoundry/trueforge-ui": "^0.2.1",
     "clsx": "^2.1.1",
@@ -17,13 +18,15 @@
     "motion": "^13.1.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "19",
     "@types/react-dom": "19",
+    "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
     "playwright": "^1.58.2",

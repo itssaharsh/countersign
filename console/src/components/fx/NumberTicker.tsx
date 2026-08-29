@@ -7,7 +7,7 @@ export function NumberTicker({ value, prefix = '', className = '', decimals = 0 
   const mv = useMotionValue(0)
   const spring = useSpring(mv, { damping: 34, stiffness: 260 })
   const inView = useInView(ref, { once: true })
-  useEffect(() => { if (inView) mv.set(value) }, [inView, value, mv])
+  useEffect(() => { if (inView || true) mv.set(value) }, [inView, value, mv])
   useEffect(() => spring.on('change', (v) => {
     if (ref.current) ref.current.textContent = prefix + Number(v.toFixed(decimals)).toLocaleString()
   }), [spring, prefix, decimals])

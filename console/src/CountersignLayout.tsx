@@ -48,7 +48,7 @@ export function CountersignLayout() {
       </Reveal>
 
       <div className="flex-1 grid grid-cols-[5fr_7fr] gap-5 min-h-0">
-        <Reveal delay={0.08} className="card min-h-0 flex flex-col overflow-hidden">
+        <Reveal delay={0.08} layout className={`card min-h-0 flex flex-col overflow-hidden ${feed.length === 0 ? 'self-end max-h-[260px]' : ''}`}>
           <div className="flex items-center justify-between px-5 pt-4 pb-2">
             <span className="t-label">Mission feed · TrueForge session</span>
             {running && <span className="pill cs-pulse" style={{ color: 'var(--cs-blue)', borderColor: 'var(--cs-blue)', background: 'rgba(59,130,246,0.08)' }}>● harness running</span>}
@@ -58,7 +58,7 @@ export function CountersignLayout() {
 
         <div className="min-h-0 overflow-y-auto cs-scroll pr-1">
           <AnimatePresence mode="popLayout">
-            {!sim && <Reveal key="hero" delay={0.16}><Hero /></Reveal>}
+            {!sim && <Reveal key="hero" delay={0.16} className="max-w-[860px]"><Hero /></Reveal>}
             {sim && phase !== 'WITNESSING' && (
               <motion.div key="investigate" layout className="space-y-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <Reveal className="card px-5 py-4">

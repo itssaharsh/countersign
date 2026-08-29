@@ -3,6 +3,7 @@
 // column. Deciding: the orbit tightens and turns green, breathing. Witnessing: the
 // field bursts outward and settles. The console's state is visible in the air.
 import { useEffect, useRef } from 'react'
+import { Scene } from './Scene'
 
 type Phase = 'IDLE' | 'INVESTIGATING' | 'DECIDING' | 'WITNESSING'
 const PHASE_EVENT = 'cs:phase'
@@ -22,7 +23,8 @@ export function Backdrop() {
     <div className="cs-backdrop" aria-hidden>
       <div className="cs-aurora" />
       <div className="cs-grid" />
-      <Particles />
+      <Scene />
+      <Particles count={40} />
       <div className="cs-vignette" />
     </div>
   )
