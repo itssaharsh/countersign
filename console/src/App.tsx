@@ -14,7 +14,7 @@ import { useFreshness } from './experience/useFreshness'
 gsap.registerPlugin(ScrollTrigger)
 
 export default function App() {
-  const { feed, running, pending, send, respond, answer, replayReleased } = useHarness()
+  const { feed, running, pending, send, respond, answer, startOver, replayReleased } = useHarness()
   // Judge mode: ?replayEvents=… holds at the gate; once countersigned, engine state comes
   // from ?replayAfter=… (the post-commit snapshot of the same recorded run).
   const replayAfter = new URLSearchParams(window.location.search).get('replayAfter') ?? undefined
@@ -53,7 +53,7 @@ export default function App() {
       <Cursor />
       <Experience phase={phase} sim={sim} freshness={fraction} scroll={scrollYProgress} />
       <div ref={heroRef}>
-        <Hero phase={phase} sim={sim} feed={feed} running={running} pending={pending} freshnessLeft={left} modelName={modelName} engineOnline={Boolean(engine.backends.live)} scroll={scrollYProgress} onSend={send} respond={respond} answer={answer} />
+        <Hero phase={phase} sim={sim} feed={feed} running={running} pending={pending} freshnessLeft={left} modelName={modelName} engineOnline={Boolean(engine.backends.live)} scroll={scrollYProgress} onSend={send} respond={respond} answer={answer} onStartOver={startOver} />
       </div>
       <Story />
       <Wayfinder scroll={scrollYProgress} />

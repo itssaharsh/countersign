@@ -292,7 +292,13 @@ export function useHarness() {
     void stream([{ type: 'user.tool_response', threadId: q.threadId, toolCallId: q.toolCallId, content }])
   }, [pending, stream])
 
-  return { feed, running, pending, send, respond, answer, replayReleased, sessionId: sessionRef.current }
+  /** Forget the saved session and start clean: the escape hatch for a stuck tab. */
+  const startOver = useCallback(() => {
+    try { localStorage.removeItem(RESUME_KEY) } catch { /* storage unavailable */ }
+    window.location.href = window.location.pathname
+  }, [])
+
+  return { feed, running, pending, send, respond, answer, startOver, replayReleased, sessionId: sessionRef.current }
 }
 
 /**
