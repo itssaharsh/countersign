@@ -24,7 +24,7 @@ export default function App() {
   const gated = pending.find((a) => a.toolName === 'commit_change' || a.toolName === 'fire_undo')
   const sim = gated ? simulationFor(engine, (gated.args as { simulation_id?: unknown })?.simulation_id) : activeSimulation(engine)
   const phase = phaseFor(sim, pending.length > 0)
-  const { left, fraction } = useFreshness(sim)
+  const { left, fraction, elapsed } = useFreshness(sim)
   const [modelName, setModelName] = useState('')
   useEffect(() => {
     fetch('/api/v1/agents').then((r) => r.json()).then((d) => {
@@ -53,7 +53,7 @@ export default function App() {
       <Cursor />
       <Experience phase={phase} sim={sim} freshness={fraction} scroll={scrollYProgress} />
       <div ref={heroRef}>
-        <Hero phase={phase} sim={sim} feed={feed} running={running} pending={pending} freshnessLeft={left} modelName={modelName} engineOnline={Boolean(engine.backends.live)} scroll={scrollYProgress} onSend={send} respond={respond} answer={answer} onStartOver={startOver} />
+        <Hero phase={phase} sim={sim} feed={feed} running={running} pending={pending} freshnessLeft={left} freshnessElapsed={elapsed} modelName={modelName} engineOnline={Boolean(engine.backends.live)} scroll={scrollYProgress} onSend={send} respond={respond} answer={answer} onStartOver={startOver} />
       </div>
       <Story />
       <Wayfinder scroll={scrollYProgress} />
