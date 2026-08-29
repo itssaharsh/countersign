@@ -68,8 +68,13 @@ export function simulationFor(s: EngineState, id: unknown): Simulation | undefin
 }
 
 export type Phase = 'IDLE' | 'INVESTIGATING' | 'DECIDING' | 'WITNESSING'
-export function phaseFor(sim: Simulation | undefined, hasPendingApproval: boolean): Phase {
-  if (!sim) return 'IDLE'
+export function phaseFor(sim: Simulation | undefined, hasPendingApproval: boolean, running = false): Phase {
+  // The engine publishes a simulation only once run_investigation returns, so for
+  // the twenty-odd seconds the agent is measuring there is nothing in /state and
+  // the phase would read IDLE — blank, during the longest stretch an operator
+  // watches. A running turn with no simulation yet IS the investigation, and §5
+  // makes the track the answer to "what is it doing", so it says so.
+  if (!sim) return running ? 'INVESTIGATING' : 'IDLE'
   // A pending approval outranks committed state: fire_undo's gate must surface
   // in WITNESSING too, and it does — the Gate renders in both phases.
   if (sim.committed) return 'WITNESSING'
