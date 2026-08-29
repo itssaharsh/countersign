@@ -1,9 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useScroll } from 'framer-motion'
+import Lenis from 'lenis'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useHarness } from './harness'
 import { useEngineState, activeSimulation, simulationFor, phaseFor } from './state'
 import { Experience } from './experience/Experience'
-import { Overlay } from './experience/Overlay'
+import { Cursor, Hero } from './experience/Hero'
+import { Story } from './story/Story'
 import { useFreshness } from './experience/useFreshness'
+
+gsap.registerPlugin(ScrollTrigger)
 
 export default function App() {
   const { feed, running, pending, send, respond, replayReleased } = useHarness()
@@ -24,10 +31,30 @@ export default function App() {
       if (a?.manifest?.model?.name) setModelName(String(a.manifest.model.name).split('/').pop() ?? '')
     }).catch(() => {})
   }, [])
+
+  // One scroll model for everything: Lenis drives the page, GSAP's ticker drives Lenis,
+  // ScrollTrigger listens to Lenis. framer's useScroll reads the same document scroll.
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const lenis = new Lenis({ lerp: 0.09, smoothWheel: !reduced })
+    ;(window as unknown as { __lenis?: Lenis }).__lenis = lenis
+    lenis.on('scroll', ScrollTrigger.update)
+    const tick = (t: number) => lenis.raf(t * 1000)
+    gsap.ticker.add(tick)
+    gsap.ticker.lagSmoothing(0)
+    return () => { gsap.ticker.remove(tick); lenis.destroy() }
+  }, [])
+  const heroRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+
   return (
     <>
-      <Experience phase={phase} sim={sim} freshness={fraction} />
-      <Overlay phase={phase} sim={sim} feed={feed} running={running} pending={pending} freshnessLeft={left} modelName={modelName} engineOnline={Boolean(engine.backends.live)} onSend={send} respond={respond} />
+      <Cursor />
+      <Experience phase={phase} sim={sim} freshness={fraction} scroll={scrollYProgress} />
+      <div ref={heroRef}>
+        <Hero phase={phase} sim={sim} feed={feed} running={running} pending={pending} freshnessLeft={left} modelName={modelName} engineOnline={Boolean(engine.backends.live)} scroll={scrollYProgress} onSend={send} respond={respond} />
+      </div>
+      <Story />
     </>
   )
 }

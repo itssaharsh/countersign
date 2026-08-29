@@ -101,3 +101,10 @@ Qodo posted a summary and a clean review ("Great, no issues found!"); no finding
 | 8 | Reduced-motion cursor disappears | Medium | **FIXED** — native cursor restored on `a, button, input, .hit` under the media query. |
 | 9 | Stage performs excessive frame work | Medium | **PARTIALLY FIXED (reason in-thread)** — per-point `Vector3` allocations removed; the full-array lerp per frame is kept because the galaxy *is* the state readout (one 168 KB upload per frame at 14k points). |
 
+## PR #12 — console v5 scroll story (3 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | No undo phrasing nonstandard | Rule | **FIXED** — the Problem card no longer makes a recovery claim; it states the fact: "No rollback was ever generated." The mandated phrase stays reserved for the console's own failed-undo state. |
+| 2 | Repeated orders disappear | Bug | **FIXED** — user orders are identified by turn (`u-<turnId>`); a live `send()` places a `u-pending-*` item that is reconciled with its `turn.created`, so repeated identical orders each keep their own line. |
+| 3 | Scroll jump skips fade | Bug | **FIXED** — the scroll-derived material opacity is applied before the geometry loop's early return, so a jump straight into the story lands on the faded galaxy. |
+

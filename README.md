@@ -55,11 +55,17 @@ A migration lands in a GitHub PR. The Countersign agent (running on TrueForge):
 
 *Real-model run (Groq-hosted `openai/gpt-oss-120b`): the agent investigated, TrueForge paused on the gated commit, the operator countersigned, and the scoped commit executed — [gate](docs/screenshots/real-model-deciding.png) · [ledger](docs/screenshots/real-model-witnessing.png).*
 
-The layout adapts to what you're doing: evidence board fills while the agent investigates
-→ collapses to a single decision surface when TrueForge pauses (`BLOCKED → ARMED → STALE`
-gate with a draining freshness meter) → becomes a live verification ledger after execution.
+The stage is the live console (drag the galaxy when idle, transmit an order, countersign at
+the gate). Scroll down and the page becomes the story: the problem, the four proofs as stacked
+tiles with the real evidence, the numbers from the recorded run, how TrueForge is
+load-bearing, the review trail, and how to run it.
+
+| the problem | four proofs | the numbers |
+|---|---|---|
+| ![problem](docs/screenshots/story-problem.png) | ![proofs](docs/screenshots/story-mechanism.png) | ![numbers](docs/screenshots/story-numbers.png) |
+
 The UI is a *window* onto the gate, not the gate itself: `commit_change` refuses
-server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint —
+server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint;
 bypassing the button changes nothing.
 
 ## Run it
@@ -139,7 +145,7 @@ Every substantive change entered through a pull request reviewed by Qodo before 
 
 **Representative merged PR: [#1 — shadow-execution engine](https://github.com/itssaharsh/countersign/pull/1)** — Qodo surfaced 12 findings including a genuine High on the product's core promise: the drift fingerprint covered only root primary keys, so a cascade child added *after* measurement could be deleted without undo coverage. We rebuilt the fingerprint (root PK set + row-content hash + per-cascade-table probe queries re-run inside the commit transaction) and dismissed one finding in-thread with a fails-safe rationale (diamond cascade paths are caught by committed-state undo verification).
 
-The full trail: [PR #1](https://github.com/itssaharsh/countersign/pull/1) · [PR #2](https://github.com/itssaharsh/countersign/pull/2) · [PR #3](https://github.com/itssaharsh/countersign/pull/3) show the initial reviews (26 findings, 22 High), per-finding outcomes posted in-thread, the fix batch, and Qodo's follow-up review striking resolved findings against the final code. The same loop ran on every later PR ([#6](https://github.com/itssaharsh/countersign/pull/6)–[#11](https://github.com/itssaharsh/countersign/pull/11): 30 more findings, each fixed or dismissed with a reason in-thread). Triage table for all of them: [docs/QODO-LOG.md](docs/QODO-LOG.md).
+The full trail: [PR #1](https://github.com/itssaharsh/countersign/pull/1) · [PR #2](https://github.com/itssaharsh/countersign/pull/2) · [PR #3](https://github.com/itssaharsh/countersign/pull/3) show the initial reviews (26 findings, 22 High), per-finding outcomes posted in-thread, the fix batch, and Qodo's follow-up review striking resolved findings against the final code. The same loop ran on every later PR ([#6](https://github.com/itssaharsh/countersign/pull/6)–[#12](https://github.com/itssaharsh/countersign/pull/12): 33 more findings, each fixed or dismissed with a reason in-thread). Triage table for all of them: [docs/QODO-LOG.md](docs/QODO-LOG.md).
 
 ## AI Assistance Disclosure
 

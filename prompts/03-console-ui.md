@@ -20,3 +20,5 @@ React Bits decrypt-text for headers; MagicUI number tickers.
 ## Acceptance
 Playwright screenshot loop clean at 1920x1080; phases transition on real e2e run; replay mode
 works in a fresh clone with `npm i && npm run dev` only.
+
+See prompts/07-design-loop.md for the standing design brief and the Playwright review loop (v5).
