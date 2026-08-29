@@ -85,7 +85,9 @@ a, button, input { cursor: none; }
 .tbtn:disabled { opacity: 0.25; }
 .tbtn:focus-visible { outline: none; }
 .tbtn:focus-visible .underline { transform: scaleX(1); }
-.btn-pill:focus-visible, .cmd:focus-visible, .linkish:focus-visible { outline: 1px solid rgba(243,239,255,0.7); outline-offset: 4px; }
+.btn-pill:focus-visible, .linkish:focus-visible { outline: 1px solid rgba(243,239,255,0.7); outline-offset: 4px; }
+.dock:focus-within .hairline { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent); }
+.wf:focus-visible .lbl { opacity: 1; transform: none; }
 
 /* glass slab (the receipt) */
 .slab { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16); border-radius: 16px; backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 30px 80px -30px rgba(0,0,0,0.8); }
@@ -190,7 +192,7 @@ a, button, input { cursor: none; }
   .stagger > :nth-child(2) { margin-top: 0; }
 }
 @media (max-width: 760px) {
-  :root { --dock-h: 176px; }
+  :root { --dock-h: 204px; }
   .hero-title { width: calc(100vw - 2 * var(--gutter)); bottom: calc(var(--dock-h) + 12px); }
   .hero-title .t-giant { font-size: clamp(24px, 7.3cqw, 56px) !important; }
   .hero-top .model { display: none; }
