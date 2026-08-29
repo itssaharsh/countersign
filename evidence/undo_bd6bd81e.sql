@@ -1,1 +1,0 @@
-ALTER TABLE users DROP COLUMN marketing_opt_out

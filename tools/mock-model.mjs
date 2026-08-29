@@ -7,15 +7,36 @@ import { createServer } from 'node:http';
 
 const PORT = Number(process.env.MOCK_MODEL_PORT ?? 8990);
 
+// Which MCP server owns a tool, for the call_tool meta-tool TrueForge exposes when a
+// server's tools are deferred rather than preloaded.
+const SERVER_OF = { pull_request_read: 'github', add_issue_comment: 'github' };
+
 function toolName(tools, suffix) {
   const t = (tools ?? []).find((t) => t.function?.name?.endsWith(suffix));
-  return t?.function?.name ?? null;
+  if (t) return t.function.name;
+  // Deferred tools: reach them through call_tool ({mcp_server, tool_name, input}).
+  if (suffix !== 'exec' && (tools ?? []).some((t) => t.function?.name === 'call_tool')) return `call_tool:${suffix}`;
+  return null;
+}
+
+/** Turn a decided step into an OpenAI tool call, unwrapping the call_tool marker. */
+function toToolCall(step, id) {
+  if (step.tool.startsWith('call_tool:')) {
+    const tool_name = step.tool.slice('call_tool:'.length);
+    return { index: 0, id, type: 'function', function: { name: 'call_tool', arguments: JSON.stringify({ mcp_server: SERVER_OF[tool_name] ?? 'countersign', tool_name, input: step.args ?? {} }) } };
+  }
+  return { index: 0, id, type: 'function', function: { name: step.tool, arguments: JSON.stringify(step.args ?? {}) } };
 }
 
 function collectCallNames(messages) {
   const byId = new Map();
   for (const m of messages) {
-    if (m.role === 'assistant') for (const tc of m.tool_calls ?? []) byId.set(tc.id, tc.function?.name ?? '');
+    if (m.role !== 'assistant') continue;
+    for (const tc of m.tool_calls ?? []) {
+      let name = tc.function?.name ?? '';
+      if (name === 'call_tool') { try { name = JSON.parse(tc.function?.arguments ?? '{}').tool_name ?? name; } catch { /* keep call_tool */ } }
+      byId.set(tc.id, name);
+    }
   }
   return byId;
 }
@@ -226,7 +247,7 @@ const server = createServer(async (req, res) => {
     for (const t of tools) if (['exec'].includes(t.function?.name)) console.log('SCHEMA', t.function.name, JSON.stringify(t.function.parameters ?? t.function.inputSchema ?? {}));
   }
 
-  const toolCalls = step.tool ? [{ index: 0, id: `call_mock_${reqCount}`, type: 'function', function: { name: step.tool, arguments: JSON.stringify(step.args ?? {}) } }] : undefined;
+  const toolCalls = step.tool ? [toToolCall(step, `call_mock_${reqCount}`)] : undefined;
   const content = step.preface ?? step.text ?? '';
 
   if (stream === false) {

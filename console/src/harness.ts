@@ -19,6 +19,7 @@ export type PendingApproval = {
   toolCallId: string
   toolName: string
   args: Record<string, unknown>
+  kind: 'approval' | 'question'
 }
 
 type TurnEvent = Record<string, any>
@@ -28,6 +29,7 @@ export function useHarness() {
   const [running, setRunning] = useState(false)
   const [pending, setPending] = useState<PendingApproval[]>([])
   const replayGateRef = useRef<(() => void) | null>(null)
+  const rehydrateRef = useRef<((sessionId: string, turnId: string) => Promise<number>) | null>(null)
   const [replayReleased, setReplayReleased] = useState(false)
   const sessionRef = useRef<string | null>(null)
   const eventsRef = useRef<Map<string, TurnEvent>>(new Map())
@@ -107,7 +109,20 @@ export function useHarness() {
           const msg = events.get(ref.sourceEventId)
           const call = msg?.toolCalls?.find((tc: TurnEvent) => tc.id === ref.id)
           const { name, args } = unwrapCall(call?.toolInfo?.name ?? call?.function?.name ?? 'unknown', safeParse(call?.function?.arguments))
-          found.push({ threadId: event.threadId ?? 'main', toolCallId: ref.id, toolName: name, args })
+          found.push({ threadId: event.threadId ?? 'main', toolCallId: ref.id, toolName: name, args, kind: 'approval' })
+        }
+        setPending((p) => [...p, ...found])
+        break
+      }
+      case 'tool.response_required': {
+        // A question from the agent (ask_user_question): held like a gate, answered with
+        // user.tool_response. Rebuilt on reload the same way approvals are.
+        const found: PendingApproval[] = []
+        for (const ref of event.toolCalls ?? []) {
+          const msg = events.get(ref.sourceEventId)
+          const call = msg?.toolCalls?.find((tc: TurnEvent) => tc.id === ref.id)
+          const { name, args } = unwrapCall(call?.toolInfo?.name ?? call?.function?.name ?? 'question', safeParse(call?.function?.arguments))
+          found.push({ threadId: event.threadId ?? 'main', toolCallId: ref.id, toolName: name, args, kind: 'question' })
         }
         setPending((p) => [...p, ...found])
         break
@@ -130,7 +145,17 @@ export function useHarness() {
         consume(event as TurnEvent)
       }
     } catch (err) {
-      upsertFeed({ kind: 'system', id: `err-${Date.now()}`, text: `stream error: ${String((err as Error).message ?? err)}` })
+      const msg = String((err as Error).message ?? err)
+      if (/approvals or questions are pending/i.test(msg) && sessionRef.current && turnRef.current.turnId) {
+        upsertFeed({ kind: 'system', id: `err-${Date.now()}`, text: 'the harness is waiting on a gate this page did not show; reopening it' })
+        try {
+          await rehydrateRef.current?.(sessionRef.current, turnRef.current.turnId)
+        } catch (e2) {
+          upsertFeed({ kind: 'system', id: `err2-${Date.now()}`, text: `could not reopen the gate: ${String((e2 as Error).message ?? e2)} · original error: ${msg}` })
+        }
+      } else {
+        upsertFeed({ kind: 'system', id: `err-${Date.now()}`, text: `stream error: ${msg}` })
+      }
     } finally {
       setRunning(false)
     }
@@ -142,8 +167,23 @@ export function useHarness() {
     } catch { /* storage unavailable */ }
   }, [])
 
+  // Rebuild the transcript and any open gate from a turn's stored events. Used after a
+  // reload (the server still holds the approval even though the page forgot it) and
+  // after the harness refuses an order because a gate is open.
+  const rehydrate = useCallback(async (sessionId: string, turnId: string) => {
+    const page = await client.sessions.listTurnEvents(sessionId, turnId, { order: 'asc' } as never)
+    const events: TurnEvent[] = []
+    for await (const e of page as unknown as AsyncIterable<TurnEvent>) events.push(e)
+    events.sort((a, b) => String(a.id).localeCompare(String(b.id)))
+    setPending([])
+    for (const e of events) consume(e)
+    return events.length
+  }, [consume])
+  rehydrateRef.current = rehydrate
+
   // Survive reconnects: if a turn was running when the page died, re-attach to its
-  // live stream (subscribeToTurn resumes after the last seen sequence number).
+  // live stream (subscribeToTurn resumes after the last seen sequence number). If it
+  // ended paused on a gate, rebuild the gate so it can still be answered.
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -155,6 +195,12 @@ export function useHarness() {
         if (cancelled) return
         sessionRef.current = saved.sessionId
         turnRef.current = { turnId: saved.turnId, seq: saved.seq ?? 0 }
+        const required = (turn.state as { requiredActions?: unknown[] } | undefined)?.requiredActions ?? []
+        if (turn.state?.status !== 'running' && required.length) {
+          const n = await rehydrate(saved.sessionId, saved.turnId)
+          if (!cancelled) upsertFeed({ kind: 'system', id: 'resume', text: `⟲ reopened turn ${saved.turnId.slice(0, 8)}… with a gate still open (${n} events restored)` })
+          return
+        }
         if (turn.state?.status === 'running') {
           upsertFeed({ kind: 'system', id: 'resume', text: `⟲ reconnected to running turn ${saved.turnId.slice(0, 8)}… (after seq ${saved.seq})` })
           setRunning(true)
@@ -190,7 +236,7 @@ export function useHarness() {
           consume(event)
           // Judge mode holds at the gate exactly like the live harness does: the recorded
           // stream only continues once the operator countersigns or denies.
-          if (event.type === 'tool.approval_required') {
+          if (event.type === 'tool.approval_required' || event.type === 'tool.response_required') {
             setRunning(false)
             await new Promise<void>((resolve) => { replayGateRef.current = resolve })
             if (cancelled) return
@@ -207,9 +253,13 @@ export function useHarness() {
   }, [])
 
   const send = useCallback((text: string) => {
+    if (pending.length) {
+      upsertFeed({ kind: 'system', id: `gate-${Date.now()}`, text: 'a gate is open: countersign, deny, or answer the question first. To send this text back to the agent instead, put it in the deny reason and press Deny.' })
+      return
+    }
     upsertFeed({ kind: 'user', id: `u-pending-${Date.now()}`, text })
     void stream([{ type: 'user.message', content: text }])
-  }, [stream, upsertFeed])
+  }, [pending, stream, upsertFeed])
 
   /** Resolve one pending approval by id — or the oldest one when unspecified. */
   const respond = useCallback((status: 'allow' | 'deny', reason?: string, toolCallId?: string) => {
@@ -233,7 +283,16 @@ export function useHarness() {
     void stream(inputs)
   }, [pending, stream])
 
-  return { feed, running, pending, send, respond, replayReleased, sessionId: sessionRef.current }
+  /** Answer a pending question (tool.response_required) with user.tool_response. */
+  const answer = useCallback((toolCallId: string, content: string) => {
+    const q = pending.find((p) => p.toolCallId === toolCallId && p.kind === 'question')
+    if (!q) return
+    setPending((prev) => prev.filter((p) => p !== q))
+    if (replayGateRef.current) { const release = replayGateRef.current; replayGateRef.current = null; setReplayReleased(true); release(); return }
+    void stream([{ type: 'user.tool_response', threadId: q.threadId, toolCallId: q.toolCallId, content }])
+  }, [pending, stream])
+
+  return { feed, running, pending, send, respond, answer, replayReleased, sessionId: sessionRef.current }
 }
 
 /**

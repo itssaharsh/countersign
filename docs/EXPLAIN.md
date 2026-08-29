@@ -146,6 +146,21 @@ reveals, counting numbers), obvious usability (four regions that never collide, 
 wayfinder, a clickable example, a gate that says why it is blocked), and no visual
 defects at desktop or phone widths (tools/design-review.mjs reports zero).
 
+### Reopening a gate after a reload (console v5.1.1)
+Seen live: TrueForge answered `422 user message cannot be sent while approvals or questions
+are pending`. The page had been reloaded; it remembered the session and turn ids but not the
+approval, while the server still held it. Decision: the harness is the source of truth, so
+the console rebuilds from the harness. On reconnect, if the saved turn ended with
+`requiredActions`, `listTurnEvents` (ascending, the harness's insertion order, sorted by id
+as a guard against paging) is replayed through the same `consume` reducer the live stream
+uses, so the transcript, the tool cards and the gate come back exactly as they were
+streamed. Questions (`tool.response_required`) are held the same way and answered with
+`user.tool_response`. `send()` refuses while anything is pending and says what to do
+instead; if the harness still refuses, the error is caught, the turn is rehydrated, and if
+that fails both errors are shown rather than a silent "reopening". Trade-off: rehydration
+re-reads the whole turn (hundreds of events at most); it runs once per reload and only when
+a gate is actually open.
+
 ## 3. TrueForge usage map (Double-O track answers)
 - MCP tools: custom countersign server + shipped github (PR fetch, receipt comment)
   + supabase connector planned for independent post-commit verification.
@@ -162,7 +177,10 @@ defects at desktop or phone widths (tools/design-review.mjs reports zero).
 - Sandbox: local sandbox fallback (bwrap/socat/rg) — code execution for the policy path;
   dual-pathed so the product still works sandbox-off.
 - Subagents/dynamic capabilities: enabled; investigation can fan out. Session
-  persistence: the console can reconnect to a running turn (subscribeToTurn).
+  persistence: the console reconnects to a running turn (subscribeToTurn) and, for a
+  turn that ended paused on a gate or a question, rebuilds the transcript and the gate
+  from listTurnEvents (asc) through the live reducer, so a reload never strands an
+  approval the server still holds (see "Reopening a gate after a reload" above).
 
 ## 4. Engineering incidents (judges like scars)
 - PGlite corruption: attaching a second process to a PGlite data dir corrupts it

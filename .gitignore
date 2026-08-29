@@ -16,3 +16,4 @@ console.log
 server.log
 mock-model.log
 key-rotor.log
+logs/

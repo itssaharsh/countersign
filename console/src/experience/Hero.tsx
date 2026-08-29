@@ -13,6 +13,7 @@ type Props = {
   phase: Phase; sim?: Simulation; feed: FeedItem[]; running: boolean; pending: PendingApproval[]
   freshnessLeft: number; modelName: string; engineOnline: boolean; scroll: MotionValue<number>
   onSend: (t: string) => void; respond: (status: 'allow' | 'deny', reason?: string, toolCallId?: string) => void
+  answer: (toolCallId: string, content: string) => void
 }
 
 const EXAMPLE = "Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'"
@@ -34,7 +35,9 @@ const SUB: Record<Phase, string> = {
 export function Hero(p: Props) {
   const [draft, setDraft] = useState('')
   const [reason, setReason] = useState('')
-  const pending = p.pending.find((a) => a.toolName === 'commit_change' || a.toolName === 'fire_undo')
+  const pending = p.pending.find((a) => a.kind !== 'question' && (a.toolName === 'commit_change' || a.toolName === 'fire_undo'))
+  const question = p.pending.find((a) => a.kind === 'question')
+  const [answerText, setAnswerText] = useState('')
   const lastAgent = [...p.feed].reverse().find((f) => f.kind === 'assistant' && f.text) as Extract<FeedItem, { kind: 'assistant' }> | undefined
   const lastOrder = [...p.feed].reverse().find((f) => f.kind === 'user') as Extract<FeedItem, { kind: 'user' }> | undefined
   const isUndo = pending?.toolName === 'fire_undo'
@@ -114,6 +117,18 @@ export function Hero(p: Props) {
           </div>
         )}
         <AnimatePresence>
+          {question && (
+            <motion.div key="question" className="text-right hit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
+              <div className="t-tag">the agent asks · {question.toolName}</div>
+              <div className="body mt-2" style={{ color: 'var(--ink)', maxWidth: '44ch', marginLeft: 'auto' }}>{String((question.args as { question?: unknown; prompt?: unknown; message?: unknown }).question ?? (question.args as { prompt?: unknown }).prompt ?? (question.args as { message?: unknown }).message ?? JSON.stringify(question.args))}</div>
+              <form className="mt-3 flex items-center justify-end gap-4" onSubmit={(e) => { e.preventDefault(); if (answerText.trim()) { p.answer(question.toolCallId, answerText.trim()); setAnswerText('') } }}>
+                <input value={answerText} onChange={(e) => setAnswerText(e.target.value)} placeholder="your answer, sent back to the agent" className="cmd text-right text-[13px]" style={{ width: 320, maxWidth: '100%' }} />
+                <button type="submit" className="tbtn" style={{ fontSize: 20, color: 'var(--amber)' }}>Answer<span className="underline" /></button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
           {pending && (
             <motion.div key="gate" className="text-right hit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
               <div className="t-tag">{isUndo ? 'fire the verified undo' : 'commit the change'} · {pending.toolName} · <span style={{ color: gate === 'ARMED' ? 'var(--green)' : gate === 'STALE' ? 'var(--amber)' : 'var(--coral)' }}>{gate.toLowerCase()}</span></div>
@@ -151,7 +166,7 @@ export function Hero(p: Props) {
         <div className="hairline" />
         <form className="flex items-center gap-3 pt-1" onSubmit={(e) => { e.preventDefault(); if (draft.trim()) { p.onSend(draft.trim()); setDraft('') } }}>
           <span className="t-mono text-[15px]" style={{ color: PHASE_COLOR[p.phase] }}>›</span>
-          <input className="cmd" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="transmit an order" autoFocus />
+          <input className="cmd" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={pending ? 'a gate is open: countersign or deny it above before sending anything else' : question ? 'the agent asked a question: answer it above first' : 'transmit an order'} autoFocus />
           <button type="submit" className="tbtn" style={{ fontSize: 14, color: 'var(--ink-dim)' }} disabled={p.running}>Send<span className="underline" /></button>
         </form>
       </div>
