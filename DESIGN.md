@@ -5,7 +5,7 @@ file fully before touching any component. Do not invent colors, fonts, or animat
 are not in here.
 
 Every number, table name and state in this document is taken from the recorded real-model
-run (`console/public/fixtures/real-run.jsonl`, simulation `cdac3df6`, gpt-oss-120b) or from
+run (`console/public/fixtures/real-run.jsonl`, simulation `46cfc815`, gpt-oss-120b) or from
 the engine source. Nothing here is illustrative. If a screen in this spec cannot be drawn
 from data the console actually receives, that is a bug in the spec, not a licence to
 invent the data. See §9 for the record of where the spec was corrected against reality.

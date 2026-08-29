@@ -247,5 +247,7 @@ what to do (deny, then send the order again).
 
 ## 5. Numbers you should know cold
 18,000 users seeded · 6,000 doomed (last_active < 2025) → 17,971 orders → 19,442
-payments (CASCADE edges) · 3,000 support_tickets SET NULL (0 lost) · invoices RESTRICT ·
-42 tables total · undo ≈ 87 statements · simulate ≈ 8-10s on PGlite · policy 4 rules.
+payments (CASCADE edges) → 43,413 rows die · 37 SET NULL edges keep their rows and lose
+3,542 references (support_tickets 952 of them) · invoices RESTRICT, 0 in the blast path ·
+41 tables measured · undo 125 statements · simulate ≈ 8-10s on PGlite.
+Policy: 4 rules, of which 3 can fire — see the README on `restrict_edges_block`.

@@ -87,7 +87,7 @@ The stream is fed through the same SDK reducer the live console uses and **holds
 gate exactly where TrueForge paused** (`tool.approval_required`). Click **Countersign** to
 release it: engine state switches to the post-commit snapshot of the same run and the
 receipt lands. `state-*.json` are `/state` snapshots keyed to that recording
-(`simulation_id cdac3df6`); single scenes: `?replay=/fixtures/state-investigating.json`
+(`simulation_id 46cfc815`); single scenes: `?replay=/fixtures/state-investigating.json`
 or `?replay=/fixtures/state-witnessing.json`.
 
 ### Full live setup (~15 min)
@@ -180,7 +180,7 @@ DELETE FROM audit_log WHERE subject_table = 'users'
   2,400 rows · FAIL protected_tables — deletes rows in protected: audit_log
 ```
 
-`restrict_edges_block` is **not reachable, and cannot be made reachable by seeding.** The
+`restrict_edges_block` is **unreachable by construction, not by seeding.** The
 engine measures a change by executing it inside `BEGIN … ROLLBACK`. Any statement whose blast
 path reaches a `RESTRICT` edge with rows behind it aborts on the foreign key *before* policy
 is ever evaluated, so the run ends with the database's own error rather than a `FAIL` verdict:
@@ -191,9 +191,11 @@ foreign key constraint "invoices_order_id_fkey" on table "invoices"
 ```
 
 That is a safe outcome — the change is refused either way, and the operator is told why — but
-the rule is redundant with the database's own enforcement rather than an independent check,
-and `POLICY PASSED · 4 rules, 0 blocking` overstates how many of them can ever be evaluated.
-It is left in place and documented rather than quietly removed.
+it means the rule is **redundant with the database's own enforcement** rather than an
+independent check, and `POLICY PASSED · 4 rules, 0 blocking` overstates how many of them can
+ever be evaluated. No seeding fixes this; only measuring without executing would, and
+measuring by executing is the whole thesis. **Documented rather than removed**, because
+deleting it would hide the fact that the count was ever misleading.
 
 The seeded estate now populates both tables, so the console's note about the `RESTRICT` edge
 is a true statement about a table with rows instead of a statement about an empty one. The
