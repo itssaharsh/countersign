@@ -70,7 +70,7 @@ Qodo posted a summary and a clean review ("Great, no issues found!"); no finding
 ## PR #8 — same-turn commit doctrine + gate-aware demo driver (1 finding)
 | # | Finding | Sev | Outcome |
 |---|---|---|---|
-| 1 | Null arguments crash event handling | Medium | **OPEN — no in-thread outcome** — no itssaharsh reply addresses it; Qodo's re-review, updated to fd92677 after the merge, still lists it. |
+| 1 | Null arguments crash event handling | Medium | **FIXED** in PR #9 — `safeParse` returns `{}` for null/non-string arguments and `unwrapCall` only unwraps when `tool_name` is a string (noted on the PR #8 thread). |
 
 ## PR #9 — console doubled tool-call argument recovery (2 findings)
 | # | Finding | Sev | Outcome |
