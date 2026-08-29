@@ -101,6 +101,34 @@ then `?replayAfter=` supplies the post-commit state snapshot of that run. Fixtur
 the recorder that captured `real-run.jsonl` had already merged deltas into base events,
 so base `content`/`arguments` were cleared (the deltas rebuild them byte-for-byte).
 
+### The page around the stage (console v5): a story you scroll
+Why: judges and first-time visitors could not tell from the stage alone what Countersign
+is. The stage stays the hero (100 svh, the live console), and the page now scrolls into
+an editorial story: what this is (scroll-scrubbed text reveal), the problem (the one
+bright orange section: what the human is shown versus what actually happens), four
+stacked tiles for the four proofs (sticky stack, each tile its own hue, with the real
+SQL, undo report, policy rules and fingerprint as evidence asides), the numbers from the
+recorded run (one anchor number, satellites, tickers), the harness as an index rather
+than a card grid, the review trail with the receipt, and how to run it. One scroll
+model: Lenis drives the page, GSAP ScrollTrigger scrubs the reveals and the stack,
+framer-motion handles in-view reveals, magnetic buttons and springs; the galaxy bleeds
+through the darker sections as the camera pulls back with scroll.
+Collision rule: the order, the agent's words, the transcript and the title each own a
+region (title zone left, rail right, dock bottom). The dock shows the last order as a
+chip and the agent's words clamped to two lines; the transcript scrolls inside itself.
+The title is sized to its zone with container units so it can never run into the rail.
+Palette: state colours are reserved for state on the stage; every story section has its
+own accent world (rose, orange, cobalt/forest/plum/graphite, lime, ice, ultramarine,
+bone) so no two neighbours share one.
+Review loop: tools/design-review.mjs renders every section at 1920×1080 and 390×844,
+hovers controls, and reports overflow, overlaps, clipped text, tiny text, unnamed
+controls and small tap targets; prompts/07-design-loop.md is the standing brief.
+Libraries: three/react-three-fiber (stage), framer-motion, GSAP ScrollTrigger, Lenis;
+MagicUI and Aceternity patterns (marquee, border beam, number ticker, spotlight card,
+sticky stack, text reveal) rebuilt in src/story/fx.tsx. The MagicUI, shadcn and 21st
+MCP servers were not connected in the build session, so nothing was fetched from them;
+the patterns are reimplementations, not copies.
+
 ## 3. TrueForge usage map (Double-O track answers)
 - MCP tools: custom countersign server + shipped github (PR fetch, receipt comment)
   + supabase connector planned for independent post-commit verification.

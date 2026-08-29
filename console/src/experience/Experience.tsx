@@ -7,7 +7,7 @@ import { Html, Line, OrbitControls } from '@react-three/drei'
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { useReducedMotion } from 'framer-motion'
+import { useReducedMotion, type MotionValue } from 'framer-motion'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import type { Phase, Simulation } from '../state'
 
@@ -38,9 +38,9 @@ function sprite(): THREE.Texture {
   return new THREE.CanvasTexture(c)
 }
 
-type Props = { phase: Phase; sim?: Simulation; freshness: number }
+type Props = { phase: Phase; sim?: Simulation; freshness: number; scroll: MotionValue<number> }
 
-function Galaxy({ phase, sim }: Props) {
+function Galaxy({ phase, sim, scroll }: Props) {
   const ref = useRef<THREE.Points>(null)
   const phaseRef = useRef<Phase>(phase); phaseRef.current = phase
   const burst = useRef(0)
@@ -61,6 +61,7 @@ function Galaxy({ phase, sim }: Props) {
   useEffect(() => { settle.current = 2.5 }, [phase])
 
   useFrame((state, dt) => {
+    if (scroll.get() > 0.99) return
     if (reduced) { settle.current -= dt; if (settle.current <= 0) return }
     const t = reduced ? 0 : state.clock.elapsedTime
     const p = phaseRef.current
@@ -92,6 +93,8 @@ function Galaxy({ phase, sim }: Props) {
     burst.current *= 0.985
     geom.attributes.position.needsUpdate = true; geom.attributes.color.needsUpdate = true
     ref.current!.rotation.y += dt * (p === 'IDLE' ? 0.03 : 0.006)
+    const sc = scroll.get()
+    ;(ref.current!.material as THREE.PointsMaterial).opacity = 0.95 * (1 - 0.92 * Math.min(1, sc * 1.4))
   })
   return (
     <points ref={ref}>
@@ -157,7 +160,7 @@ function GateRing({ phase, freshness }: Props) {
   )
 }
 
-function Rig({ phase }: { phase: Phase }) {
+function Rig({ phase, scroll }: { phase: Phase; scroll: MotionValue<number> }) {
   const { camera } = useThree()
   const controls = useRef<OrbitControlsImpl | null>(null)
   const target = useMemo(() => new THREE.Vector3(), [])
@@ -168,16 +171,20 @@ function Rig({ phase }: { phase: Phase }) {
     WITNESSING: { pos: new THREE.Vector3(-0.8, 1.2, 8.2), look: new THREE.Vector3(0, 0, 0) },
   }), [])
   const reduced = useReducedMotion()
+  const scrolled = useMemo(() => new THREE.Vector3(), [])
   useFrame((_, dt) => {
     const g = goal[phase]
     const k = 1 - Math.pow(0.05, dt)
-    if (phase !== 'IDLE') {
-      camera.position.lerp(g.pos, k)
+    const sc = scroll.get()
+    if (controls.current) controls.current.enabled = phase === 'IDLE' && sc < 0.02
+    if (phase !== 'IDLE' || sc >= 0.02) {
+      scrolled.set(g.pos.x, g.pos.y + 2.6 * sc, g.pos.z + 7 * sc)
+      camera.position.lerp(scrolled, k)
       target.lerp(g.look, k)
       if (controls.current) { controls.current.target.copy(target); controls.current.update() }
     }
   })
-  return <OrbitControls ref={controls} enabled={phase === 'IDLE'} enableZoom={false} enablePan={false} autoRotate={phase === 'IDLE' && !reduced} autoRotateSpeed={0.35} enableDamping dampingFactor={0.06} minPolarAngle={0.9} maxPolarAngle={2.2} />
+  return <OrbitControls ref={controls} enableZoom={false} enablePan={false} autoRotate={phase === 'IDLE' && !reduced} autoRotateSpeed={0.35} enableDamping dampingFactor={0.06} minPolarAngle={0.9} maxPolarAngle={2.2} />
 }
 
 export function Experience(props: Props) {
@@ -186,7 +193,7 @@ export function Experience(props: Props) {
       <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0.6, 9.5], fov: 45 }} gl={{ antialias: false, powerPreference: 'high-performance' }}>
         <color attach="background" args={['#07060f']} />
         <fog attach="fog" args={['#07060f', 9, 18]} />
-        <Rig phase={props.phase} />
+        <Rig phase={props.phase} scroll={props.scroll} />
         <Galaxy {...props} />
         <Beams phase={props.phase} />
         <Labels {...props} />

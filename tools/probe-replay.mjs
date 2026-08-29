@@ -7,13 +7,13 @@ const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 const logs = [];
 page.on('console', (m) => { if (m.type() === 'error') logs.push(m.text().slice(0, 200)); });
 page.on('pageerror', (e) => logs.push('pageerror: ' + String(e).slice(0, 200)));
-const phaseOf = async () => ((await page.locator('.overlay').innerText().catch(() => '')).match(/\b(idle|investigating|deciding|witnessing)\b/) ?? [''])[0];
+const phaseOf = async () => ((await page.locator('.hero').innerText().catch(() => '')).match(/\b(idle|investigating|deciding|witnessing)\b/) ?? [''])[0];
 await page.goto(url, { waitUntil: 'networkidle' });
 await page.waitForTimeout(Number(process.env.WAIT ?? 9000));
 const btn = page.locator('button.tbtn', { hasText: /countersign|restore/i }).first();
 const gate = await btn.isVisible().catch(() => false);
-const hud = await page.locator('.overlay').innerText().catch(() => '');
-console.log('gate button visible:', gate, '| phase text:', await phaseOf());
+const hud = await page.locator('.hero').innerText().catch(() => '');
+console.log('gate button visible:', gate, '| phase text:', await phaseOf(), '| title:', (await page.locator('.hero-title').innerText().catch(() => '')).split('\n').slice(0, 2).join(' '), '| dock order:', await page.locator('.dock .chip').count());
 const m = hud.match(/(commit the change|fire the verified undo)[^\n]*\n[^\n]*/); if (m) console.log('gate line:', m[0].replace(/\n/g, ' | '));
 if (process.env.CLICK && gate) {
   console.log('countersign enabled:', await btn.isEnabled());

@@ -78,6 +78,16 @@ export function useHarness() {
         setFeed((f) => f.map((x) => (x.kind === 'tool' && x.id === id ? { ...x, status: 'done', resultPreview: preview } : x)))
         break
       }
+      case 'turn.created': {
+        // The turn carries its input; replays have no send(). Skip when send() already
+        // placed the same text (live runs), so the order appears exactly once.
+        for (const input of (event.input ?? []) as Array<{ type?: string; content?: unknown }>) {
+          if (input?.type !== 'user.message' || typeof input.content !== 'string' || !input.content) continue
+          const text = input.content
+          setFeed((f) => (f.some((x) => x.kind === 'user' && x.text === text) ? f : [...f, { kind: 'user', id: `u-${event.id}`, text }]))
+        }
+        break
+      }
       case 'thread.created':
         upsertFeed({ kind: 'thread', id: event.threadId, title: event.title ?? 'subagent', done: false })
         break

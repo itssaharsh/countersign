@@ -55,11 +55,17 @@ A migration lands in a GitHub PR. The Countersign agent (running on TrueForge):
 
 *Real-model run (Groq-hosted `openai/gpt-oss-120b`): the agent investigated, TrueForge paused on the gated commit, the operator countersigned, and the scoped commit executed — [gate](docs/screenshots/real-model-deciding.png) · [ledger](docs/screenshots/real-model-witnessing.png).*
 
-The layout adapts to what you're doing: evidence board fills while the agent investigates
-→ collapses to a single decision surface when TrueForge pauses (`BLOCKED → ARMED → STALE`
-gate with a draining freshness meter) → becomes a live verification ledger after execution.
+The stage is the live console (drag the galaxy when idle, transmit an order, countersign at
+the gate). Scroll down and the page becomes the story: the problem, the four proofs as stacked
+tiles with the real evidence, the numbers from the recorded run, how TrueForge is
+load-bearing, the review trail, and how to run it.
+
+| the problem | four proofs | the numbers |
+|---|---|---|
+| ![problem](docs/screenshots/story-problem.png) | ![proofs](docs/screenshots/story-mechanism.png) | ![numbers](docs/screenshots/story-numbers.png) |
+
 The UI is a *window* onto the gate, not the gate itself: `commit_change` refuses
-server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint —
+server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint;
 bypassing the button changes nothing.
 
 ## Run it
