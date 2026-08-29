@@ -61,11 +61,15 @@ export function GateBar(p: Props) {
     missing.length ? 'BLOCKED' : (!isUndo && p.freshnessLeft <= 0) ? 'STALE' : 'ARMED'
 
   const armed = Boolean(approval) && state === 'ARMED'
-  const gateKey = approval?.toolCallId ?? question?.toolCallId
+  // An approval and a question can be pending at once, so they need separate
+  // identities. A single combined key stays pinned to the approval while
+  // questions come and go, and the reset that depends on it never fires.
+  const approvalKey = approval?.toolCallId
+  const questionKey = question?.toolCallId
   const { progress, holding, complete, handlers } = useHold(
     () => approval && p.respond('allow', undefined, approval.toolCallId),
     armed,
-    gateKey,
+    approvalKey,
   )
 
   // Both text fields belong to the gate that is open, not to the bar. Carrying a
@@ -73,10 +77,14 @@ export function GateBar(p: Props) {
   // agent against a different tool call. Reset during render, not in an effect:
   // an effect runs after paint, so the first frame of the new gate would still
   // show — and on submit, send — the previous operator's words.
-  const [lastGateKey, setLastGateKey] = useState(gateKey)
-  if (lastGateKey !== gateKey) {
-    setLastGateKey(gateKey)
+  const [lastApprovalKey, setLastApprovalKey] = useState(approvalKey)
+  if (lastApprovalKey !== approvalKey) {
+    setLastApprovalKey(approvalKey)
     setReason('')
+  }
+  const [lastQuestionKey, setLastQuestionKey] = useState(questionKey)
+  if (lastQuestionKey !== questionKey) {
+    setLastQuestionKey(questionKey)
     setAnswerText('')
   }
 
@@ -152,7 +160,10 @@ export function GateBar(p: Props) {
               <button
                 type="button"
                 className="gate-secondary"
-                onClick={() => p.answer(question.toolCallId, answerText.trim() || 'declined by operator: not answering this question')}
+                onClick={() => {
+                  p.answer(question.toolCallId, answerText.trim() || 'declined by operator: not answering this question')
+                  setAnswerText('')
+                }}
               >
                 Decline
               </button>
