@@ -2,7 +2,7 @@
 // and post-commit measurement. The Approve button's three preconditions live here —
 // and they are enforced SERVER-SIDE: calling commit_change without them is refused
 // no matter what any UI shows.
-import { simulations, hashPkSet, hashRowContent, publicView } from './simulate.mjs';
+import { simulations, hashPkSet, hashRowContent, publicView, persistRecord } from './simulate.mjs';
 
 /**
  * verify_undo: on the SHADOW database (same seed as live), apply the change and COMMIT it,
@@ -151,6 +151,7 @@ export async function commitChange(liveDb, { simulation_id, undo_token }) {
     }
     sim.committed = true;
     sim.committed_at = new Date().toISOString();
+    persistRecord(sim);
     sim.execution = { scoped_to_pks: sim.doomed_pks.length, deleted_root_rows: executed.deleted };
     return { committed: true, scoped_to: sim.doomed_pks.length, deleted_root_rows: executed.deleted, receipt_ready: true };
   }
@@ -161,6 +162,7 @@ export async function commitChange(liveDb, { simulation_id, undo_token }) {
   await liveDb.withTransaction(async (tx) => { await tx.exec(sim.change_sql); }, { commit: true });
   sim.committed = true;
   sim.committed_at = new Date().toISOString();
+  persistRecord(sim);
   return { committed: true, kind: 'reversible' };
 }
 
@@ -174,6 +176,9 @@ export async function fireUndo(liveDb, { simulation_id, undo_token }) {
   await liveDb.withTransaction(async (tx) => { await tx.exec(sim.undo.sql); }, { commit: true });
   sim.undo.fired = true;
   sim.undo.fired_at = new Date().toISOString();
+  // Persist immediately: the one-shot guard has to survive a restart, or the same
+  // undo can be replayed and duplicate every row it restored.
+  persistRecord(sim);
   const actual = await measureActual(liveDb, { simulation_id });
   return { undone: true, post_undo: actual };
 }

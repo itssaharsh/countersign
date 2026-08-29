@@ -20,7 +20,7 @@ export default function App() {
   // (args.simulation_id); a gate without a loaded, matching simulation stays BLOCKED.
   const gated = pending.find((a) => a.toolName === 'commit_change' || a.toolName === 'fire_undo')
   const sim = gated ? simulationFor(engine, (gated.args as { simulation_id?: unknown })?.simulation_id) : activeSimulation(engine)
-  const phase = phaseFor(sim, pending.length > 0)
+  const phase = phaseFor(sim, pending.length > 0, running)
   const { left, elapsed } = useFreshness(sim)
 
   const [modelName, setModelName] = useState('')

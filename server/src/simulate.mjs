@@ -280,6 +280,14 @@ export function publicView(record) {
   };
 }
 
+/**
+ * Write a simulation's current state to the evidence dir. Exported because the
+ * commit and the undo both mutate state that must survive a restart: a fired
+ * one-shot that is only in memory comes back armed, and its duplicate guard
+ * comes back with it — which would let the same undo run twice.
+ */
+export function persistRecord(record) { persist(record); }
+
 function persist(record) {
   mkdirSync(EVIDENCE_DIR, { recursive: true });
   writeFileSync(`${EVIDENCE_DIR}/sim_${record.simulation_id}.json`, JSON.stringify(record, (k, v) => (k === 'sql' && typeof v === 'string' && v.length > 2000 ? v.slice(0, 2000) + '…' : v), 2));

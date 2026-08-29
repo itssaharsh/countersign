@@ -17,3 +17,5 @@ server.log
 mock-model.log
 key-rotor.log
 logs/
+.claude/
+evidence/

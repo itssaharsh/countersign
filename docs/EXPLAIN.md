@@ -245,6 +245,28 @@ what to do (deny, then send the order again).
   against their quickstart wiring.
 - Gemini free tier: 5 req/min + small daily cap → composite tool + paced demo runs.
 
+### The receipt, and why the undo is a control that does not act
+WITNESSING is the only screen in the design permitted a typewriter effect, at ~18ms a line.
+Everything else in §6's budget of five is a fade, a count-up or a scale; a receipt printing
+is the one place where the animation *is* the metaphor rather than decoration on top of it.
+It is instant under `prefers-reduced-motion` like the rest.
+The receipt shows the keys the commit was scoped to and the root rows actually deleted as
+two separately labelled facts, never merged, because they answer different questions: what
+the operator authorised, and what the database did with that authorisation. In the recorded
+run they are both 6,000, which is the point — a divergence is what drift looks like.
+No GitHub PR link: `/state` carries no PR reference and nothing writes one, so there is
+nothing honest to render there.
+The undo control is deliberately undramatic and, more importantly, **it does not fire the
+undo**. It sends an order. The agent then calls `fire_undo`, TrueForge raises a second
+approval, and the gate bar re-arms with `HOLD TO RESTORE` — the same 1200ms hold, filled in
+`--proof` rather than `--seal` because restoring rows is not destructive. Nothing about the
+undo is a single click, and the console must not imply otherwise.
+The undo is one shot. `/state` exposes `undo.fired`, and once it is set the chip reads
+`UNDO FIRED · rows restored` and the control is withdrawn rather than left to fail — the
+engine refuses a replay (`undo_already_fired`) because it would duplicate rows.
+Judge question: "why not just undo it for me?" Answer: because an undo is a write to the
+production database, and the whole claim of this project is that a write to production gets
+countersigned. Exempting our own undo would be exempting the one action we control.
 ### Credentials: why the scan reassembles, and why redaction lives in the component
 `undo_token` authorises a rollback against the live database. `publicView` hands it to the
 model because `commit_change` requires it — the token is the nonce proving verification
