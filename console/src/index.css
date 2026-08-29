@@ -309,6 +309,18 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 
 /* §5 empty state — the one screen a stranger has to be able to drive. */
 .submit { display: grid; gap: 12px; max-width: 72ch; }
+/* Once a simulation exists the form is a footer to the dossier, not its subject. */
+.submit.is-compact { margin-top: var(--section-gap); padding-top: 20px; border-top: 1px solid var(--rule); }
+.submit.is-compact .submit-input { font-size: var(--t-16); }
+.submit-input:disabled { color: var(--graphite); border-bottom-color: var(--rule); }
+
+/* transcript lines — minimal until the transcript proper lands */
+.tx { max-height: 60vh; overflow-y: auto; }
+.tx-line { font-family: var(--mono); font-size: var(--t-13); line-height: 1.5; color: var(--graphite); padding: 6px 0; border-top: 1px solid var(--rule); word-break: break-word; }
+.tx-line:first-child { border-top: 0; }
+.tx-you, .tx-tool { color: var(--ink); }
+.tx-status { color: var(--graphite); }
+.tx-sys { color: var(--graphite); }
 .submit-input {
   font-size: var(--t-20); color: var(--ink); background: transparent;
   border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; padding: 10px 0; width: 100%;
