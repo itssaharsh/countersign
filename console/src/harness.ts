@@ -7,11 +7,15 @@ import { TrueForge, isEventDelta, mergeEventDelta } from '@truefoundry/trueforge
 const client = new TrueForge({ baseUrl: '/', timeoutInSeconds: 600 })
 const RESUME_KEY = 'countersign-session'
 
+// `createdAt` is the event's own timestamp, carried through untouched so the transcript
+// can print it (DESIGN.md §3). It is optional because it is only ever copied, never
+// invented: base events all carry one, deltas almost never do (3 of 206 in the recorded
+// run), and an item assembled from deltas takes its parent event's stamp or none at all.
 export type FeedItem =
-  | { kind: 'user'; id: string; text: string }
-  | { kind: 'assistant'; id: string; threadId: string; text: string; streaming: boolean }
-  | { kind: 'tool'; id: string; threadId: string; name: string; args: string; status: 'running' | 'done' | 'error'; resultPreview?: string }
-  | { kind: 'thread'; id: string; title: string; done: boolean }
+  | { kind: 'user'; id: string; text: string; createdAt?: string }
+  | { kind: 'assistant'; id: string; threadId: string; text: string; streaming: boolean; createdAt?: string; reasoningContent?: string }
+  | { kind: 'tool'; id: string; threadId: string; name: string; args: string; status: 'running' | 'done' | 'error'; resultPreview?: string; createdAt?: string; resultAt?: string }
+  | { kind: 'thread'; id: string; title: string; done: boolean; createdAt?: string }
   | { kind: 'system'; id: string; text: string }
 
 export type PendingApproval = {
@@ -34,6 +38,9 @@ export function useHarness() {
   const sessionRef = useRef<string | null>(null)
   const eventsRef = useRef<Map<string, TurnEvent>>(new Map())
   const turnRef = useRef<{ turnId: string | null; seq: number }>({ turnId: null, seq: 0 })
+  // The reasoning each base model.message arrived carrying, kept because
+  // mergeEventDelta mutates the stored event in place. See reasoningOf().
+  const reasoningSeedRef = useRef<Map<string, string>>(new Map())
 
   const upsertFeed = useCallback((item: FeedItem) => {
     setFeed((f) => {
@@ -50,12 +57,19 @@ export function useHarness() {
       if (base) mergeEventDelta(base as never, event as never)
       const b = events.get(event.id)
       if (b?.type === 'model.message') {
-        if (b.content) upsertFeed({ kind: 'assistant', id: b.id, threadId: b.threadId ?? 'main', text: b.content, streaming: true })
+        // §3 — a line assembled from deltas is timestamped by its parent event, which is
+        // this base event. mergeEventDelta leaves createdAt alone, so it is still the
+        // base's own stamp; nothing here manufactures one.
+        const at = typeof b.createdAt === 'string' ? b.createdAt : undefined
+        const reasoning = reasoningOf(b.reasoningContent, reasoningSeedRef.current.get(b.id))
+        // Reasoning is the only thing on screen during the first seconds of a turn, so a
+        // message that is still nothing but reasoning has to reach the feed (§3).
+        if (b.content || reasoning) upsertFeed({ kind: 'assistant', id: b.id, threadId: b.threadId ?? 'main', text: b.content ?? '', streaming: true, createdAt: at, reasoningContent: reasoning || undefined })
         // Tool calls accumulate through deltas too — surface them as they form.
         for (const tc of b.toolCalls ?? []) {
           if (tc?.id && (tc.toolInfo?.name || tc.function?.name)) {
             const u = unwrapCall(tc.toolInfo?.name ?? tc.function?.name, safeParse(tc.function?.arguments))
-            upsertFeed({ kind: 'tool', id: tc.id, threadId: b.threadId ?? 'main', name: u.name, args: u.name !== (tc.toolInfo?.name ?? tc.function?.name) ? JSON.stringify(u.args) : (tc.function?.arguments ?? ''), status: 'running' })
+            upsertFeed({ kind: 'tool', id: tc.id, threadId: b.threadId ?? 'main', name: u.name, args: u.name !== (tc.toolInfo?.name ?? tc.function?.name) ? JSON.stringify(u.args) : (tc.function?.arguments ?? ''), status: 'running', createdAt: at })
           }
         }
       }
@@ -67,17 +81,21 @@ export function useHarness() {
     }
     switch (event.type) {
       case 'model.message': {
-        upsertFeed({ kind: 'assistant', id: event.id, threadId: event.threadId ?? 'main', text: event.content ?? '', streaming: false })
+        const seed = typeof event.reasoningContent === 'string' ? event.reasoningContent : ''
+        reasoningSeedRef.current.set(event.id, seed)
+        upsertFeed({ kind: 'assistant', id: event.id, threadId: event.threadId ?? 'main', text: event.content ?? '', streaming: false, createdAt: event.createdAt, reasoningContent: seed || undefined })
         for (const tc of event.toolCalls ?? []) {
           const u = unwrapCall(tc.toolInfo?.name ?? tc.function?.name ?? 'tool', safeParse(tc.function?.arguments))
-          upsertFeed({ kind: 'tool', id: tc.id, threadId: event.threadId ?? 'main', name: u.name, args: u.name !== (tc.toolInfo?.name ?? tc.function?.name) ? JSON.stringify(u.args) : (tc.function?.arguments ?? ''), status: 'running' })
+          upsertFeed({ kind: 'tool', id: tc.id, threadId: event.threadId ?? 'main', name: u.name, args: u.name !== (tc.toolInfo?.name ?? tc.function?.name) ? JSON.stringify(u.args) : (tc.function?.arguments ?? ''), status: 'running', createdAt: event.createdAt })
         }
         break
       }
       case 'tool.response': {
         const id = event.toolCallId ?? event.id
         const preview = typeof event.content === 'string' ? event.content.slice(0, 400) : JSON.stringify(event.content)?.slice(0, 400)
-        setFeed((f) => f.map((x) => (x.kind === 'tool' && x.id === id ? { ...x, status: 'done', resultPreview: preview } : x)))
+        // resultAt closes the unit: the elapsed a finished call shows is the distance
+        // between two recorded stamps (16.9s for run_investigation), not a wall clock.
+        setFeed((f) => f.map((x) => (x.kind === 'tool' && x.id === id ? { ...x, status: 'done', resultPreview: preview, resultAt: event.createdAt } : x)))
         break
       }
       case 'turn.created': {
@@ -91,14 +109,14 @@ export function useHarness() {
           setFeed((f) => {
             if (f.some((x) => x.kind === 'user' && x.id === id)) return f
             const i = f.findIndex((x) => x.kind === 'user' && x.id.startsWith('u-pending-') && x.text === text)
-            if (i >= 0) return f.map((x, k) => (k === i ? { ...x, id } : x))
-            return [...f, { kind: 'user', id, text }]
+            if (i >= 0) return f.map((x, k) => (k === i ? { ...x, id, createdAt: event.createdAt } : x))
+            return [...f, { kind: 'user', id, text, createdAt: event.createdAt }]
           })
         }
         break
       }
       case 'thread.created':
-        upsertFeed({ kind: 'thread', id: event.threadId, title: event.title ?? 'subagent', done: false })
+        upsertFeed({ kind: 'thread', id: event.threadId, title: event.title ?? 'subagent', done: false, createdAt: event.createdAt })
         break
       case 'thread.done':
         setFeed((f) => f.map((x) => (x.kind === 'thread' && x.id === event.threadId ? { ...x, done: true } : x)))
@@ -313,6 +331,26 @@ function unwrapCall(name: string, args: Record<string, unknown>): { name: string
     return { name: args.tool_name, args: (args.input as Record<string, unknown>) ?? {} }
   }
   return { name, args }
+}
+
+/**
+ * The reasoning to print for a merged model.message.
+ *
+ * TrueForge emits the base `model.message` with its reasoning already complete and then
+ * replays the same text token by token as `model.message.delta` — verified against
+ * `real-run.jsonl`, where all 45 reasoning deltas re-derive text the base event already
+ * carried. `mergeEventDelta` concatenates, so the merged field reads the reasoning twice.
+ * The base event's own value (`seed`) is the authority for as long as the delta stream is
+ * only catching up to it; once the stream says something the seed does not contain, the
+ * merged value is the truth and is printed whole.
+ *
+ * This drops a duplicate. It never adds a word the harness did not send.
+ */
+function reasoningOf(merged: unknown, seed: string | undefined): string {
+  const m = typeof merged === 'string' ? merged : ''
+  if (!seed) return m
+  const streamed = m.startsWith(seed) ? m.slice(seed.length) : m
+  return seed.startsWith(streamed) ? seed : m
 }
 
 function safeParse(s: unknown): Record<string, unknown> {

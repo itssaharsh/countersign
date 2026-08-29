@@ -51,9 +51,9 @@ A migration lands in a GitHub PR. The Countersign agent (running on TrueForge):
 
 | IDLE | INVESTIGATING | DECIDING | WITNESSING |
 |---|---|---|---|
-| ![idle](docs/screenshots/phase-idle.png) | ![investigating](docs/screenshots/phase-investigating.png) | ![deciding](docs/screenshots/phase-deciding.png) | ![witnessing](docs/screenshots/phase-witnessing.png) |
+| _re-capture pending_ | _re-capture pending_ | _re-capture pending_ | _re-capture pending_ |
 
-*Real-model run (Groq-hosted `openai/gpt-oss-120b`): the agent investigated, TrueForge paused on the gated commit, the operator countersigned, and the scoped commit executed — [gate](docs/screenshots/real-model-deciding.png) · [ledger](docs/screenshots/real-model-witnessing.png).*
+*Real-model run (Groq-hosted `openai/gpt-oss-120b`): the agent investigated, TrueForge paused on the gated commit, the operator countersigned, and the scoped commit executed. Screenshots are being re-captured against the current console.*
 
 The stage is the live console (drag the galaxy when idle, transmit an order, countersign at
 the gate). Scroll down and the page becomes the story: the problem, the four proofs as stacked
@@ -62,7 +62,7 @@ load-bearing, the review trail, and how to run it.
 
 | what it is | the problem | four proofs | the numbers |
 |---|---|---|---|
-| ![what it is](docs/screenshots/story-manifesto.png) | ![problem](docs/screenshots/story-problem.png) | ![proofs](docs/screenshots/story-mechanism.png) | ![numbers](docs/screenshots/story-numbers.png) |
+| _the scroll story was removed with the v5 stage_ | | | |
 
 The UI is a *window* onto the gate, not the gate itself: `commit_change` refuses
 server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint;
@@ -87,7 +87,7 @@ The stream is fed through the same SDK reducer the live console uses and **holds
 gate exactly where TrueForge paused** (`tool.approval_required`). Click **Countersign** to
 release it: engine state switches to the post-commit snapshot of the same run and the
 receipt lands. `state-*.json` are `/state` snapshots keyed to that recording
-(`simulation_id cdac3df6`); single scenes: `?replay=/fixtures/state-investigating.json`
+(`simulation_id 46cfc815`); single scenes: `?replay=/fixtures/state-investigating.json`
 or `?replay=/fixtures/state-witnessing.json`.
 
 ### Full live setup (~15 min)
@@ -158,7 +158,81 @@ The full trail: [PR #1](https://github.com/itssaharsh/countersign/pull/1) · [PR
 
 Two of those were reachable only because **two of our own assertions passed by measuring the absence of a different bug.** The REFUSED-state check asserted that the gate bar did not overlap the dock and that the control was absent; both were true while the refusal text was squeezed into a narrow column beside the inputs, so a broken layout read as verified. And the first stale-hold regression test reported a failure that was not one — it started the hold with three seconds left, where completing before expiry is correct — which is its own lesson: a test that can only pass is worth as little as one that can only fail.
 
+Two later findings are worth naming beside those, because they are the same lesson pointed at
+different targets.
+
+**A misclassification that inverted a meaning.** The ledger's helpers separated "rows that die"
+from "rows that survive with a reference cleared" by counts alone — zero `delta`, some
+`affected`. The engine gives *every* non-CASCADE terminal edge that shape, `RESTRICT`
+included. So a `RESTRICT` edge with rows behind it would have been counted as references
+cleared, when it clears nothing at all: it blocks the delete outright. The distinction the
+ledger exists to preserve was being computed by a rule that could not see it. Nothing on any
+shipped fixture changed, because `invoices` has no rows in the demo's blast path — which is
+exactly why it survived review until someone asked what the rule would do with an edge it had
+never been given.
+
+**A check that compared two runs which both rendered nothing, and reported PASS.** Proving the
+fix above needed a fixture with a blocking `RESTRICT` edge, which does not exist, so the test
+injected one and compared the before and after. Both runs rendered no ledger group at all —
+the injection had broken the page load — and "unchanged" was therefore trivially true. The
+check passed while measuring absolutely nothing.
+
+That is the fifth instance in this project of the same failure: **something reporting success
+while being useless.** The others were TrueForge answering `200` on `/api/v1/agents` with no
+model providers configured, so every agent creation failed; Playwright's `networkidle` never
+firing because a proxied request to a dead service hangs open rather than failing; two
+assertions that passed by measuring the absence of a *different* bug than the one they named;
+and a contrast helper that mis-parsed `color(srgb …)` floats as 0–255 and cheerfully reported
+black text at 1.12:1.
+
+The rule that came out of it is in [DECISIONS.md](DECISIONS.md): **assert capability, never
+response.** A health check that proves a service is listening proves nothing; ask it to do the
+thing. And every check should carry a mutation that makes it fail — the guard on the ledger
+test now refuses to run at all unless its baseline renders a real group.
+
 The pattern across all thirteen is the same. Every finding lived in a state the local tests never entered: expiry landing mid-hold, focus leaving mid-hold, a second gate after the first, an approval and a question together, reduced motion. The control's whole purpose is the unhappy path, and it was being tested on the happy one. Full round-by-round record, including the findings dismissed with reasons and one repeat finding that was wrongly dismissed as stale before being fixed properly: [PR #18](https://github.com/itssaharsh/countersign/pull/18).
+
+## A finding about our own policy engine
+
+The policy engine ships four deterministic rules. While verifying that every screen in the
+demo is reachable against the seeded database, **two of them turned out to be unreachable** —
+for two different reasons, one fixable and one not.
+
+`invoices` and `audit_log` were **created and indexed by the schema but never populated**.
+Every `protected_tables` check therefore compared against empty tables, and the only
+`RESTRICT` edge in the estate had no rows behind it. Two of four rules could not fire, and
+nothing in the test suite noticed, because each rule was tested against inputs rather than
+against the seeded estate.
+
+`protected_tables` is now reachable: `audit_log` carries rows, and a statement aimed at it
+fails the rule.
+
+```
+DELETE FROM audit_log WHERE subject_table = 'users'
+  2,400 rows · FAIL protected_tables — deletes rows in protected: audit_log
+```
+
+`restrict_edges_block` is **unreachable by construction, not by seeding.** The
+engine measures a change by executing it inside `BEGIN … ROLLBACK`. Any statement whose blast
+path reaches a `RESTRICT` edge with rows behind it aborts on the foreign key *before* policy
+is ever evaluated, so the run ends with the database's own error rather than a `FAIL` verdict:
+
+```
+update or delete on table "orders" violates RESTRICT setting of
+foreign key constraint "invoices_order_id_fkey" on table "invoices"
+```
+
+That is a safe outcome — the change is refused either way, and the operator is told why — but
+it means the rule is **redundant with the database's own enforcement** rather than an
+independent check, and `POLICY PASSED · 4 rules, 0 blocking` overstates how many of them can
+ever be evaluated. No seeding fixes this; only measuring without executing would, and
+measuring by executing is the whole thesis. **Documented rather than removed**, because
+deleting it would hide the fact that the count was ever misleading.
+
+The seeded estate now populates both tables, so the console's note about the `RESTRICT` edge
+is a true statement about a table with rows instead of a statement about an empty one. The
+invoices are deliberately attached to a reserved band of orders that no demo statement
+touches, because attaching them anywhere else aborts the demo's own change.
 
 ## AI Assistance Disclosure
 
