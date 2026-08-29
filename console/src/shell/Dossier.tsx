@@ -1,13 +1,14 @@
 // DESIGN.md §3 — the right column: the phase-adaptive panel where the boldness
 // is spent, and §5's empty state.
 //
-// The ledger, preconditions and receipt each land in their own change. What is
-// here already is the command form, in every phase — not only the empty one.
-// §0 requires a stranger to be able to start from this screen alone, and §5's
-// own STALE copy instructs the operator to "send the order again", which has to
-// be possible while a simulation exists.
+// The command form is present in every phase, not only the empty one. §0
+// requires a stranger to be able to start from this screen alone, and §5's own
+// STALE copy instructs the operator to "send the order again", which has to be
+// possible while a simulation exists.
 import { useState } from 'react'
 import type { Phase, Simulation } from '../state'
+import { Ledger } from '../dossier/Ledger'
+import { Preconditions } from '../dossier/Preconditions'
 
 // The statement that actually runs against the seeded estate. Never a table or
 // column that does not exist — a judge copies this on the one screen that has to
@@ -30,6 +31,11 @@ export function Dossier(p: Props) {
   const [draft, setDraft] = useState('')
   const idle = p.phase === 'IDLE'
   const blocked = p.approvalOpen || p.questionOpen
+  const measured = Boolean(p.sim && p.sim.tables.length > 0)
+  // The preconditions are a report on evidence, never a progress bar: three ✕
+  // lines while the shadow transaction is still running would read as three
+  // failures. They appear once the engine has actually reported on any of them.
+  const hasEvidence = Boolean(p.sim && (p.sim.fingerprint || p.sim.policy || p.sim.undo.verified))
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,17 +46,26 @@ export function Dossier(p: Props) {
     <section className="col-dossier" aria-label={idle ? 'Submit a change' : 'Dossier'}>
       {!idle && (
         <>
-          <h2 className="t-label">{p.phase === 'WITNESSING' ? 'Receipt' : 'Blast radius'}</h2>
           {p.sim && <p className="dossier-sql t-data">{p.sim.change_sql}</p>}
-          <p className="panel-empty">
-            {p.phase === 'WITNESSING'
-              ? 'The commit is done. The per-table figures, the fingerprint and the armed undo appear here.'
-              : p.questionOpen
-                ? 'The agent is asking you something. Answer or decline it below.'
-                : p.approvalOpen
-                  ? 'The evidence for this approval appears here.'
-                  : 'Measuring. The per-table counts appear here when the shadow transaction reports.'}
-          </p>
+
+          {p.sim && measured ? (
+            <Ledger sim={p.sim} />
+          ) : (
+            <>
+              <h2 className="t-label">{p.phase === 'WITNESSING' ? 'Receipt' : 'Blast radius'}</h2>
+              <p className="panel-empty">
+                {p.phase === 'WITNESSING'
+                  ? 'The commit is done. The per-table figures, the fingerprint and the armed undo appear here.'
+                  : p.questionOpen
+                    ? 'The agent is asking you something. Answer or decline it below.'
+                    : p.approvalOpen
+                      ? 'The evidence for this approval appears here.'
+                      : 'Measuring. The per-table counts appear here when the shadow transaction reports.'}
+              </p>
+            </>
+          )}
+
+          {p.sim && hasEvidence && <Preconditions sim={p.sim} />}
         </>
       )}
 

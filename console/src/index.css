@@ -282,6 +282,10 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    /* A staggered delay is still motion: without this the precondition lines
+       would arrive one at a time under reduce, just without the fade. §6 says
+       all five become instant state changes. */
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
@@ -346,4 +350,128 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
   .brand-sub { display: none; }
   .console-header { height: auto; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
   .submit-input { font-size: var(--t-16); }
+}
+
+/* Visually hidden, still read aloud. The ledger's table caption and the ✓/✕
+   marks are structure a sighted operator gets from layout and a screen reader
+   would otherwise lose. Never display:none — that removes it from both. */
+.vh {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ── §5 the blast-radius ledger ─────────────────────────────────────────
+   41 rows and the card does not scroll: the deaths are always visible, the 37
+   SET NULL edges collapse to one line, and the total counts `delta` only. The
+   collapsed line carries its numbers inside a sentence rather than in the
+   count column, so the reference count can never be mistaken for a death. */
+.ledger { border: 1px solid var(--rule); border-radius: var(--radius); }
+
+.ledger-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  padding: 12px var(--gutter);
+  border-bottom: 1px solid var(--rule);
+}
+/* .col-dossier h2 carries a 16px shell margin; inside the card the rule spaces it. */
+.ledger-head h2 { margin-bottom: 0; }
+.ledger-how { font-size: var(--t-11); color: var(--graphite); }
+.ledger-how .t-data { font-size: var(--t-11); }
+
+.ledger-table { width: 100%; border-collapse: collapse; table-layout: auto; }
+.ledger-row + .ledger-row > *, .ledger-sub-row + .ledger-row > * { border-top: 1px solid var(--rule); }
+.ledger-row > * { padding: 10px var(--gutter); vertical-align: baseline; }
+
+/* Anything out of the database is Plex Mono (§2). Indentation is foreign-key
+   depth, applied inline from depthOf — root 0, child 1, grandchild 2. */
+.ledger-name {
+  font-size: var(--t-16); font-weight: 400; color: var(--ink);
+  text-align: left; word-break: break-word;
+}
+.ledger-branch { color: var(--rule); margin-right: 8px; }
+.ledger-count {
+  font-size: var(--t-20); color: var(--ink);
+  text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.ledger-edge {
+  font-size: var(--t-11); color: var(--graphite);
+  text-align: right; white-space: nowrap; letter-spacing: 0.04em;
+}
+
+/* The collapsed SET NULL line. A button, because it expands to the full 37. */
+.ledger-group { padding-right: 8px; }
+.ledger-toggle {
+  display: inline; text-align: left; background: transparent; border: 0; padding: 0;
+  font-family: var(--sans); font-size: var(--t-13); color: var(--graphite);
+}
+.ledger-toggle:hover { color: var(--ink); }
+.ledger-toggle .t-data { color: var(--ink); font-size: var(--t-13); }
+.ledger-chevron { margin-left: 8px; color: var(--graphite); }
+
+.ledger-sub-row > td { padding: 0 var(--gutter) 12px; }
+.ledger-sub { display: grid; gap: 2px; }
+.ledger-sub > li {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline; gap: 12px;
+  font-size: var(--t-13); padding: 4px 0;
+}
+.ledger-sub .ledger-name { font-size: var(--t-13); color: var(--graphite); }
+/* Never a bare count: what these tables lost is references, and the line says so. */
+.ledger-kept-n { font-size: var(--t-13); color: var(--ink); white-space: nowrap; }
+
+/* §5 — a RESTRICT edge with nothing in the blast path. Information, not alarm:
+   --graphite, never --seal. */
+.ledger-note { font-size: var(--t-13); color: var(--graphite); }
+.ledger-warn { color: var(--graphite); margin-right: 8px; }
+
+.ledger-total {
+  display: flex; align-items: baseline; justify-content: center; gap: 16px;
+  padding: 24px var(--gutter) 32px;
+  border-top: 1px solid var(--rule);
+}
+.ledger-total-n {
+  font-size: var(--t-76); line-height: 0.9; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--t-base) var(--ease);
+}
+/* §2 rationing — the total takes the red the moment the ledger is complete… */
+.ledger-total.is-sealed .ledger-total-n { color: var(--seal); }
+/* …and hands it straight back when the countersign control exists. The control
+   is the only other --seal element in the console and it is rendered only once
+   earned, so its presence in the DOM is the handoff signal — no state has to be
+   threaded through App for the two to stay mutually exclusive. STALE withdraws
+   the control, which returns the red here; when that screen lands the gate bar
+   should publish its state so the total can stay --ink through it (§5). */
+.console:has(.gate-bar .hold) .ledger-total-n { color: var(--ink); }
+
+/* ── §4 the precondition lines ──────────────────────────────────────────
+   --proof once satisfied; --graphite with a ✕ when not. Never --seal: a screen
+   whose evidence does not hold is offering nothing destructive. */
+.preconds { margin-top: var(--section-gap); display: grid; gap: 10px; }
+.precond {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  /* §6 item 3 — 120ms, opacity + 2px rise, staggered 60ms inline. */
+  animation: precond-stamp 120ms ease-out both;
+}
+@keyframes precond-stamp {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: none; }
+}
+.precond-mark { font-size: var(--t-13); }
+.precond-detail { font-size: var(--t-13); }
+.precond.is-ok { color: var(--proof); }
+.precond.is-ok .precond-label, .precond.is-ok .precond-detail { color: var(--proof); }
+.precond.is-fail { color: var(--graphite); }
+.precond.is-fail .precond-label, .precond.is-fail .precond-detail { color: var(--graphite); }
+
+@media (max-width: 900px) {
+  .ledger-head, .ledger-row > *, .ledger-total, .ledger-sub-row > td { padding-left: 12px; padding-right: 12px; }
+  .ledger-count { font-size: var(--t-16); }
+  /* The total stays Display 76 — §5 is explicit, and "43,413" at 76px is ~275px
+     wide, which clears 390 with the 12px gutters. The label wraps under it. */
+  .ledger-total { flex-wrap: wrap; justify-content: flex-start; gap: 8px; }
+  /* Below 900 the sub-list stacks: three columns in 390px would either overflow
+     the page or squeeze the table names to nothing. */
+  .ledger-sub > li { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .ledger-sub .ledger-edge { text-align: left; }
 }
