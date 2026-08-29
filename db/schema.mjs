@@ -19,6 +19,14 @@ export const COUNTS = {
   doomedUsers: 6000,
   maxOrdersPerDoomedUser: 6,
   maxOrdersPerActiveUser: 2,
+  // invoices against DOOMED orders is deliberately 0. Populating it does not make
+  // `restrict_edges_block` reachable: the shadow DELETE aborts on the foreign key
+  // before policy is ever evaluated, so the run fails with the database's own
+  // error rather than a FAIL verdict — and it breaks the demo statement outright.
+  // See README, "Two of four policy rules".
+  quietInvoices: 120,    // invoices, all against the reserved band's orders
+  reservedUsers: 1000,   // newest users; their orders carry the invoices
+  auditRows: 2400,       // audit_log is protected; a statement aimed at it must have rows
 };
 
 export function schemaSql() {
@@ -118,11 +126,20 @@ export function seedSql() {
 
   let orderId = 0, paymentId = 0;
   const orderRows = [], paymentRows = [];
+  // Orders belonging to doomed users, so invoices can reference a few of them and
+  // the RESTRICT edge actually has rows in the blast path.
+  const doomedOrderIds = [];
+  // Orders belonging to a reserved band of the newest users. Invoices hang off
+  // these, so no demo statement's blast path ever reaches the RESTRICT edge and
+  // aborts the shadow transaction.
+  const reservedOrderIds = [];
   for (let u = 1; u <= COUNTS.users; u++) {
     const doomed = u <= COUNTS.doomedUsers;
     const n = Math.floor(rand() * (doomed ? COUNTS.maxOrdersPerDoomedUser + 1 : COUNTS.maxOrdersPerActiveUser + 1));
     for (let k = 0; k < n; k++) {
       orderId++;
+      if (doomed) doomedOrderIds.push(orderId);
+      else if (u > COUNTS.users - COUNTS.reservedUsers) reservedOrderIds.push(orderId);
       orderRows.push(`(${orderId},${u},${500 + Math.floor(rand() * 90000)},'complete')`);
       const nPay = 1 + (rand() < 0.08 ? 1 : 0); // some orders have a retry payment
       for (let p = 0; p < nPay; p++) {
@@ -135,6 +152,28 @@ export function seedSql() {
     stmts.push(`INSERT INTO orders (id,user_id,total_cents,status) VALUES ${c.join(',')}`));
   chunk(paymentRows, 1000).forEach((c) =>
     stmts.push(`INSERT INTO payments (id,order_id,amount_cents,method) VALUES ${c.join(',')}`));
+
+  // invoices: ON DELETE RESTRICT against orders. The table is populated so the
+  // RESTRICT edge is real and the console's note about it is a true statement
+  // rather than one about an empty table. None of them sit in the demo's blast
+  // path — see COUNTS.blockingInvoices for why that is not an oversight.
+  const invoiceRows = [];
+  for (let i = 0; i < COUNTS.quietInvoices && reservedOrderIds.length; i++) {
+    invoiceRows.push(`(${i + 1},${reservedOrderIds[i % reservedOrderIds.length]},'invoices/${9000 + i}.pdf')`);
+  }
+  chunk(invoiceRows, 1000).forEach((c) =>
+    stmts.push(`INSERT INTO invoices (id,order_id,pdf_path) VALUES ${c.join(',')}`));
+
+  // audit_log has no foreign key, so it is never reached by a cascade. It is
+  // populated so that a statement aimed AT it has rows to delete — which is how
+  // `protected_tables` is reached: the operator names a protected table directly.
+  const auditRows = [];
+  for (let i = 1; i <= COUNTS.auditRows; i++) {
+    const subject = 1 + Math.floor(rand() * COUNTS.users);
+    auditRows.push(`(${i},'svc-billing','user.updated','users',${subject})`);
+  }
+  chunk(auditRows, 1000).forEach((c) =>
+    stmts.push(`INSERT INTO audit_log (id,actor,action,subject_table,subject_id) VALUES ${c.join(',')}`));
 
   const ticketRows = [];
   for (let i = 1; i <= 3000; i++) {

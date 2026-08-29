@@ -160,6 +160,46 @@ Two of those were reachable only because **two of our own assertions passed by m
 
 The pattern across all thirteen is the same. Every finding lived in a state the local tests never entered: expiry landing mid-hold, focus leaving mid-hold, a second gate after the first, an approval and a question together, reduced motion. The control's whole purpose is the unhappy path, and it was being tested on the happy one. Full round-by-round record, including the findings dismissed with reasons and one repeat finding that was wrongly dismissed as stale before being fixed properly: [PR #18](https://github.com/itssaharsh/countersign/pull/18).
 
+## A finding about our own policy engine
+
+The policy engine ships four deterministic rules. While verifying that every screen in the
+demo is reachable against the seeded database, **two of them turned out to be unreachable** —
+for two different reasons, one fixable and one not.
+
+`invoices` and `audit_log` were **created and indexed by the schema but never populated**.
+Every `protected_tables` check therefore compared against empty tables, and the only
+`RESTRICT` edge in the estate had no rows behind it. Two of four rules could not fire, and
+nothing in the test suite noticed, because each rule was tested against inputs rather than
+against the seeded estate.
+
+`protected_tables` is now reachable: `audit_log` carries rows, and a statement aimed at it
+fails the rule.
+
+```
+DELETE FROM audit_log WHERE subject_table = 'users'
+  2,400 rows · FAIL protected_tables — deletes rows in protected: audit_log
+```
+
+`restrict_edges_block` is **not reachable, and cannot be made reachable by seeding.** The
+engine measures a change by executing it inside `BEGIN … ROLLBACK`. Any statement whose blast
+path reaches a `RESTRICT` edge with rows behind it aborts on the foreign key *before* policy
+is ever evaluated, so the run ends with the database's own error rather than a `FAIL` verdict:
+
+```
+update or delete on table "orders" violates RESTRICT setting of
+foreign key constraint "invoices_order_id_fkey" on table "invoices"
+```
+
+That is a safe outcome — the change is refused either way, and the operator is told why — but
+the rule is redundant with the database's own enforcement rather than an independent check,
+and `POLICY PASSED · 4 rules, 0 blocking` overstates how many of them can ever be evaluated.
+It is left in place and documented rather than quietly removed.
+
+The seeded estate now populates both tables, so the console's note about the `RESTRICT` edge
+is a true statement about a table with rows instead of a statement about an empty one. The
+invoices are deliberately attached to a reserved band of orders that no demo statement
+touches, because attaching them anywhere else aborts the demo's own change.
+
 ## AI Assistance Disclosure
 
 Built with heavy AI coding assistance (Claude Code, Anthropic). All architecture
