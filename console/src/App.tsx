@@ -6,7 +6,7 @@ import { useHarness } from './harness'
 import { useEngineState, activeSimulation, simulationFor, phaseFor } from './state'
 import { useFreshness } from './experience/useFreshness'
 import { Header } from './shell/Header'
-import { Transcript } from './shell/Transcript'
+import { Transcript } from './transcript/Transcript'
 import { Dossier } from './shell/Dossier'
 import { GateBar } from './gate/GateBar'
 
@@ -43,7 +43,7 @@ export default function App() {
         onStartOver={startOver}
       />
       <div className="console-body">
-        <Transcript feed={feed} />
+        <Transcript feed={feed} pending={pending} />
         <Dossier
           phase={phase}
           sim={sim}

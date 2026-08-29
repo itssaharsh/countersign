@@ -267,6 +267,90 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .phase-track .seg.future .dot { border-color: var(--rule); }
 .phase-status { font-family: var(--sans); font-size: var(--t-11); letter-spacing: 0.08em; text-transform: uppercase; color: var(--graphite); }
 
+/* ── §3 the transcript ────────────────────────────────────────────────────
+   The unit is a harness event, not an imagined tool call (§9 A1): reasoning in
+   --graphite, the call in --ink with an elapsed counter while it is open, the
+   result. The column's 380px is reserved on .col-transcript above; everything
+   here has to live inside it without ever widening it (§8). */
+.tx {
+  --tx-stamp-w: 8ch;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+  overflow-y: auto;
+  /* The scrollbar arriving must not reflow the lines beside it. */
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  /* The viewport less the header, the gate bar, the body's own padding and this
+     column's heading: the transcript scrolls inside the page, not the page. */
+  max-height: calc(100svh - var(--header-h) - var(--gate-h-actual) - var(--section-gap) * 2 - 40px);
+}
+
+/* §6 item 1 — 100ms fade, no translate. Nothing else in here moves. */
+.tx-line { animation: tx-in 100ms var(--ease) both; }
+@keyframes tx-in { from { opacity: 0; } to { opacity: 1; } }
+
+.tx-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Fixed width so the stamps form a column and an event with no createdAt reserves
+   the same space rather than shunting the line left. Never a synthesised time. */
+.tx-stamp {
+  flex: 0 0 var(--tx-stamp-w);
+  width: var(--tx-stamp-w);
+  color: var(--graphite);
+  font-variant-numeric: tabular-nums;
+}
+
+.tx-tool { color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+/* A number changing, not an animation (§6). Pushed to the right edge of the line so
+   it sits in one place as it ticks. */
+.tx-elapsed { margin-left: auto; padding-left: 8px; color: var(--graphite); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tx-arrow { flex: 0 0 auto; color: var(--rule); }
+
+/* §2's type rule: harness and database output in mono (inherited from the column),
+   the interface's own words in the body face. */
+.tx-said { font-family: var(--sans); }
+.tx-role { font-size: var(--t-11); color: var(--graphite); }
+.tx-ink { color: var(--ink); }
+.tx-graphite { color: var(--graphite); }
+/* §4 — waiting is not working. It gets --ink, not --seal: the seal is rationed to the
+   one destructive element and this is not it. */
+.tx-waiting { color: var(--ink); }
+
+.tx-body {
+  padding-left: calc(var(--tx-stamp-w) + 8px);
+  margin-top: 4px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The tool result is the real payload, whitespace collapsed, clamped to three lines
+   with the whole of it on the title. Summarising it would be the console inventing a
+   reading of data it is supposed to be showing. */
+.tx-result {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Countersign's own notices — replays, reconnects, refusals. */
+.tx-said.tx-line { font-size: var(--t-13); color: var(--graphite); overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tx-line { animation: none; }
+}
+
 /* §2 — below 900 the columns stack; the transcript becomes a strip and the
    dossier keeps full width, because the gate must never be below the fold. */
 @media (max-width: 900px) {
@@ -289,14 +373,15 @@ button, input, textarea, select { font: inherit; color: inherit; }
   .console-body { grid-template-columns: minmax(0, 1fr); gap: var(--gutter); }
   .col-transcript {
     width: auto;
-    max-height: 22vh;
-    overflow-y: auto;
+    /* The strip's height is capped on .tx, not here, so the heading stays put and the
+       transcript has one scroller at every width. */
     border-right: 0;
     border-bottom: 1px solid var(--rule);
     padding-right: 0;
     padding-bottom: var(--gutter);
     order: 2;
   }
+  .tx { max-height: 22vh; }
   .col-dossier { order: 1; }
 }
 

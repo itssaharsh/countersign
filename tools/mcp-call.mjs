@@ -7,6 +7,10 @@ const transport = new StreamableHTTPClientTransport(new URL('http://127.0.0.1:89
 const client = new Client({ name: 'countersign-tools', version: '0' });
 await client.connect(transport);
 const res = await client.callTool({ name, arguments: JSON.parse(argsJson ?? '{}') });
-console.log(res.content?.[0]?.text ?? JSON.stringify(res));
+// Tool results carry undo_token, a capability that authorises a rollback against
+// the live database. This prints to a terminal that may be on camera, so it is
+// redacted here for the same reason the console redacts it on screen.
+const out = res.content?.[0]?.text ?? JSON.stringify(res);
+console.log(String(out).replace(/("(?:undo_)?token"\s*:\s*")[^"]+/g, '$1<redacted>'));
 await client.close();
 process.exit(0);

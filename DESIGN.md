@@ -5,7 +5,7 @@ file fully before touching any component. Do not invent colors, fonts, or animat
 are not in here.
 
 Every number, table name and state in this document is taken from the recorded real-model
-run (`console/public/fixtures/real-run.jsonl`, simulation `cdac3df6`, gpt-oss-120b) or from
+run (`console/public/fixtures/real-run.jsonl`, simulation `46cfc815`, gpt-oss-120b) or from
 the engine source. Nothing here is illustrative. If a screen in this spec cannot be drawn
 from data the console actually receives, that is a bug in the spec, not a licence to
 invent the data. See §9 for the record of where the spec was corrected against reality.
@@ -170,7 +170,7 @@ Scale (1.25 ratio, no fractional px): 11 / 13 / 16 / 20 / 25 / 44 / 76.
 │    ← 41 tables measured  │   │    ├ orders       17,971  CASCADE      │ │
 │                          │   │    │  └ payments  19,442  CASCADE      │ │
 │  22:33:27  commit_change │   │    └ 37 tables keep their rows,        │ │
-│    → awaiting countersig │   │       4,172 references cleared    SET  │ │
+│    → awaiting countersig │   │       3,542 references cleared    SET  │ │
 │                          │   ├────────────────────────────────────────┤ │
 │  ▌waiting on you         │   │           43,413  rows die             │ │
 │                          │   └────────────────────────────────────────┘ │
@@ -304,7 +304,7 @@ built, the spec does not describe one.)
 - Rows that **die** (`delta > 0`) are always shown, indented by depth, with their edge
   semantics: `users 6,000 ← root`, `orders 17,971 CASCADE`, `payments 19,442 CASCADE`.
 - Rows that are **touched but survive** (`delta = 0`, `affected > 0` — every `SET NULL`
-  edge) collapse into one line: *37 tables keep their rows, 4,172 references cleared*,
+  edge) collapse into one line: *37 tables keep their rows, 3,542 references cleared*,
   expandable to the full list. These are not deaths and must never be counted as such.
 - The distinction between `delta` and `affected` is the product. A table losing its
   references is not a table losing its rows, and the console must never blur the two.
