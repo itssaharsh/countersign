@@ -83,9 +83,14 @@ export function Ledger({ sim }: { sim: Simulation }) {
   // group would stay open when a different simulation arrives. Collapse on identity.
   const [lastSim, setLastSim] = useState(sim.simulation_id)
   if (lastSim !== sim.simulation_id) { setLastSim(sim.simulation_id); setOpen(false) }
-  // §5 REFUSED carries no red: nothing destructive is on offer there, so the total
-  // does not seal when the evidence behind it failed.
-  const evidenceHolds = sim.undo.verified && sim.policy?.verdict !== 'FAIL'
+  // §5 pulls in two directions here and both are deliberate. The total "turns
+  // --seal the instant the ledger is complete" — which is during INVESTIGATING,
+  // before any policy verdict exists — and REFUSED "carries no red at all".
+  // So the test is not "has the evidence passed" but "has anything failed":
+  // absent evidence is work in progress, failed evidence is a refusal.
+  const undoFailed = Boolean(sim.undo.report) && !sim.undo.verified
+  const policyFailed = sim.policy?.verdict === 'FAIL'
+  const evidenceHolds = !undoFailed && !policyFailed
 
   const dying = dyingTables(sim)
   const touched = touchedTables(sim)
