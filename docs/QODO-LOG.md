@@ -129,3 +129,46 @@ Qodo posted a summary and a clean review ("Great, no issues found!"); no finding
 | 2 | startOver exits fixture replay | Rule | **FIXED** — the reload keeps the query string, so in judge mode start over restarts the fixture stream rather than entering live mode. |
 | 3 | Start-over decision undocumented | Rule | **FIXED** — EXPLAIN "Start over" entry: why the saved session is removed, why a full reload, what URL state is kept, replay trade-off. |
 
+## PR #16 — DESIGN.md, the console spec (0 findings)
+Docs only. Clean on the first pass: `🐞 Bugs (0) 📘 Rule violations (0) 📎 Requirement gaps (0)`.
+A follow-up commit corrected §2 against reality before merge — Bricolage Grotesque's width axis
+runs 75–100 on Google Fonts rather than 100–120, and dark mode needed re-struck `--graphite`,
+`--seal` and `--proof`, because the light values measure 3.4:1, 2.9:1 and 1.7:1 on an ink ground,
+all under the 4.5:1 floor §8 calls non-negotiable. Both were found while implementing the tokens,
+not by re-reading the spec.
+
+## PR #17 — console ground: tokens and type (3 findings)
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Focus ring remains suppressed | Bug | **FIXED** — the v5.1 structural rules carried `outline: none` on `.cmd` and focused `.tbtn` and won the cascade over the new global `:focus-visible`, so the command line and the action buttons had no ring at all. Restored explicitly on every legacy control. Verified by computed style: `2px solid rgb(20,18,14) offset 2px`, `:focus-visible = true`. |
+| 2 | Mobile subtitle overlaps dock | Bug | **FIXED** — the root cause was not the subtitle: the dock reserved a fixed 204px while its own first line wrapped to three at 390px. Inter Tight sitting taller than the italic it replaced made an existing overflow visible. Order line clamped, reservation corrected. Verified by bounding box: subtitle bottom 600, dock top 612, gap 12px. |
+| 3 | Ground redesign lacks rationale | Rule | **FIXED** — `docs/EXPLAIN.md` still presented the v4 cinematic stage as current. Added the v6 counterfoil entry: why the stage was dropped against the Best UI judging line, why rationing one red element needs a light ground, the spectacle given up, the dark-mode contrast values, and the temporary bridge. |
+
+## PR #18 — the countersign gate (13 findings, 5 rounds)
+The deepest review in the project, on the one control whose entire job is to be trustworthy.
+Four correctness bugs reached the branch; none were reachable through the local tests, because
+every one of them lived in a state those tests never entered.
+
+| # | Finding | Sev | Outcome |
+|---|---|---|---|
+| 1 | Stale hold still approves | Bug | **FIXED** — the frame loop never rechecked `enabled`, so a hold begun at t=119s landed the approval at t=120.2s, after the control had withdrawn for staleness: an irreversible commit authorised on evidence the console had already rejected. Reads `enabled` through a ref every frame and aborts. Verified against the real 120s clock — hold started with 1s left, expiry landed mid-hold, no approval sent. |
+| 2 | Completed hold blocks later gates | Bug | **FIXED** — `done.current` was never reset and one gate bar serves every gate in a session, so after countersigning the commit the undo's RESTORE control would have rendered permanently labelled COUNTERSIGNED and refused to start. Completion is per-gate now, keyed on the pending `toolCallId`. |
+| 3 | Focus loss preserves hold | Bug | **FIXED** — the hold was cancelled by keyup or *window* blur, and window blur does not fire when focus merely moves elsewhere on the page. Tabbing away mid-hold left the timer running and the approval landed after the sustained intent had ended. Cancels on blur. |
+| 4 | Declined answer crosses questions | Bug | **FIXED** — an approval and a question can be pending at once; a single coalesced identity key (`approval ?? question`) stayed pinned to the approval while questions came and went, so a later question arrived prefilled with a previous question's text. Approval and question now carry separate identities, and the hold keys on the approval alone. |
+| 5 | Denial reason crosses gates | Bug | **FIXED** — initially dismissed as a stale re-anchor, which was wrong. The reset ran in a `useEffect`, and an effect fires after paint, so the first frame of a new gate still carried the previous gate's text. Both field and hold resets moved to render time. |
+| 6 | Question gate lacks denial | Bug | **FIXED** — §4 requires an escape on every open gate and the question branch shipped without one. Worse than a missing button: the harness refuses `send()` while anything is pending, so an unanswerable question would have deadlocked the session. Declining resolves through the question protocol (`user.tool_response`), never with an approval response. |
+| 7 | Gate motion ignores preference | Bug | **FIXED** — the materialise/withdraw ran its 200ms scale unconditionally. Instant under `prefers-reduced-motion`; the hold duration is unchanged, because reducing motion must not reduce the commitment. |
+| 8 | Gate inputs lose focus ring | Bug | **FIXED** — `.gate-input:focus-visible` set `outline: none`, the exact pattern PR #17 established as a bug, reintroduced two PRs later in the file that documents the rule. |
+| 9 | Wrapped gate exceeds fixed height | Bug | **FIXED** — the bar wrapped inside a fixed 88px and overflowed. `min-height` now, mobile rows stack deliberately, and the bar publishes its measured height so every offset that must clear it follows the real number. |
+| 10 | Refusal detail shares row | Bug | **FIXED** — `.gate-refusal` was a flex sibling of `.inner` in a horizontal bar, so the blocked-state explanation was squeezed beside the controls. The `grid-column` rule written for it was dead code: the element is not a child of either mobile grid. |
+| 11 | Replacement gate auto-approves | Bug | **FIXED** — resolved by the same per-gate reset as #2. |
+| 12 | RefusalDetail omits rollback phrase | Rule | **FIXED** — failed-rollback copy must read `NOT RESTORED BY THE GENERATED ROLLBACK`; it now leads with it. |
+| 13 | Gate lacked a REFUSED/STALE surface | — | Built in the same PR from `DESIGN.md` §5, and verified: STALE reached by waiting out the real 120s window, REFUSED by loading a gate with no matching simulation. |
+
+**Two of our own assertions passed by measuring the absence of a different bug.** The REFUSED
+check asserted the bar did not overlap the dock and the control was absent; both were true while
+the refusal text was squeezed into a narrow column beside the inputs, so a broken layout read as
+verified. And the first stale-hold regression test reported a failure that was not one — it
+started the hold with three seconds left, where completing before expiry is correct. A test that
+can only pass is worth as little as one that can only fail. Both lessons are recorded in the
+README's review-evidence section rather than quietly fixed.
