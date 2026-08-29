@@ -83,6 +83,9 @@ a, button, input { cursor: none; }
 .tbtn .underline { position: absolute; left: 0; right: 0; bottom: -6px; height: 3px; background: currentColor; transform-origin: left; transform: scaleX(0); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
 .tbtn:hover .underline { transform: scaleX(1); }
 .tbtn:disabled { opacity: 0.25; }
+.tbtn:focus-visible { outline: none; }
+.tbtn:focus-visible .underline { transform: scaleX(1); }
+.btn-pill:focus-visible, .cmd:focus-visible, .linkish:focus-visible { outline: 1px solid rgba(243,239,255,0.7); outline-offset: 4px; }
 
 /* glass slab (the receipt) */
 .slab { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16); border-radius: 16px; backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 30px 80px -30px rgba(0,0,0,0.8); }
