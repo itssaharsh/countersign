@@ -8,12 +8,13 @@ Insurance: pre-record the full happy path Day 2 night. Speak slowly; short sente
 SAY: "This is an approval prompt. A tool name. Raw JSON. If I click Allow — what happens?
 I do not know. And I am the safety layer. This is not a control. It is a consent form."
 
-[0:18–0:32] THESIS — screen: Countersign console title card.
+[0:18–0:32] THESIS — screen: the idle stage, giant SHOW ME THE CONSEQUENCE over the galaxy; drag the world once.
 SAY: "Countersign fixes this. It runs the change first, on a copy. It measures what dies.
 It proves the undo. Only then, the Allow button exists."
 
-[0:32–1:10] THE RUN — screen: PR #4 opens; agent extracts the migration from the diff; cascade
-tree grows live; undo check on shadow DB; policy PASS (+ sandbox re-verification line).
+[0:32–1:10] THE RUN — screen: transmit the order; the title flips to MEASURING WHAT WOULD DIE;
+the doomed rows ignite and gather into users, orders, payments with light beams and floating
+counts; the HUD proofs turn green one by one; narration types along the bottom.
 SAY: "A migration lands in a pull request. The TrueForge agent picks it up. It runs the delete
 inside a shadow transaction. These are real MCP tools. Watch the blast radius. Six thousand
 users. They pull eighteen thousand orders. Orders pull nineteen thousand payments. Every arrow
@@ -31,8 +32,9 @@ SAY: "Back to the dangerous one. The gate is armed. Now a coworker writes new ro
 sees the drift. The approval goes stale. The button locks. Can I cheat? I call the commit tool
 directly. The server refuses. No fresh proof, no commit. The gate is real. It is not CSS."
 
-[1:50–2:35] FINALE — screen: re-measure; TrueForge pause (tool.approval_required); Approve;
-live query: rows gone; fire undo; live query: rows back.
+[1:50–2:35] FINALE — screen: COUNTERSIGN OR DENY; the doomed set breathes inside the countdown
+ring; click Countersign; EXECUTED. UNDO ARMED. with the vortex and the receipt slab; type
+'fire the undo'; RESTORE; the field re-forms.
 SAY: "We measure again. Fresh numbers. TrueForge pauses the agent for a human. This is the real
 approval event. I approve. The commit runs on the live database. Look — the rows are gone. This
 was real. Now the armed undo. Fire. Count them again. Every row is back. Same keys. That is the

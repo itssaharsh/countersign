@@ -10,12 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
+    "@react-three/postprocessing": "^3.1.1",
     "@truefoundry/trueforge-sdk": "^0.1.1",
     "@truefoundry/trueforge-ui": "^0.2.1",
     "clsx": "^2.1.1",
     "framer-motion": "^13.1.1",
     "motion": "^13.1.1",
+    "postprocessing": "^6.39.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwind-merge": "^3.6.0",

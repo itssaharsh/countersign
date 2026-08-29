@@ -1,7 +1,7 @@
 {
   "simulations": [
     {
-      "simulation_id": "c2228496",
+      "simulation_id": "cdac3df6",
       "change_sql": "DELETE FROM users WHERE last_active < '2025-01-01'",
       "kind": "destructive-cascade",
       "started_at": "2026-08-28T10:24:22.954Z",
@@ -322,7 +322,7 @@
           "name": "payments",
           "delta": 19442,
           "affected": 19442,
-          "edge": "orders_user_id_fkey→payments_order_id_fkey",
+          "edge": "orders_user_id_fkey\u2192payments_order_id_fkey",
           "onDelete": "CASCADE",
           "measured_delta": 19442
         },
@@ -330,7 +330,7 @@
           "name": "invoices",
           "delta": 0,
           "affected": 0,
-          "edge": "orders_user_id_fkey→invoices_order_id_fkey",
+          "edge": "orders_user_id_fkey\u2192invoices_order_id_fkey",
           "onDelete": "RESTRICT",
           "measured_delta": 0
         }

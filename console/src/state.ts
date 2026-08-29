@@ -30,11 +30,11 @@ export type EngineState = { simulations: Simulation[]; backends: Record<string, 
 
 const SERVER = import.meta.env.VITE_COUNTERSIGN_SERVER ?? 'http://127.0.0.1:8977'
 
-export function useEngineState(pollMs = 1500): EngineState {
+export function useEngineState(pollMs = 1500, source?: string): EngineState {
   const [state, setState] = useState<EngineState>({ simulations: [], backends: {} })
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const replay = params.get('replay')
+    const replay = source ?? params.get('replay')
     // Replaying a recorded event stream without a state fixture: nothing to poll.
     if (!replay && params.has('replayEvents')) return
     let stop = false
@@ -53,13 +53,18 @@ export function useEngineState(pollMs = 1500): EngineState {
     tick()
     const t = setInterval(tick, pollMs)
     return () => { stop = true; clearInterval(t) }
-  }, [pollMs])
+  }, [pollMs, source])
   return state
 }
 
 /** The run currently on stage: latest simulation. */
 export function activeSimulation(s: EngineState): Simulation | undefined {
   return s.simulations[s.simulations.length - 1]
+}
+
+/** The simulation an approval refers to — never "the latest one" by assumption. */
+export function simulationFor(s: EngineState, id: unknown): Simulation | undefined {
+  return typeof id === 'string' ? s.simulations.find((x) => x.simulation_id === id) : undefined
 }
 
 export type Phase = 'IDLE' | 'INVESTIGATING' | 'DECIDING' | 'WITNESSING'

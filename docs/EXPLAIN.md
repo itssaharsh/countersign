@@ -73,18 +73,33 @@ keeps the full-capability profile for choreography. Judge question: "isn't the m
 cheating?" Answer: mocksmith is a scripted *test driver* that exercises the real harness,
 tools and gates; the recorded demo runs the real model, and the README says so.
 
-### The visual system (console v3): bright, animated, a world under glass
-Why not a dark HUD: the Best UI track is judged on the demo video and usability, and a
-dark terminal reads as generic. The references were Lusion, Unseen Studio and Stripe:
-a full-screen generative world with the interface floating over it as glass. So the
-backdrop is a three.js point cloud that IS the database, and it morphs with the harness
-state (sphere while idle, cascade clusters while investigating, a breathing green core
-inside a ring when the gate is armed, a burst then a calm disk after commit). Glass cards
-sit over it (rgba white + blur), display type is Instrument Serif with a kinetic hero,
-buttons are gradient pills with a shimmer, cards carry a cursor spotlight, and the armed
-gate has a travelling light plus a pulse ring. Reduced-motion users get a still canvas.
-Judge question: "is the 3D just decoration?" Answer: it is state. The world is a second
-read of the evidence board: what you see in the air is what the engine measured.
+### The visual system (console v4): a cinematic stage
+Why not a dashboard: the Best UI track is judged on the demo video and usability, and
+the brief was explicit about the references (Lusion, Unseen Studio, Active Theory,
+Bruno Simon): an experience, not a website. Those share one property: no chrome, no
+cards. The 3D world is the page, typography is the interface, and the camera moves.
+So the console is a full-screen three.js world (react-three-fiber, bloom, fog) with
+type drawn over it. The world is a galaxy of rows that IS the database: idle it drifts
+and you can drag to explore; while the agent investigates the doomed rows ignite and
+gather into users, orders and payments with dashed light beams drawing the cascade and
+floating 3D counts; when the gate arms the doomed set is held breathing inside a ring
+of light whose arc is the freshness countdown; on commit the rows vortex away and the
+field settles. A camera rig flies between scenes. The interface is a wordmark, a HUD
+readout of the three proofs, a giant per-phase title, a thin transcript rail, one
+command line with the agent's narration typed live, magnetic typographic Countersign
+and Deny, and a glass receipt slab. Reduced-motion users get a still stage.
+Judge question: "is the 3D just decoration?" Answer: it is state. Every scene is a
+second read of what the engine measured, and the gate ring is the actual freshness
+timer that the server enforces.
+Cost: every frame lerps all 14k points toward their phase target and re-uploads the
+position and colour arrays (one 168 KB upload). That is deliberate: the galaxy is the
+readout, so it must move when state moves; there are no per-frame allocations, the
+DPR is capped at 1.5, and reduced-motion users get a stage that settles and holds.
+Judge mode: `?replayEvents=` feeds the recorded gpt-oss-120b stream through the same
+reducer the live console uses and holds at `tool.approval_required` until Countersign,
+then `?replayAfter=` supplies the post-commit state snapshot of that run. Fixture note:
+the recorder that captured `real-run.jsonl` had already merged deltas into base events,
+so base `content`/`arguments` were cleared (the deltas rebuild them byte-for-byte).
 
 ## 3. TrueForge usage map (Double-O track answers)
 - MCP tools: custom countersign server + shipped github (PR fetch, receipt comment)
