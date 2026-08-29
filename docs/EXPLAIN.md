@@ -177,7 +177,10 @@ a gate is actually open.
 - Sandbox: local sandbox fallback (bwrap/socat/rg) — code execution for the policy path;
   dual-pathed so the product still works sandbox-off.
 - Subagents/dynamic capabilities: enabled; investigation can fan out. Session
-  persistence: the console can reconnect to a running turn (subscribeToTurn).
+  persistence: the console reconnects to a running turn (subscribeToTurn) and, for a
+  turn that ended paused on a gate or a question, rebuilds the transcript and the gate
+  from listTurnEvents (asc) through the live reducer, so a reload never strands an
+  approval the server still holds (see "Reopening a gate after a reload" above).
 
 ## 4. Engineering incidents (judges like scars)
 - PGlite corruption: attaching a second process to a PGlite data dir corrupts it
