@@ -76,3 +76,40 @@ export function phaseFor(sim: Simulation | undefined, hasPendingApproval: boolea
   if (hasPendingApproval) return 'DECIDING'
   return 'INVESTIGATING'
 }
+
+/**
+ * Foreign-key depth of a measured table: the root of the change has no edge, a
+ * direct child has one constraint in its path, a grandchild two. The ledger
+ * indents by this.
+ */
+export function depthOf(t: TableRow): number {
+  return t.edge ? t.edge.split('→').length : 0
+}
+
+/**
+ * Rows that die. Only `delta` counts — a table whose foreign keys are nulled
+ * keeps every row it had, and blurring the two would misstate the measurement.
+ */
+export function rowsThatDie(sim: Simulation | undefined): number {
+  return (sim?.tables ?? []).reduce((n, t) => n + (t.delta ?? 0), 0)
+}
+
+/**
+ * References cleared: rows that survive with a foreign key set to null. Counted
+ * separately and never added to the death toll.
+ */
+export function referencesCleared(sim: Simulation | undefined): number {
+  return (sim?.tables ?? [])
+    .filter((t) => !(t.delta ?? 0) && (t.affected ?? 0) > 0)
+    .reduce((n, t) => n + (t.affected ?? 0), 0)
+}
+
+/** The tables that lose rows, root first, then by foreign-key depth. */
+export function dyingTables(sim: Simulation | undefined): TableRow[] {
+  return (sim?.tables ?? []).filter((t) => (t.delta ?? 0) > 0).sort((a, b) => depthOf(a) - depthOf(b))
+}
+
+/** The tables that keep their rows but lose a reference. */
+export function touchedTables(sim: Simulation | undefined): TableRow[] {
+  return (sim?.tables ?? []).filter((t) => !(t.delta ?? 0) && (t.affected ?? 0) > 0)
+}
