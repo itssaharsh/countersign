@@ -151,7 +151,7 @@ export function Hero(p: Props) {
         <div className="hairline" />
         <form className="flex items-center gap-3 pt-1" onSubmit={(e) => { e.preventDefault(); if (draft.trim()) { p.onSend(draft.trim()); setDraft('') } }}>
           <span className="t-mono text-[15px]" style={{ color: PHASE_COLOR[p.phase] }}>›</span>
-          <input className="cmd" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="transmit an order" autoFocus />
+          <input className="cmd" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={pending ? 'a gate is open: countersign or deny it above before sending anything else' : 'transmit an order'} autoFocus />
           <button type="submit" className="tbtn" style={{ fontSize: 14, color: 'var(--ink-dim)' }} disabled={p.running}>Send<span className="underline" /></button>
         </form>
       </div>
