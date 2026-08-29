@@ -1,50 +1,233 @@
 @import "tailwindcss";
 
-/* ── Countersign v5: a stage you scroll through. The live console is the hero; the story
-   below it reads like an editorial site, each section in its own colour world. ── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Countersign console — the ground.
+   DESIGN.md is the source of truth. Six colors, three faces, one seal.
+   This file is §2 (tokens), §3 (layout frame), §6 (motion budget) and §8
+   (quality floor). Components land in later PRs; the LEGACY BRIDGE at the
+   bottom keeps the current v5.1 components legible on the new ground until
+   they are replaced, and is deleted with them.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
-  /* stage (hero) */
-  --stage: #07060f;
-  --ink: #f3efff;
-  --ink-dim: #a9a3c4;
-  --ink-faint: #5d5880;
-  /* state colours: these mean something, so they stay reserved for state */
-  --coral: #ff5a5f;
-  --violet: #8b7dff;
-  --teal: #2dd4bf;
-  --green: #4ade80;
-  --amber: #ffb454;
-  /* story worlds: one palette per section, never the hero's */
-  --bone: #f4efe4;
-  --ink-0: #0e0d12;
-  --orange: #ff5a1f;
-  --lime: #c8ff3d;
-  --cobalt: #0f2a5c;
-  --forest: #123d2a;
-  --plum: #3a1c5c;
-  --graphite: #1b1b1f;
-  --ultra: #1c2eff;
-  --ivory: #fbf8f1;
-  --sand: #e8dcc4;
-  --rose: #ffd6cc;
-  --ember: #ff7a3d;
-  --ice: #9fd8ff;
-  /* layout */
-  --dock-h: 164px;
-  --gutter: clamp(20px, 3vw, 40px);
-  --display: "Syne", "Space Grotesk", ui-sans-serif, sans-serif;
-  --serif: "Instrument Serif", Georgia, serif;
-  --sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, monospace;
+  /* ── §2 color — six values, no others ───────────────────────────────────
+     Contrast on --bone: ink 17.6:1 · graphite 4.9:1 · seal 5.7:1 · proof 10.0:1
+     All ≥ 4.5:1. Do not lighten --graphite. */
+  --bone:     #F2EFE6;  /* page ground — paper */
+  --ink:      #14120E;  /* primary text, hairline rules at 100% */
+  --graphite: #6B675C;  /* secondary text, labels, inactive phase */
+  --rule:     #D8D2C2;  /* hairlines, table rules, card edges */
+  --seal:     #B3241C;  /* DESTRUCTIVE ONLY — one element at a time */
+  --proof:    #1F3A5F;  /* verified / undo-proven / receipt ink */
+
+  /* ── §2 type — three roles ───────────────────────────────────────────── */
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --sans:    "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* scale, 1.25 ratio, no fractional px. 44 and 76 are Display-only. */
+  --t-11: 11px; --t-13: 13px; --t-16: 16px; --t-20: 20px;
+  --t-25: 25px; --t-44: 44px; --t-76: 76px;
+
+  /* ── §2 space & shape ────────────────────────────────────────────────── */
+  --grid: 8px;
+  --gutter: 24px;
+  --section-gap: 40px;
+  --radius: 2px;
+  --max-content: 1280px;
+  --header-h: 56px;
+  --gate-h: 88px;
+  --transcript-w: 380px;
+
+  /* §6 — everything outside the five budgeted animations */
+  --t-base: 140ms;
+  --ease: ease-out;
+
+  color-scheme: light dark;
 }
+
+/* ── §2 dark mode — same six roles, same rationing ──────────────────────
+   The three ink-adjacent roles cannot keep their light values on an --ink
+   ground and still clear 4.5:1 (graphite would land at 3.4:1, seal 2.9:1,
+   proof 1.7:1). They are re-struck at the same role, lighter:
+   graphite 5.2:1 · seal 5.2:1 · proof 9.0:1 on --ink. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bone:     #14120E;
+    --ink:      #F2EFE6;
+    --graphite: #8B8578;
+    --rule:     #2E2A22;
+    --seal:     #E4574C;
+    --proof:    #8FB6E0;
+  }
+}
+
+/* ── base ─────────────────────────────────────────────────────────────── */
+* { border-color: var(--rule); }
+
 html { scroll-behavior: auto; }
+
+body {
+  background: var(--bone);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--t-16);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  /* §8 — no custom cursor. The native pointer is the one the operator trusts. */
+  cursor: auto;
+}
+
+::selection { background: var(--ink); color: var(--bone); }
+
+/* §8 — visible keyboard focus ring, everywhere, never removed. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+a { color: inherit; text-underline-offset: 3px; }
+button, input, textarea, select { font: inherit; color: inherit; }
+
+/* ── §2 type roles ────────────────────────────────────────────────────── */
+.t-display {
+  font-family: var(--display);
+  font-weight: 800;
+  font-variation-settings: "wdth" 100;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+.t-display-600 { font-weight: 600; }
+.t-body { font-family: var(--sans); font-weight: 400; }
+.t-data { font-family: var(--mono); font-weight: 400; font-variant-numeric: tabular-nums; }
+
+/* §7 — ALL CAPS with 0.08em tracking, for the structural labels only. */
+.t-label {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: var(--t-11);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+/* ── §3 layout frame ──────────────────────────────────────────────────── */
+.console {
+  min-height: 100svh;
+  max-width: var(--max-content);
+  margin: 0 auto;
+  padding-bottom: var(--gate-h);
+}
+
+.console-header {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gutter);
+  padding: 0 var(--gutter);
+  border-bottom: 2px solid var(--ink);
+}
+
+.console-body {
+  display: grid;
+  grid-template-columns: var(--transcript-w) minmax(0, 1fr);
+  gap: var(--section-gap);
+  padding: var(--section-gap) var(--gutter);
+  align-items: start;
+}
+
+.col-transcript {
+  /* §8 — reserve the width so streaming causes no layout shift. */
+  width: var(--transcript-w);
+  font-family: var(--mono);
+  font-size: var(--t-13);
+  border-right: 1px solid var(--rule);
+  padding-right: var(--gutter);
+}
+
+.col-dossier { min-width: 0; }
+
+/* §3 — persistent, fixed, never scrolls away. */
+.gate-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: var(--gate-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gutter);
+  padding: 0 var(--gutter);
+  background: var(--bone);
+  border-top: 1px solid var(--ink);
+  z-index: 10;
+}
+.gate-bar > .inner {
+  width: 100%;
+  max-width: var(--max-content);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gutter);
+}
+
+/* §2 — below 900 the columns stack; the transcript becomes a strip and the
+   dossier keeps full width, because the gate must never be below the fold. */
+@media (max-width: 900px) {
+  :root { --gutter: 16px; }
+  .console-body { grid-template-columns: minmax(0, 1fr); gap: var(--gutter); }
+  .col-transcript {
+    width: auto;
+    max-height: 22vh;
+    overflow-y: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    padding-right: 0;
+    padding-bottom: var(--gutter);
+    order: 2;
+  }
+  .col-dossier { order: 1; }
+}
+
+/* ── §6 motion budget ─────────────────────────────────────────────────── */
+/* Everything outside the five: color and border only, 140ms. No transforms. */
+a, button, .hit { transition: color var(--t-base) var(--ease), background-color var(--t-base) var(--ease), border-color var(--t-base) var(--ease); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEGACY BRIDGE — TEMPORARY.
+
+   The v5.1 components (Hero, Experience, Story, Wayfinder, fx) are still on
+   screen and still reference the old dark-stage variables inline. This block
+   re-points those names at the six new tokens so the ground change can be
+   reviewed on its own, before any component is rewritten. It applies the
+   rationing rule rather than dodging it: every old state colour collapses to
+   --graphite except destructive counts (--seal) and verified states (--proof).
+
+   Delete this entire block with the components it serves.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* ── part 1: the v5.1 component layout, verbatim from main ────────────────
+   Positions, grids and sizes only — these components have not been rewritten
+   yet, and without their layout there is no ground change to look at, just an
+   unstyled page. The colour, type, radius and elevation declarations inside
+   are superseded by part 2 below. Deleted wholesale with the components. */
+
+/* Lenis' required CSS contract — dropping it collapses the scroll container
+   and every absolutely-positioned hero region with it. */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
-body { background: var(--stage); color: var(--ink); font-family: var(--sans); cursor: none; -webkit-font-smoothing: antialiased; }
-a, button, input { cursor: none; }
-::selection { background: var(--ember); color: var(--ink-0); }
 
 /* ── stage ── */
 .stage-canvas { position: fixed; inset: 0; z-index: 0; }
@@ -224,11 +407,99 @@ a, button, input { cursor: none; }
 .linkish:hover { color: var(--ink-dim); }
 @media (max-width: 1100px) { .wayfinder { display: none; } }
 
-/* Reduced motion: no CSS motion, hide the custom cursor and restore the native one on
-   every control (the base rule sets cursor:none directly on a, button, input). */
-@media (prefers-reduced-motion: reduce) {
-  .caret, .rise, .marquee .track, .beam::after { animation: none; }
-  .reveal-words .w { opacity: 1; }
-  .cursor-dot, .cursor-ring { display: none; }
-  body, a, button, input, .hit { cursor: auto; }
+/* ── part 2: re-ground it ─────────────────────────────────────────────── */
+:root {
+  --stage: var(--bone);
+  --ink-0: var(--ink);
+  --ink-dim: var(--graphite);
+  --ink-faint: var(--graphite);
+  /* state colours → graphite. "If a second thing wants to be red, it becomes
+     --graphite." (§2) */
+  --violet: var(--graphite);
+  --amber: var(--graphite);
+  --coral: var(--graphite);
+  /* verified / proven / receipt → proof */
+  --green: var(--proof);
+  --teal: var(--proof);
+  --ice: var(--proof);
+  /* the one seal: destructive row counts */
+  --ember: var(--seal);
+  /* old --bone was near-white text on a dark stage; it is the paper ground
+     now, so anything that used it as a text colour is re-pointed to ink. */
+  --sand: var(--rule);
+  --ivory: var(--bone);
+  --rose: var(--rule);
+  --orange: var(--seal);
+  --lime: var(--graphite);
+  --cobalt: var(--proof);
+  --forest: var(--proof);
+  --plum: var(--graphite);
+  --graphite-legacy: var(--graphite);
+  --ultra: var(--proof);
+  --dock-h: 164px;
+  --serif: var(--sans);
 }
+/* Old --bone was near-white text on a dark stage; it is the paper ground now.
+   Re-point only the places that used it as a text colour — never as a variable
+   on a container, or the container's own ground inverts with it. */
+.lede, .marquee .t-giant, .tile-body p, .receipt .t-mono, .slab, .stack-card { color: var(--ink) !important; }
+/* Structural labels never take the seal — it belongs to counts alone (§2). */
+.eyebrow, .t-tag { color: var(--graphite) !important; }
+
+/* The 3D stage is not in the spec and its canvas paints its own dark ground
+   over the paper. Hidden here (CSS only — the component is untouched). */
+.stage-canvas { display: none !important; }
+.cursor-dot, .cursor-ring { display: none !important; }
+
+/* Faces: old class names, new three-role system. */
+.t-giant { font-family: var(--display); font-weight: 800; font-variation-settings: "wdth" 100; letter-spacing: -0.02em; line-height: 0.95; text-transform: uppercase; }
+.t-serif { font-family: var(--sans); font-style: normal !important; font-weight: 400; }
+.t-mono, .kbd, .cmd, .transcript, .tile-aside { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.t-tag, .eyebrow { font-family: var(--sans); font-weight: 500; font-size: var(--t-11); letter-spacing: 0.08em; text-transform: uppercase; color: var(--graphite); }
+.h-xl, .h-lg, .h-md, .tbtn, .btn-pill, .stack-card .num { font-family: var(--display); font-variation-settings: "wdth" 100; }
+.lede, .body { font-family: var(--sans); }
+.lede { font-size: var(--t-20); line-height: 1.4; }
+.glow-text { text-shadow: none; }
+
+/* §2 — no shadows, no glass, no blur. Elevation is rules and ground shifts. */
+.slab, .glass, .glass-dark, .card, .stack-card, .transcript, .tile-aside, .kbd {
+  background: var(--bone) !important;
+  background-image: none !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: var(--ink);
+}
+.card-spot::before, .beam::after { display: none !important; }
+
+/* Grounds: one paper, hairline separations, no colour worlds. */
+.hero { background: var(--bone); }
+.section, .world-manifesto, .world-problem, .world-mechanism,
+.world-numbers, .world-harness, .world-trust, .world-run {
+  background-color: var(--bone) !important;
+  background-image: none !important;
+  color: var(--ink);
+}
+.section + .section::before { background: var(--rule) !important; }
+.dock { background: var(--bone) !important; background-image: none !important; border-top: 1px solid var(--ink); }
+.hairline { background: var(--rule); }
+.dock:focus-within .hairline { background: var(--ink); }
+.transcript .row { border-top: 1px solid var(--rule); color: var(--graphite); }
+.transcript .order { background: transparent; border: 1px solid var(--rule); border-radius: var(--radius); color: var(--ink); }
+.ledger, .ledger-row, .index, .entry, .smalls { border-color: var(--rule) !important; }
+.entry:hover { background: transparent; border-left-color: var(--ink); }
+.stack-card { border-radius: var(--radius) !important; }
+
+/* Radius: 2px everywhere. */
+.chip, .kbd, .btn-pill, .cmd, .card, .slab, .transcript, .tile-aside, .stack-card, .wf { border-radius: var(--radius) !important; }
+.btn-pill { border: 1px solid var(--ink); color: var(--ink); }
+.btn-pill:hover { background: var(--ink); }
+.btn-pill:hover, .btn-pill:hover * { color: var(--bone); }
+.tbtn .underline { background: currentColor; }
+.caret { background: var(--ink); }
+.linkish { color: var(--graphite); text-decoration-color: var(--rule); }
+.linkish:hover { color: var(--ink); }
+.wf.on .dot { box-shadow: none; }
+.wf:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
