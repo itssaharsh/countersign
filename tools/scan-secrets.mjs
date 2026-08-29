@@ -26,27 +26,30 @@ const isAllowed = (v) => ALLOW.some((r) => r.test(v));
 
 /** Rebuild the text a viewer would actually see from a recorded event stream. */
 function reassemble(jsonl) {
-  const byId = { content: new Map(), reasoningContent: new Map() };
+  // One bucket per stream. Getting the key wrong is not a missed nicety: two
+  // concurrent tool calls whose chunks land in the same bucket interleave into a
+  // string in which NEITHER token appears intact, so the scan reports clean on a
+  // file that leaks twice over. Delta chunks frequently carry only `index`, so the
+  // key is (message id, id ?? index) and never `undefined` alone.
+  const streams = new Map();
+  const add = (key, text) => streams.set(key, (streams.get(key) ?? '') + text);
   const raw = [];
   for (const line of jsonl.split('\n')) {
     if (!line.trim()) continue;
     let e; try { e = JSON.parse(line) } catch { raw.push(line); continue }
     raw.push(line);
-    for (const field of ['content', 'reasoningContent']) {
-      if (typeof e[field] === 'string') {
-        byId[field].set(e.id, (byId[field].get(e.id) ?? '') + e[field]);
-      }
+    const mid = e.id ?? '?';
+    // Reasoning and content are one narration in arrival order: a value can begin
+    // in one and end in the other, and bucketing them apart cuts it in half.
+    for (const field of ['reasoningContent', 'content']) {
+      if (typeof e[field] === 'string') add(`msg:${mid}`, e[field]);
     }
-    // Tool arguments stream in fragments too.
-    for (const tc of e.toolCalls ?? []) {
+    for (const [i, tc] of (e.toolCalls ?? []).entries()) {
       const a = tc?.function?.arguments;
-      if (typeof a === 'string') byId.content.set('args:' + tc.id, (byId.content.get('args:' + tc.id) ?? '') + a);
+      if (typeof a === 'string') add(`args:${mid}:${tc.id ?? tc.index ?? i}`, a);
     }
   }
-  return {
-    rendered: [...byId.content.values(), ...byId.reasoningContent.values()].join('\n'),
-    raw: raw.join('\n'),
-  };
+  return { rendered: [...streams.values()].join('\n'), raw: raw.join('\n') };
 }
 
 function scan(text, label, out) {

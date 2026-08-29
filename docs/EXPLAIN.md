@@ -245,6 +245,33 @@ what to do (deny, then send the order again).
   against their quickstart wiring.
 - Gemini free tier: 5 req/min + small daily cap → composite tool + paced demo runs.
 
+### Credentials: why the scan reassembles, and why redaction lives in the component
+`undo_token` authorises a rollback against the live database. `publicView` hands it to the
+model because `commit_change` requires it — the token is the nonce proving verification
+happened — so the model holds it, and any surface that renders tool arguments will show it.
+That is three problems, and they need three different answers.
+**The artifacts.** A recorded stream carries the model's prose in fragments. When the model
+wrote the token into its own summary it was spelled across 229 content deltas: present in
+the rendered transcript, absent from every individual line. `grep -c '<token>' real-run.jsonl`
+returned 0 on a fixture that leaked. `tools/scan-secrets.mjs` therefore rebuilds each stream
+the way the console's reducer does and scans the reconstruction.
+Getting that reconstruction right is the whole tool, and the first version was wrong in a way
+its own test could not see, because the test had one tool call. Two concurrent calls whose
+argument chunks share a bucket interleave into a string in which *neither* token appears
+intact — the scan reports clean on a file that leaks twice over. Delta chunks often carry
+only `index` and no `id`, so the bucket key is now (message id, id ?? index), and reasoning
+and content are one narration in arrival order rather than two buckets, because a value can
+begin in one and end in the other. Four adversarial fixtures cover it: a chunk boundary
+mid-UUID with no id in the first chunk, interleaved streams from two concurrent calls, a
+token spanning the reasoning/content boundary, and the original prose case.
+**The screen.** Scrubbing artifacts protects the repo and does nothing for a live demo being
+screen-recorded, so redaction lives in the transcript component and covers live runs, replays
+and any capture of either.
+**The surfaces we do not own.** TrueForge's turn view renders the raw arguments and its API
+serves the real value; that cannot be fixed from here, so the operating instruction is to keep
+it off camera. The real fix is binding the token to the simulation server-side so the model
+never holds it, which is a post-submission change.
+
 ## 5. Numbers you should know cold
 18,000 users seeded · 6,000 doomed (last_active < 2025) → 17,971 orders → 19,442
 payments (CASCADE edges) → 43,413 rows die · 37 SET NULL edges keep their rows and lose
