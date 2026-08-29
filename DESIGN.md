@@ -71,6 +71,22 @@ Dark mode: invert to `--ink` ground `#14120E`, `--bone` text, `--rule` at `#2E2A
 Same six roles, same rationing. Ship light as the default — every other submission will be
 dark, and the video will read differently in the judging queue.
 
+Three of the six cannot survive the inversion unchanged. On an `--ink` ground the light
+`--graphite`, `--seal` and `--proof` measure **3.4:1, 2.9:1 and 1.7:1** — all under the
+4.5:1 floor §8 calls non-negotiable. They are re-struck at the same role, lighter:
+
+```css
+@media (prefers-color-scheme: dark) {
+  --graphite: #8B8578;  /* 5.2:1 on --ink */
+  --seal:     #E4574C;  /* 5.2:1 on --ink */
+  --proof:    #8FB6E0;  /* 9.0:1 on --ink */
+}
+```
+
+Same six roles, same rationing, same meanings — only the values move, and only far enough
+to clear the floor. Contrast on the light ground for reference: ink 17.6:1, graphite 4.9:1,
+seal 5.7:1, proof 10.0:1.
+
 **Rationing rule for `--seal`:** at most one element on screen may be `--seal` at a time.
 It belongs to the destructive row count *or* the countersign control — never both at once.
 The total holds the red from the moment the ledger completes; when the countersign control
@@ -85,12 +101,13 @@ and it is the ink the receipt is printed in.
 
 | Role | Face | Use |
 | --- | --- | --- |
-| Display | **Bricolage Grotesque** (variable, `wdth` 100–120) | Row counts, phase name, the one big number. Used maybe six times on the page. |
+| Display | **Bricolage Grotesque** (variable, `wdth` 75–100) | Row counts, phase name, the one big number. Used maybe six times on the page. |
 | Body | **Inter Tight** | Prose, explanations, button labels. |
 | Data | **IBM Plex Mono** | Every table name, column, primary key, SQL fragment, count, timestamp, fingerprint hash. |
 
 All three are on Google Fonts. Load only the weights used: Bricolage 600/800, Inter Tight
-400/500, Plex Mono 400/500.
+400/500, Plex Mono 400/500. Bricolage's width axis runs **75–100** on Google Fonts, so the
+widest face available is `wdth 100`; that is the display setting.
 
 Rule: **anything that came out of the database is set in Plex Mono.** Anything the
 interface says about it is Inter Tight. That distinction is the type system — the user can
