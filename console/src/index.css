@@ -160,11 +160,15 @@ button, input, textarea, select { font: inherit; color: inherit; }
      the breakpoints where wrapping actually happens, so every offset that keys
      off it stays correct. */
   min-height: var(--gate-h);
+  /* A column: .inner lays the controls out horizontally, and the refusal detail
+     takes its own row beneath them. As a flex sibling of .inner it was being
+     squeezed in beside the controls instead. */
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--gutter);
-  padding: 0 var(--gutter);
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px var(--gutter);
   background: var(--bone);
   border-top: 1px solid var(--ink);
   z-index: 10;
@@ -202,7 +206,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
   border: 0; padding: 8px 4px; text-decoration: underline; text-underline-offset: 3px;
 }
 .gate-secondary:hover { color: var(--ink); }
-.gate-refusal { width: 100%; font-size: var(--t-13); color: var(--graphite); padding: 0 0 10px; }
+.gate-refusal { width: 100%; max-width: var(--max-content); margin: 0 auto; font-size: var(--t-13); color: var(--graphite); }
 
 /* The hold control. It exists only when earned, so there is no disabled state to
    style — absence is the state. */
@@ -257,7 +261,6 @@ button, input, textarea, select { font: inherit; color: inherit; }
   .gate-input { width: 100%; grid-column: 1; }
   .gate-secondary { grid-column: 2; }
   .hold { grid-column: 3; padding: 10px 14px; font-size: var(--t-13); }
-  .gate-refusal { grid-column: 1 / -1; }
   .console-body { grid-template-columns: minmax(0, 1fr); gap: var(--gutter); }
   .col-transcript {
     width: auto;
