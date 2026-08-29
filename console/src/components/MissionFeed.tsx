@@ -1,40 +1,48 @@
-// The TrueForge session, rendered as a mission log: user orders, agent reasoning,
-// tool calls with live status, subagent threads, and streaming output.
+// The TrueForge session as a mission log — operator orders, agent reasoning,
+// tool calls with live status, subagent threads — rendered as glass cards.
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { FeedItem } from '../harness'
 
-export function MissionFeed({ feed, running, onSend }: {
-  feed: FeedItem[]
-  running: boolean
-  onSend: (text: string) => void
-}) {
+export function MissionFeed({ feed, running, onSend }: { feed: FeedItem[]; running: boolean; onSend: (text: string) => void }) {
   const [draft, setDraft] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }) }, [feed])
+  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }) }, [feed])
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-2">
+      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto cs-scroll px-5 pb-3 space-y-2.5">
         {feed.length === 0 && (
-          <div className="text-[11px] text-[var(--cs-dim)] mt-6 text-center">
-            TRANSMIT AN ORDER TO BEGIN<br />
-            <span className="opacity-60">e.g. “Process the change: DELETE FROM users WHERE last_active &lt; '2025-01-01'”</span>
+          <div className="mt-10 text-center">
+            <div className="t-display italic text-[24px]" style={{ color: 'var(--cs-ink-dim)' }}>Transmit an order to begin.</div>
+            <div className="t-mono text-[11px] mt-3 max-w-[46ch] mx-auto leading-5" style={{ color: 'var(--cs-ink-faint)' }}>
+              e.g. Process this change request: DELETE FROM users WHERE last_active &lt; '2025-01-01'
+            </div>
           </div>
         )}
-        {feed.map((item) => <Item key={`${item.kind}:${item.id}`} item={item} />)}
-        {running && <div className="cs-title text-[10px] cs-blink" style={{ color: 'var(--cs-cyan)' }}>▮ HARNESS RUNNING…</div>}
+        <AnimatePresence initial={false}>
+          {feed.map((item) => (
+            <motion.div key={`${item.kind}:${item.id}`} layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
+              <Item item={item} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
       <form
-        className="border-t border-[var(--cs-line)] p-2 flex gap-2"
+        className="px-4 pb-4 pt-2 flex gap-2 shrink-0"
         onSubmit={(e) => { e.preventDefault(); if (draft.trim()) { onSend(draft.trim()); setDraft('') } }}>
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="transmit an order to the countersign agent…"
-          className="flex-1 bg-transparent border border-[var(--cs-line)] px-3 py-2 text-[13px] outline-none focus:border-[var(--cs-cyan)]"
+          className="flex-1 rounded-full px-5 py-3 text-[13.5px] outline-none transition-shadow"
+          style={{ background: '#fff', border: '1px solid var(--cs-line)', color: 'var(--cs-ink)', boxShadow: '0 0 0 0 rgba(124,92,255,0)' }}
+          onFocus={(e) => (e.currentTarget.style.boxShadow = '0 0 0 4px rgba(124,92,255,0.18)')}
+          onBlur={(e) => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(124,92,255,0)')}
         />
-        <button type="submit" disabled={running} className="cs-title text-[11px] px-4 border border-[var(--cs-cyan)] text-[var(--cs-cyan)] disabled:opacity-30">
-          SEND
+        <button type="submit" disabled={running}
+          className="btn btn-primary text-[13px] px-6 disabled:opacity-40">
+          Send
         </button>
       </form>
     </div>
@@ -45,44 +53,56 @@ function Item({ item }: { item: FeedItem }) {
   switch (item.kind) {
     case 'user':
       return (
-        <div className="border-l-2 pl-2" style={{ borderColor: 'var(--cs-amber)' }}>
-          <div className="cs-title text-[9px]" style={{ color: 'var(--cs-amber)' }}>OPERATOR</div>
-          <div className="text-[13px] whitespace-pre-wrap">{item.text}</div>
+        <div className="ml-10 rounded-3xl rounded-tr-md px-4 py-3" style={{ background: 'rgba(255,176,32,0.12)', border: '1px solid rgba(255,176,32,0.35)' }}>
+          <div className="t-label mb-1" style={{ color: '#b45309' }}>Operator</div>
+          <div className="text-[13.5px] leading-6 whitespace-pre-wrap">{item.text}</div>
         </div>
       )
     case 'assistant':
       if (!item.text) return null
       return (
-        <div className="border-l-2 pl-2" style={{ borderColor: 'var(--cs-cyan)' }}>
-          <div className="cs-title text-[9px]" style={{ color: 'var(--cs-cyan)' }}>
-            AGENT{item.threadId !== 'main' ? ` · ${item.threadId.slice(0, 8)}` : ''}{item.streaming ? ' ▮' : ''}
+        <div className="mr-8 rounded-3xl rounded-tl-md px-4 py-3" style={{ background: 'rgba(124,92,255,0.07)', border: '1px solid rgba(124,92,255,0.22)' }}>
+          <div className="t-label mb-1" style={{ color: 'var(--cs-violet)' }}>
+            Agent{item.threadId !== 'main' ? ` · ${item.threadId.slice(0, 8)}` : ''}{item.streaming ? ' ▮' : ''}
           </div>
-          <div className="text-[12px] whitespace-pre-wrap leading-5 text-[var(--cs-text)]">{item.text}</div>
+          <div className="text-[13px] leading-6 whitespace-pre-wrap" style={{ color: 'var(--cs-ink)' }}>{renderLite(item.text)}</div>
         </div>
       )
     case 'tool': {
-      const color = item.status === 'done' ? 'var(--cs-green)' : item.status === 'error' ? 'var(--cs-red)' : 'var(--cs-amber)'
+      const done = item.status === 'done'
+      const color = done ? 'var(--cs-green)' : item.status === 'error' ? 'var(--cs-coral)' : 'var(--cs-amber)'
       return (
-        <div className="pl-2">
-          <div className="cs-title text-[10px]" style={{ color }}>
-            {item.status === 'done' ? '⏺' : '◌'} {item.name}
-            <span className="text-[var(--cs-dim)] ml-2 normal-case">{truncate(item.args, 90)}</span>
+        <div className="mr-8 pl-1">
+          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5" style={{ background: `${color}14`, border: `1px solid ${color}55` }}>
+            <span className={`inline-block w-1.5 h-1.5 rounded-full ${done ? '' : 'cs-pulse'}`} style={{ background: color }} />
+            <span className="t-hud text-[10.5px]" style={{ color }}>{item.name}</span>
+            <span className="t-mono text-[10.5px] max-w-[38ch] truncate" style={{ color: 'var(--cs-ink-faint)' }}>{item.args}</span>
           </div>
           {item.resultPreview && (
-            <div className="text-[10px] text-[var(--cs-dim)] pl-4 truncate">{truncate(item.resultPreview, 140)}</div>
+            <div className="t-mono text-[10.5px] mt-1 ml-3 truncate" style={{ color: 'var(--cs-ink-faint)' }}>↳ {item.resultPreview}</div>
           )}
         </div>
       )
     }
     case 'thread':
-      return (
-        <div className="cs-title text-[10px] pl-2" style={{ color: item.done ? 'var(--cs-green)' : 'var(--cs-cyan)' }}>
-          {item.done ? '✓' : '↳'} SUBAGENT · {item.title}
-        </div>
-      )
-    case 'system':
-      return <div className="text-[10px] text-[var(--cs-red)] pl-2">{item.text}</div>
+      return <div className="t-hud text-[10.5px] pl-2" style={{ color: item.done ? 'var(--cs-green)' : 'var(--cs-blue)' }}>{item.done ? '✓' : '↳'} subagent · {item.title}</div>
+    case 'system': {
+      const bad = /error/i.test(item.text)
+      return <div className="t-mono text-[11px] rounded-lg px-3 py-2" style={{ color: bad ? 'var(--cs-coral)' : 'var(--cs-ink-dim)', background: bad ? 'rgba(255,90,95,0.08)' : 'rgba(23,25,35,0.04)' }}>{item.text}</div>
+    }
   }
 }
 
-function truncate(s: string, n: number) { return s.length > n ? s.slice(0, n) + '…' : s }
+/** Tiny markdown: **bold**, `code`, and "- " bullets — enough for agent summaries. */
+function renderLite(text: string) {
+  const clean = text.replace(/^---\s*$/gm, '').replace(/\n{3,}/g, '\n\n').trim()
+  return clean.split('\n').map((line, i) => {
+    const bullet = line.startsWith('- ')
+    const parts = (bullet ? line.slice(2) : line).split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((seg, j) => {
+      if (seg.startsWith('**') && seg.endsWith('**')) return <strong key={j} style={{ color: 'var(--cs-ink)', fontWeight: 600 }}>{seg.slice(2, -2)}</strong>
+      if (seg.startsWith('`') && seg.endsWith('`')) return <code key={j} className="t-mono text-[12px] px-1 rounded" style={{ background: 'rgba(124,92,255,0.10)', color: 'var(--cs-violet)' }}>{seg.slice(1, -1)}</code>
+      return seg
+    })
+    return <div key={i} style={bullet ? { paddingLeft: 14, textIndent: -10 } : undefined}>{bullet ? '• ' : ''}{parts}</div>
+  })
+}
