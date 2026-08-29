@@ -6,12 +6,12 @@ import { AnimatePresence, motion, useMotionValue, useSpring, useTransform, type 
 import type { FeedItem, PendingApproval } from '../harness'
 import type { Phase, Simulation } from '../state'
 import { NumberTicker } from '../components/fx/NumberTicker'
-import { Magnetic } from '../story/fx'
-import { FRESHNESS_SECONDS } from './useFreshness'
+import { GateBar } from '../gate/GateBar'
+import { PhaseTrack } from '../gate/PhaseTrack'
 
 type Props = {
   phase: Phase; sim?: Simulation; feed: FeedItem[]; running: boolean; pending: PendingApproval[]
-  freshnessLeft: number; modelName: string; engineOnline: boolean; scroll: MotionValue<number>
+  freshnessLeft: number; freshnessElapsed: number; modelName: string; engineOnline: boolean; scroll: MotionValue<number>
   onSend: (t: string) => void; respond: (status: 'allow' | 'deny', reason?: string, toolCallId?: string) => void
   answer: (toolCallId: string, content: string) => void
   onStartOver: () => void
@@ -35,24 +35,11 @@ const SUB: Record<Phase, string> = {
 
 export function Hero(p: Props) {
   const [draft, setDraft] = useState('')
-  const [reason, setReason] = useState('')
+  // The gate — every approval, question, refusal and hold — belongs to GateBar now.
   const pending = p.pending.find((a) => a.kind !== 'question' && (a.toolName === 'commit_change' || a.toolName === 'fire_undo'))
   const question = p.pending.find((a) => a.kind === 'question')
-  const [answerText, setAnswerText] = useState('')
   const lastAgent = [...p.feed].reverse().find((f) => f.kind === 'assistant' && f.text) as Extract<FeedItem, { kind: 'assistant' }> | undefined
   const lastOrder = [...p.feed].reverse().find((f) => f.kind === 'user') as Extract<FeedItem, { kind: 'user' }> | undefined
-  const isUndo = pending?.toolName === 'fire_undo'
-  // What the operator has NOT yet been shown. Mirrors the server's refusal codes: a commit
-  // needs blast radius (destructive kinds), a verified undo and a policy PASS; an undo needs
-  // a committed change. No loaded simulation for this approval = nothing to countersign.
-  const missing: string[] = !p.sim
-    ? ['simulation evidence']
-    : isUndo
-      ? (p.sim.committed ? [] : ['committed change'])
-      : ([p.sim.kind === 'destructive-cascade' && !p.sim.fingerprint && 'blast radius', !p.sim.undo.verified && 'verified undo', p.sim.policy?.verdict !== 'PASS' && 'policy pass'].filter(Boolean) as string[])
-  // Freshness belongs to the commit fingerprint only; fire_undo is gated by committed state,
-  // verification and its one-shot token, never by the pre-commit timer.
-  const gate: 'BLOCKED' | 'ARMED' | 'STALE' = missing.length ? 'BLOCKED' : (!isUndo && p.freshnessLeft <= 0) ? 'STALE' : 'ARMED'
   const [t1, t2] = TITLE[p.phase]
   const railRef = useRef<HTMLDivElement>(null)
   useEffect(() => { const el = railRef.current; if (el) el.scrollTop = el.scrollHeight }, [p.feed])
@@ -69,10 +56,9 @@ export function Hero(p: Props) {
         </div>
         <div className="text-right rise" style={{ animationDelay: '.1s' }}>
           <div className="t-tag">TrueForge{p.modelName ? <span className="model"> · {p.modelName}</span> : null}{p.engineOnline ? '' : ' · engine offline'}</div>
-          <div className="t-mono mt-2 text-[12px]" style={{ color: PHASE_COLOR[p.phase] }}>
-            <span className="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle" style={{ background: PHASE_COLOR[p.phase], boxShadow: `0 0 12px ${PHASE_COLOR[p.phase]}` }} />
-            {p.phase.toLowerCase()}
-            {(p.feed.length > 0 || p.pending.length > 0) && <button type="button" className="linkish hit ml-3" style={{ fontSize: 11 }} onClick={p.onStartOver} title="Forget this session and start clean">start over</button>}
+          <div className="mt-2 flex items-center justify-end gap-3">
+            <PhaseTrack phase={p.phase} waiting={p.pending.length > 0} running={p.running} />
+            {(p.feed.length > 0 || p.pending.length > 0) && <button type="button" className="linkish hit" style={{ fontSize: 11 }} onClick={p.onStartOver} title="Forget this session and start clean">start over</button>}
           </div>
           {p.sim && (
             <div className="t-mono mt-3 text-[11px] space-y-1" style={{ color: 'var(--ink-dim)' }}>
@@ -120,33 +106,6 @@ export function Hero(p: Props) {
             {p.feed.slice(-24).map((f) => <Line key={`${f.kind}:${f.id}`} f={f} />)}
           </div>
         )}
-        <AnimatePresence>
-          {question && (
-            <motion.div key="question" className="text-right hit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
-              <div className="t-tag">the agent asks · {question.toolName}</div>
-              <div className="body mt-2" style={{ color: 'var(--ink)', maxWidth: '44ch', marginLeft: 'auto' }}>{String((question.args as { question?: unknown; prompt?: unknown; message?: unknown }).question ?? (question.args as { prompt?: unknown }).prompt ?? (question.args as { message?: unknown }).message ?? JSON.stringify(question.args))}</div>
-              <form className="mt-3 flex items-center justify-end gap-4" onSubmit={(e) => { e.preventDefault(); if (answerText.trim()) { p.answer(question.toolCallId, answerText.trim()); setAnswerText('') } }}>
-                <input value={answerText} onChange={(e) => setAnswerText(e.target.value)} placeholder="your answer, sent back to the agent" className="cmd text-right text-[13px]" style={{ width: 320, maxWidth: '100%' }} />
-                <button type="submit" className="tbtn" style={{ fontSize: 20, color: 'var(--amber)' }}>Answer<span className="underline" /></button>
-              </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {pending && (
-            <motion.div key="gate" className="text-right hit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
-              <div className="t-tag">{isUndo ? 'fire the verified undo' : 'commit the change'} · {pending.toolName} · <span style={{ color: gate === 'ARMED' ? 'var(--green)' : gate === 'STALE' ? 'var(--amber)' : 'var(--coral)' }}>{gate.toLowerCase()}</span></div>
-              <div className="t-mono mt-2 text-[12px]" style={{ color: 'var(--ink-dim)' }}>
-                {gate === 'BLOCKED' ? `missing: ${missing.join(', ')}` : gate === 'STALE' ? 'this approval expired: deny it, then send the order again for a fresh measurement' : isUndo ? `+${p.sim?.fingerprint?.count.toLocaleString()} rows come back · one shot, verified on committed state` : `−${p.sim?.fingerprint?.count.toLocaleString()} rows in the fingerprinted set · fresh for ${Math.ceil(p.freshnessLeft)}s of ${FRESHNESS_SECONDS}`}
-              </div>
-              <div className="mt-4 flex items-end justify-end gap-7">
-                <Magnetic><button className="tbtn" disabled={gate !== 'ARMED'} onClick={() => p.respond('allow', undefined, pending.toolCallId)} style={{ fontSize: 40, color: gate === 'ARMED' ? 'var(--green)' : 'var(--ink-faint)' }}>{isUndo ? 'Restore' : 'Countersign'}<span className="underline" /></button></Magnetic>
-                <Magnetic><button className="tbtn" onClick={() => p.respond('deny', reason || 'denied by operator', pending.toolCallId)} style={{ fontSize: 20, color: 'var(--coral)' }}>Deny<span className="underline" /></button></Magnetic>
-              </div>
-              <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="deny reason, sent back to the agent" className="cmd mt-3 text-right text-[12px]" style={{ width: 320, maxWidth: '100%' }} />
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       {!p.feed.length && <div className="scroll-cue">scroll · how it works ↓</div>}
@@ -174,6 +133,8 @@ export function Hero(p: Props) {
           <button type="submit" className="tbtn" style={{ fontSize: 14, color: 'var(--ink-dim)' }} disabled={p.running}>Send<span className="underline" /></button>
         </form>
       </div>
+
+      <GateBar sim={p.sim} pending={p.pending} freshnessLeft={p.freshnessLeft} freshnessElapsed={p.freshnessElapsed} respond={p.respond} answer={p.answer} />
     </section>
   )
 }

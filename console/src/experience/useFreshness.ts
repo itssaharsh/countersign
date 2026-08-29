@@ -9,9 +9,12 @@ const REPLAY_MODE = typeof window !== 'undefined' && (new URLSearchParams(window
 export function useFreshness(sim: Simulation | undefined) {
   const [now, setNow] = useState(Date.now())
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(t) }, [])
-  if (!sim?.fingerprint) return { left: FRESHNESS_SECONDS, fraction: 1 }
+  if (!sim?.fingerprint) return { left: FRESHNESS_SECONDS, fraction: 1, elapsed: 0 }
   const raw = new Date(sim.fingerprint.measured_at).getTime()
   const measuredAt = REPLAY_MODE && raw < LOAD_TIME - 10 * 60_000 ? LOAD_TIME : raw
-  const left = Math.max(0, FRESHNESS_SECONDS - (now - measuredAt) / 1000)
-  return { left, fraction: left / FRESHNESS_SECONDS }
+  // `elapsed` is not `FRESHNESS_SECONDS - left`: left clamps at zero, and the STALE
+  // screen has to say how long ago the rows were actually counted.
+  const elapsed = Math.max(0, (now - measuredAt) / 1000)
+  const left = Math.max(0, FRESHNESS_SECONDS - elapsed)
+  return { left, fraction: left / FRESHNESS_SECONDS, elapsed }
 }

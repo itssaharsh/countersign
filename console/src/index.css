@@ -38,6 +38,8 @@
   --header-h: 56px;
   --gate-h: 88px;
   --transcript-w: 380px;
+  /* Overwritten at runtime by GateBar with the bar's measured height. */
+  --gate-h-actual: var(--gate-h);
 
   /* §6 — everything outside the five budgeted animations */
   --t-base: 140ms;
@@ -153,12 +155,20 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .gate-bar {
   position: fixed;
   left: 0; right: 0; bottom: 0;
-  height: var(--gate-h);
+  /* min-height, not height: the bar wraps to more rows on narrow screens, and a
+     fixed height would overflow it into the content above. --gate-h is raised at
+     the breakpoints where wrapping actually happens, so every offset that keys
+     off it stays correct. */
+  min-height: var(--gate-h);
+  /* A column: .inner lays the controls out horizontally, and the refusal detail
+     takes its own row beneath them. As a flex sibling of .inner it was being
+     squeezed in beside the controls instead. */
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--gutter);
-  padding: 0 var(--gutter);
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px var(--gutter);
   background: var(--bone);
   border-top: 1px solid var(--ink);
   z-index: 10;
@@ -173,10 +183,84 @@ button, input, textarea, select { font: inherit; color: inherit; }
   gap: var(--gutter);
 }
 
+/* ── §4 the gate bar ──────────────────────────────────────────────────── */
+.gate-bar > .inner { flex-wrap: wrap; }
+.gate-left { display: flex; align-items: baseline; gap: 8px; font-size: var(--t-13); color: var(--graphite); min-width: 0; }
+.gate-fp { color: var(--ink); }
+.gate-right { display: flex; align-items: center; justify-content: flex-end; gap: 16px; flex: 1 1 auto; min-width: 0; flex-wrap: wrap; }
+.gate-question { display: flex; align-items: center; gap: 16px; flex: 1 1 auto; justify-content: flex-end; flex-wrap: wrap; }
+.gate-note { font-size: var(--t-13); color: var(--graphite); text-align: right; }
+.gate-countdown { font-size: var(--t-13); color: var(--graphite); }
+.gate-input {
+  font-size: var(--t-13); background: transparent; color: var(--ink);
+  border: 0; border-bottom: 1px solid var(--rule); border-radius: 0;
+  padding: 4px 0; width: 220px; max-width: 100%;
+}
+.gate-input::placeholder { color: var(--graphite); }
+/* Never outline:none — the same pattern #17 established as a bug. The heavier
+   underline is an additional cue, not a replacement for the ring. */
+.gate-input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-bottom-color: var(--ink); }
+/* Deny: present whenever a gate is open, never styled to compete (§4). */
+.gate-secondary {
+  font-size: var(--t-13); color: var(--graphite); background: transparent;
+  border: 0; padding: 8px 4px; text-decoration: underline; text-underline-offset: 3px;
+}
+.gate-secondary:hover { color: var(--ink); }
+.gate-refusal { width: 100%; max-width: var(--max-content); margin: 0 auto; font-size: var(--t-13); color: var(--graphite); }
+
+/* The hold control. It exists only when earned, so there is no disabled state to
+   style — absence is the state. */
+.hold {
+  position: relative; overflow: hidden;
+  font-family: var(--display); font-weight: 800; font-variation-settings: "wdth" 100;
+  font-size: var(--t-16); letter-spacing: 0.08em;
+  padding: 14px 24px; border: 1px solid var(--seal); border-radius: var(--radius);
+  background: var(--bone); color: var(--seal);
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+/* Restoring is not destructive, so it never takes the seal (§4). */
+.hold.is-undo { border-color: var(--proof); color: var(--proof); }
+.hold-fill {
+  position: absolute; inset: 0; transform-origin: left center; transform: scaleX(0);
+  background: var(--seal);
+  /* §4 — the fill arrives 80ms behind the shape, so the red lands last. */
+  animation: hold-fill-in 120ms ease-out 80ms both;
+}
+.hold.is-undo .hold-fill { background: var(--proof); }
+@keyframes hold-fill-in { from { opacity: 0; } to { opacity: 1; } }
+.hold-label { position: relative; display: inline-block; mix-blend-mode: difference; color: var(--bone); }
+.hold-sizer { visibility: hidden; }
+.hold-text { position: absolute; inset: 0; display: grid; place-items: center; white-space: nowrap; }
+.hold.is-done { border-color: var(--ink); }
+.hold:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* ── §5 the phase track ───────────────────────────────────────────────── */
+.phase-track { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.phase-track .seg {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--sans); font-weight: 500; font-size: var(--t-11);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.phase-track .seg + .seg::before { content: "—"; margin-right: 6px; color: var(--rule); }
+.phase-track .seg .dot { width: 6px; height: 6px; border-radius: 999px; border: 1px solid currentColor; }
+.phase-track .seg.on { color: var(--ink); }
+.phase-track .seg.on .dot { background: currentColor; }
+.phase-track .seg.past { color: var(--graphite); }
+.phase-track .seg.future { color: var(--rule); }
+.phase-status { font-family: var(--sans); font-size: var(--t-11); letter-spacing: 0.08em; text-transform: uppercase; color: var(--graphite); }
+
 /* §2 — below 900 the columns stack; the transcript becomes a strip and the
    dossier keeps full width, because the gate must never be below the fold. */
 @media (max-width: 900px) {
-  :root { --gutter: 16px; }
+  :root { --gutter: 16px; --gate-h: 112px; }
+  /* Stack the bar's rows deliberately rather than letting them wrap at random. */
+  .gate-bar > .inner { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 0; }
+  .gate-left, .gate-right, .gate-question { justify-content: flex-start; text-align: left; }
+  .gate-right, .gate-question { display: grid; grid-template-columns: 1fr auto auto; gap: 8px 12px; align-items: center; }
+  .gate-note, .gate-countdown { grid-column: 1 / -1; text-align: left; }
+  .gate-input { width: 100%; grid-column: 1; }
+  .gate-secondary { grid-column: 2; }
+  .hold { grid-column: 3; padding: 10px 14px; font-size: var(--t-13); }
   .console-body { grid-template-columns: minmax(0, 1fr); gap: var(--gutter); }
   .col-transcript {
     width: auto;
@@ -516,6 +600,15 @@ html.lenis, html.lenis body { height: auto; }
   outline: 2px solid var(--ink) !important;
   outline-offset: 2px !important;
 }
+
+/* The gate bar is fixed inside .hero, which sets pointer-events:none and opts its
+   children back in with .hit. It must always be operable. */
+.gate-bar { pointer-events: auto; }
+/* And it occupies the bottom 88px the legacy dock and rail were anchored to. */
+.dock { bottom: var(--gate-h-actual); }
+.hero-title { bottom: calc(var(--dock-h) + var(--gate-h-actual) + 28px); }
+.hero-rail { bottom: calc(var(--dock-h) + var(--gate-h-actual) + 20px); }
+.scroll-cue { bottom: calc(var(--dock-h) + var(--gate-h-actual) + 2px); }
 
 /* Qodo #2 — the mobile dock reserves a fixed 204px, but its own first line (the
    example order) wraps to three lines at 390 and overflows upward into the
