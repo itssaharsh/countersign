@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 export const HOLD_MS = 1200
 const STEPS = 4
 
-export function useHold(onComplete: () => void, enabled: boolean) {
+export function useHold(onComplete: () => void, enabled: boolean, gateKey?: string) {
   const [progress, setProgress] = useState(0)
   const [holding, setHolding] = useState(false)
   const raf = useRef<number | null>(null)
@@ -20,6 +20,12 @@ export function useHold(onComplete: () => void, enabled: boolean) {
   // handler mid-hold, and so the effect below never re-subscribes because of it.
   const completeRef = useRef(onComplete)
   completeRef.current = onComplete
+  // `enabled` is read through a ref inside the frame loop as well as at start.
+  // A hold begun at t=119s must not land an approval at t=120.2s, after the
+  // control has withdrawn because the measurement went stale — that would
+  // authorise an irreversible commit on evidence the console already rejected.
+  const enabledRef = useRef(enabled)
+  enabledRef.current = enabled
 
   const stop = useCallback(() => {
     if (raf.current !== null) cancelAnimationFrame(raf.current)
@@ -34,6 +40,7 @@ export function useHold(onComplete: () => void, enabled: boolean) {
     setHolding(true)
     startedAt.current = performance.now()
     const tick = () => {
+      if (!enabledRef.current) { stop(); return }
       const raw = Math.min(1, (performance.now() - startedAt.current) / HOLD_MS)
       // Stepped, not smooth: the operator still sees four discrete commitments.
       setProgress(reduced ? Math.floor(raw * STEPS) / STEPS : raw)
@@ -48,7 +55,17 @@ export function useHold(onComplete: () => void, enabled: boolean) {
       raf.current = requestAnimationFrame(tick)
     }
     raf.current = requestAnimationFrame(tick)
-  }, [enabled, holding])
+  }, [enabled, holding, stop])
+
+  // One GateBar serves every gate in a session: commit, then the undo's RESTORE,
+  // then anything after. Completion is per-gate, so it resets when the pending
+  // approval changes — otherwise the first countersign would leave every later
+  // control permanently labelled done and refusing to start.
+  useEffect(() => {
+    done.current = false
+    setProgress(0)
+    setHolding(false)
+  }, [gateKey])
 
   // A pointerup outside the control, a blur, or a released key must all reset the
   // hold — otherwise letting go off-target would leave it armed and counting.

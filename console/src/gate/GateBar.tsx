@@ -10,7 +10,7 @@
 // Screens handled here: ARMED, REFUSED (§5), STALE (§5), a question gate, and the
 // RESTORE variant for the undo — which is itself countersigned, because firing it
 // raises a second TrueForge approval rather than acting locally.
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { PendingApproval } from '../harness'
 import type { Simulation } from '../state'
@@ -44,7 +44,7 @@ export function GateBar(p: Props) {
   // kinds), a verified undo and a policy PASS; an undo needs a committed change.
   // No loaded simulation for this approval means there is nothing to countersign.
   const missing: string[] = !p.sim
-    ? ['evidence for this approval']
+    ? ['its evidence']
     : isUndo
       ? (p.sim.committed ? [] : ['a committed change'])
       : ([
@@ -60,10 +60,32 @@ export function GateBar(p: Props) {
     missing.length ? 'BLOCKED' : (!isUndo && p.freshnessLeft <= 0) ? 'STALE' : 'ARMED'
 
   const armed = Boolean(approval) && state === 'ARMED'
+  const gateKey = approval?.toolCallId ?? question?.toolCallId
   const { progress, holding, complete, handlers } = useHold(
     () => approval && p.respond('allow', undefined, approval.toolCallId),
     armed,
+    gateKey,
   )
+
+  // Both text fields belong to the gate that is open, not to the bar. Carrying a
+  // reason across gates would send the previous gate's explanation back to the
+  // agent against a different tool call.
+  useEffect(() => { setReason(''); setAnswerText('') }, [gateKey])
+
+  // The bar's height is content-dependent — a question, a refusal detail and a
+  // narrow viewport all add rows — so anything that has to sit clear of it reads
+  // the measured height rather than the nominal token. Removed with the legacy
+  // hero, which is the only thing that still needs the offset.
+  const barRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = barRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const publish = () => document.documentElement.style.setProperty('--gate-h-actual', `${Math.ceil(el.getBoundingClientRect().height)}px`)
+    publish()
+    const ro = new ResizeObserver(publish)
+    ro.observe(el)
+    return () => { ro.disconnect(); document.documentElement.style.removeProperty('--gate-h-actual') }
+  }, [])
 
   const verb = isUndo ? 'RESTORE' : 'COUNTERSIGN'
   const label = complete ? (isUndo ? 'RESTORED' : 'COUNTERSIGNED') : holding ? 'HOLD…' : `HOLD TO ${verb}`
@@ -72,7 +94,7 @@ export function GateBar(p: Props) {
   const deny = () => approval && p.respond('deny', reason || 'denied by operator', approval.toolCallId)
 
   return (
-    <div className="gate-bar">
+    <div className="gate-bar" ref={barRef}>
       <div className="inner">
         <div className="gate-left">
           {fingerprint ? (
@@ -207,13 +229,13 @@ function RefusalDetail({ sim, isUndo }: { sim?: Simulation; isUndo: boolean }) {
     const restored = Number((sim.undo.report as { restored_rows?: unknown }).restored_rows ?? 0)
     const expected = sim.fingerprint?.count ?? 0
     line = expected
-      ? `Undo could not be proven — ${(expected - restored).toLocaleString()} of ${expected.toLocaleString()} rows did not restore in shadow. Countersign is unavailable. Deny this gate and resubmit; the agent will re-measure.`
-      : 'Undo could not be proven against committed shadow state. Countersign is unavailable.'
+      ? `NOT RESTORED BY THE GENERATED ROLLBACK — ${(expected - restored).toLocaleString()} of ${expected.toLocaleString()} rows did not come back in shadow. Countersign is unavailable. Deny this gate and resubmit; the agent will re-measure.`
+      : 'NOT RESTORED BY THE GENERATED ROLLBACK. Countersign is unavailable.'
   } else if (sim.policy?.verdict === 'FAIL') {
     const failed = sim.policy.rules.find((r) => !r.pass)
     line = failed ? `Policy failed — ${failed.rule}: ${failed.detail}` : 'Policy failed.'
   } else if (!sim.undo.verified) {
-    line = 'The undo has not been verified yet, so there is nothing proven to countersign against.'
+    line = 'The undo has not been verified against committed shadow state yet, so there is nothing proven to countersign against.'
   }
 
   if (!line) return null
