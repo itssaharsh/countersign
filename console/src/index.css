@@ -193,7 +193,9 @@ button, input, textarea, select { font: inherit; color: inherit; }
   padding: 4px 0; width: 220px; max-width: 100%;
 }
 .gate-input::placeholder { color: var(--graphite); }
-.gate-input:focus-visible { outline: none; border-bottom-color: var(--ink); box-shadow: 0 1px 0 0 var(--ink); }
+/* Never outline:none — the same pattern #17 established as a bug. The heavier
+   underline is an additional cue, not a replacement for the ring. */
+.gate-input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-bottom-color: var(--ink); }
 /* Deny: present whenever a gate is open, never styled to compete (§4). */
 .gate-secondary {
   font-size: var(--t-13); color: var(--graphite); background: transparent;

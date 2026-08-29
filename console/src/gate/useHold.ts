@@ -61,11 +61,18 @@ export function useHold(onComplete: () => void, enabled: boolean, gateKey?: stri
   // then anything after. Completion is per-gate, so it resets when the pending
   // approval changes — otherwise the first countersign would leave every later
   // control permanently labelled done and refusing to start.
-  useEffect(() => {
+  //
+  // Reset during render rather than in an effect. An effect runs after paint, so
+  // the first frame of a new gate would still be carrying the previous gate's
+  // completed state, and the control would render as already countersigned.
+  const [lastKey, setLastKey] = useState(gateKey)
+  if (lastKey !== gateKey) {
+    setLastKey(gateKey)
     done.current = false
+    if (raf.current !== null) { cancelAnimationFrame(raf.current); raf.current = null }
     setProgress(0)
     setHolding(false)
-  }, [gateKey])
+  }
 
   // A pointerup outside the control, a blur, or a released key must all reset the
   // hold — otherwise letting go off-target would leave it armed and counting.
@@ -94,6 +101,10 @@ export function useHold(onComplete: () => void, enabled: boolean, gateKey?: stri
       if (e.key === 'Enter' && !e.repeat) { e.preventDefault(); start() }
     },
     onKeyUp: (e: React.KeyboardEvent) => { if (e.key === 'Enter') stop() },
+    // Tabbing away mid-hold ends the sustained intent, and the keyup would land on
+    // whatever took focus instead. Window blur does not cover that — it only fires
+    // when the whole window loses focus.
+    onBlur: stop,
   }
 
   return { progress, holding, complete: done.current, handlers }

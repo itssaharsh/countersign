@@ -11,7 +11,7 @@
 // RESTORE variant for the undo — which is itself countersigned, because firing it
 // raises a second TrueForge approval rather than acting locally.
 import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import type { PendingApproval } from '../harness'
 import type { Simulation } from '../state'
 import { useHold } from './useHold'
@@ -32,6 +32,7 @@ function duration(s: number): string {
 }
 
 export function GateBar(p: Props) {
+  const reduced = useReducedMotion()
   const [reason, setReason] = useState('')
   const [answerText, setAnswerText] = useState('')
 
@@ -69,8 +70,15 @@ export function GateBar(p: Props) {
 
   // Both text fields belong to the gate that is open, not to the bar. Carrying a
   // reason across gates would send the previous gate's explanation back to the
-  // agent against a different tool call.
-  useEffect(() => { setReason(''); setAnswerText('') }, [gateKey])
+  // agent against a different tool call. Reset during render, not in an effect:
+  // an effect runs after paint, so the first frame of the new gate would still
+  // show — and on submit, send — the previous operator's words.
+  const [lastGateKey, setLastGateKey] = useState(gateKey)
+  if (lastGateKey !== gateKey) {
+    setLastGateKey(gateKey)
+    setReason('')
+    setAnswerText('')
+  }
 
   // The bar's height is content-dependent — a question, a refusal detail and a
   // narrow viewport all add rows — so anything that has to sit clear of it reads
@@ -137,6 +145,17 @@ export function GateBar(p: Props) {
                 aria-label="Answer the agent's question"
               />
               <button type="submit" className="gate-secondary">Answer</button>
+              {/* Without an escape, an unanswerable question blocks every later
+                  order: the harness refuses send() while anything is pending.
+                  Declining resolves it through the question protocol
+                  (user.tool_response) — never with an approval response. */}
+              <button
+                type="button"
+                className="gate-secondary"
+                onClick={() => p.answer(question.toolCallId, answerText.trim() || 'declined by operator: not answering this question')}
+              >
+                Decline
+              </button>
             </form>
           ) : !approval ? (
             <span className="gate-note">
@@ -184,10 +203,10 @@ export function GateBar(p: Props) {
                     key="hold"
                     type="button"
                     className={`hold ${isUndo ? 'is-undo' : ''} ${complete ? 'is-done' : ''}`}
-                    initial={{ scale: 0.98, opacity: 0 }}
+                    initial={reduced ? false : { scale: 0.98, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.98, opacity: 0 }}
-                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    exit={reduced ? { opacity: 0 } : { scale: 0.98, opacity: 0 }}
+                    transition={{ duration: reduced ? 0 : 0.2, ease: 'easeOut' }}
                     aria-label={`Hold for ${isUndo ? 'restore' : 'countersign'}`}
                     {...handlers}
                   >
