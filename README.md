@@ -158,6 +158,38 @@ The full trail: [PR #1](https://github.com/itssaharsh/countersign/pull/1) · [PR
 
 Two of those were reachable only because **two of our own assertions passed by measuring the absence of a different bug.** The REFUSED-state check asserted that the gate bar did not overlap the dock and that the control was absent; both were true while the refusal text was squeezed into a narrow column beside the inputs, so a broken layout read as verified. And the first stale-hold regression test reported a failure that was not one — it started the hold with three seconds left, where completing before expiry is correct — which is its own lesson: a test that can only pass is worth as little as one that can only fail.
 
+Two later findings are worth naming beside those, because they are the same lesson pointed at
+different targets.
+
+**A misclassification that inverted a meaning.** The ledger's helpers separated "rows that die"
+from "rows that survive with a reference cleared" by counts alone — zero `delta`, some
+`affected`. The engine gives *every* non-CASCADE terminal edge that shape, `RESTRICT`
+included. So a `RESTRICT` edge with rows behind it would have been counted as references
+cleared, when it clears nothing at all: it blocks the delete outright. The distinction the
+ledger exists to preserve was being computed by a rule that could not see it. Nothing on any
+shipped fixture changed, because `invoices` has no rows in the demo's blast path — which is
+exactly why it survived review until someone asked what the rule would do with an edge it had
+never been given.
+
+**A check that compared two runs which both rendered nothing, and reported PASS.** Proving the
+fix above needed a fixture with a blocking `RESTRICT` edge, which does not exist, so the test
+injected one and compared the before and after. Both runs rendered no ledger group at all —
+the injection had broken the page load — and "unchanged" was therefore trivially true. The
+check passed while measuring absolutely nothing.
+
+That is the fifth instance in this project of the same failure: **something reporting success
+while being useless.** The others were TrueForge answering `200` on `/api/v1/agents` with no
+model providers configured, so every agent creation failed; Playwright's `networkidle` never
+firing because a proxied request to a dead service hangs open rather than failing; two
+assertions that passed by measuring the absence of a *different* bug than the one they named;
+and a contrast helper that mis-parsed `color(srgb …)` floats as 0–255 and cheerfully reported
+black text at 1.12:1.
+
+The rule that came out of it is in [DECISIONS.md](DECISIONS.md): **assert capability, never
+response.** A health check that proves a service is listening proves nothing; ask it to do the
+thing. And every check should carry a mutation that makes it fail — the guard on the ledger
+test now refuses to run at all unless its baseline renders a real group.
+
 The pattern across all thirteen is the same. Every finding lived in a state the local tests never entered: expiry landing mid-hold, focus leaving mid-hold, a second gate after the first, an approval and a question together, reduced motion. The control's whole purpose is the unhappy path, and it was being tested on the happy one. Full round-by-round record, including the findings dismissed with reasons and one repeat finding that was wrongly dismissed as stale before being fixed properly: [PR #18](https://github.com/itssaharsh/countersign/pull/18).
 
 ## A finding about our own policy engine
