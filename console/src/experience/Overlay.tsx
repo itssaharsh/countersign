@@ -27,12 +27,20 @@ export function Overlay(p: Props) {
   const [reason, setReason] = useState('')
   const pending = p.pending.find((a) => a.toolName === 'commit_change' || a.toolName === 'fire_undo')
   const lastAgent = [...p.feed].reverse().find((f) => f.kind === 'assistant' && f.text) as Extract<FeedItem, { kind: 'assistant' }> | undefined
-  const missing = p.sim && p.sim.kind === 'destructive-cascade'
-    ? [!p.sim.fingerprint && 'blast radius', !p.sim.undo.verified && 'verified undo', p.sim.policy?.verdict !== 'PASS' && 'policy pass'].filter(Boolean) as string[]
-    : []
-  const gate: 'BLOCKED' | 'ARMED' | 'STALE' = missing.length ? 'BLOCKED' : p.freshnessLeft <= 0 ? 'STALE' : 'ARMED'
   const isUndo = pending?.toolName === 'fire_undo'
+  // What the operator has NOT yet been shown. Mirrors the server's refusal codes: a commit
+  // needs blast radius (destructive kinds), a verified undo and a policy PASS; an undo needs
+  // a committed change. No loaded simulation for this approval = nothing to countersign.
+  const missing: string[] = !p.sim
+    ? ['simulation evidence']
+    : isUndo
+      ? (p.sim.committed ? [] : ['committed change'])
+      : ([p.sim.kind === 'destructive-cascade' && !p.sim.fingerprint && 'blast radius', !p.sim.undo.verified && 'verified undo', p.sim.policy?.verdict !== 'PASS' && 'policy pass'].filter(Boolean) as string[])
+  const gate: 'BLOCKED' | 'ARMED' | 'STALE' = missing.length ? 'BLOCKED' : p.freshnessLeft <= 0 ? 'STALE' : 'ARMED'
   const [t1, t2] = TITLE[p.phase]
+  // The rail is a scrollable, interactive region; keep the newest lines in view as they land.
+  const railRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { const el = railRef.current; if (el) el.scrollTop = el.scrollHeight }, [p.feed])
 
   return (
     <div className="overlay">
@@ -52,16 +60,16 @@ export function Overlay(p: Props) {
         {p.sim && (
           <div className="t-mono mt-3 text-[11px] space-y-1" style={{ color: 'var(--ink-dim)' }}>
             <Proof ok={Boolean(p.sim.fingerprint) || p.sim.kind === 'reversible'} label="blast radius measured" />
-            <Proof ok={p.sim.undo.verified} label="undo verified on committed state" bad={Boolean(p.sim.undo.report) && !p.sim.undo.verified} />
+            <Proof ok={p.sim.undo.verified} label={Boolean(p.sim.undo.report) && !p.sim.undo.verified ? 'NOT RESTORED BY THE GENERATED ROLLBACK' : 'undo verified on committed state'} bad={Boolean(p.sim.undo.report) && !p.sim.undo.verified} />
             <Proof ok={p.sim.policy?.verdict === 'PASS'} label="policy pass, deterministic" bad={p.sim.policy?.verdict === 'FAIL'} />
           </div>
         )}
       </div>
 
       {/* giant title */}
-      <div className="absolute left-8 bottom-[170px] max-w-[58vw]">
+      <div className="absolute left-8 bottom-[170px] max-w-[58vw] title">
         <AnimatePresence mode="wait">
-          <motion.div key={p.phase} initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} exit={{ opacity: 0, y: -30, filter: 'blur(10px)' }} transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}>
+          <motion.div key={p.phase} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.55, ease: [0.2, 0.8, 0.2, 1] }}>
             <div className="t-giant glow-text" style={{ fontSize: 'clamp(56px, 8.6vw, 132px)' }}>{t1}</div>
             <div className="t-giant" style={{ fontSize: 'clamp(56px, 8.6vw, 132px)', color: PHASE_COLOR[p.phase] }}>{t2}</div>
             {p.phase === 'IDLE' && (
@@ -79,14 +87,14 @@ export function Overlay(p: Props) {
       </div>
 
       {/* transcript rail */}
-      <div className="absolute left-8 top-[120px] w-[380px] max-h-[38vh] overflow-y-auto rail t-mono text-[11px] space-y-1.5" style={{ color: 'var(--ink-dim)', maskImage: 'linear-gradient(#000 80%, transparent)' }}>
+      <div ref={railRef} className="absolute left-8 top-[120px] max-h-[38vh] overflow-y-auto rail panel hit t-mono text-[11px] space-y-1.5" style={{ color: 'var(--ink-dim)', maskImage: 'linear-gradient(#000 80%, transparent)' }}>
         {p.feed.slice(-14).map((f) => <Line key={`${f.kind}:${f.id}`} f={f} />)}
       </div>
 
       {/* receipt slab */}
       <AnimatePresence>
         {p.phase === 'WITNESSING' && p.sim && (
-          <motion.div key="slab" className="slab hit absolute right-8 top-[150px] w-[380px] p-6" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }} transition={{ duration: 0.6 }}>
+          <motion.div key="slab" className="slab hit panel absolute right-8 top-[150px] p-6" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }} transition={{ duration: 0.6 }}>
             <div className="t-tag">Execution receipt</div>
             <div className="mt-4 grid grid-cols-2 gap-4">
               <Stat label="approved keys" value={p.sim.execution?.scoped_to_pks ?? p.sim.fingerprint?.count ?? 0} color="var(--violet)" />
@@ -104,7 +112,7 @@ export function Overlay(p: Props) {
       {/* gate controls */}
       <AnimatePresence>
         {pending && (
-          <motion.div key="gate" className="absolute right-8 bottom-[150px] text-right hit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
+          <motion.div key="gate" className="absolute right-8 bottom-[150px] text-right hit gate" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
             <div className="t-tag">{isUndo ? 'fire the verified undo' : 'commit the change'} · {pending.toolName} · <span style={{ color: gate === 'ARMED' ? 'var(--green)' : gate === 'STALE' ? 'var(--amber)' : 'var(--coral)' }}>{gate.toLowerCase()}</span></div>
             <div className="t-mono mt-2 text-[12px]" style={{ color: 'var(--ink-dim)' }}>
               {gate === 'BLOCKED' ? `missing: ${missing.join(', ')}` : `${isUndo ? '+' : '−'}${p.sim?.fingerprint?.count.toLocaleString()} rows in the fingerprinted set · fresh for ${Math.ceil(p.freshnessLeft)}s of ${FRESHNESS_SECONDS}`}
@@ -113,7 +121,7 @@ export function Overlay(p: Props) {
               <Magnetic><button className="tbtn" disabled={gate !== 'ARMED'} onClick={() => respondAll(p, 'allow', undefined, pending.toolCallId)} style={{ fontSize: 44, color: gate === 'ARMED' ? 'var(--green)' : 'var(--ink-faint)' }}>{isUndo ? 'Restore' : 'Countersign'}<span className="underline" /></button></Magnetic>
               <Magnetic><button className="tbtn" onClick={() => respondAll(p, 'deny', reason || 'denied by operator', pending.toolCallId)} style={{ fontSize: 22, color: 'var(--coral)' }}>Deny<span className="underline" /></button></Magnetic>
             </div>
-            <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="deny reason, sent back to the agent" className="cmd mt-3 text-right text-[12px]" style={{ width: 320 }} />
+            <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="deny reason, sent back to the agent" className="cmd mt-3 text-right text-[12px]" style={{ width: 320, maxWidth: '100%' }} />
           </motion.div>
         )}
       </AnimatePresence>

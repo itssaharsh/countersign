@@ -27,6 +27,8 @@ export function useHarness() {
   const [feed, setFeed] = useState<FeedItem[]>([])
   const [running, setRunning] = useState(false)
   const [pending, setPending] = useState<PendingApproval[]>([])
+  const replayGateRef = useRef<(() => void) | null>(null)
+  const [replayReleased, setReplayReleased] = useState(false)
   const sessionRef = useRef<string | null>(null)
   const eventsRef = useRef<Map<string, TurnEvent>>(new Map())
   const turnRef = useRef<{ turnId: string | null; seq: number }>({ turnId: null, seq: 0 })
@@ -167,8 +169,19 @@ export function useHarness() {
         setRunning(true)
         for (const line of lines) {
           if (cancelled) return
-          consume(JSON.parse(line))
-          await new Promise((r) => setTimeout(r, 12))
+          const event = JSON.parse(line) as TurnEvent
+          consume(event)
+          // Judge mode holds at the gate exactly like the live harness does: the recorded
+          // stream only continues once the operator countersigns or denies.
+          if (event.type === 'tool.approval_required') {
+            setRunning(false)
+            await new Promise<void>((resolve) => { replayGateRef.current = resolve })
+            if (cancelled) return
+            setRunning(true)
+          }
+          // Pace on message boundaries only. Deltas are applied in a burst: yielding per
+          // delta ties the replay to the frame rate, and the stage is expensive to draw.
+          if (!isEventDelta(event as never)) await new Promise((r) => setTimeout(r, 40))
         }
       } finally { setRunning(false) }
     })()
@@ -192,10 +205,18 @@ export function useHarness() {
       approval: status === 'allow' ? { status } : { status, reason: reason ?? 'denied by operator' },
     }))
     setPending((prev) => prev.filter((p) => !target.includes(p)))
+    if (replayGateRef.current) {
+      // Replay: nothing to send — release the recorded stream past the gate.
+      const release = replayGateRef.current
+      replayGateRef.current = null
+      setReplayReleased(true)
+      release()
+      return
+    }
     void stream(inputs)
   }, [pending, stream])
 
-  return { feed, running, pending, send, respond, sessionId: sessionRef.current }
+  return { feed, running, pending, send, respond, replayReleased, sessionId: sessionRef.current }
 }
 
 /**

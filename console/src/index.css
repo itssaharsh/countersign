@@ -54,3 +54,19 @@ a, button, input { cursor: none; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
 @media (prefers-reduced-motion: reduce) { .caret { animation: none; } .rise { animation: none; } body { cursor: auto; } .cursor-dot, .cursor-ring { display: none; } }
+
+/* Reduced motion: the custom cursor is hidden, so every control must show the native one. */
+@media (prefers-reduced-motion: reduce) {
+  a, button, input, .hit { cursor: auto; }
+}
+
+/* Narrow viewports: the page never scrolls, so every panel must fit and scroll internally. */
+.panel { width: min(380px, calc(100vw - 4rem)); }
+@media (max-width: 720px) {
+  .overlay .title { max-width: calc(100vw - 4rem); bottom: 200px; }
+  .overlay .title .t-giant { font-size: clamp(34px, 11vw, 56px) !important; }
+  .overlay .gate { left: 2rem; right: 2rem; bottom: 130px; max-height: 40vh; overflow-y: auto; }
+  .overlay .gate .tbtn { font-size: 30px !important; }
+  .overlay .slab { top: 110px; max-height: 45vh; overflow-y: auto; }
+  .overlay .rail { max-height: 22vh; }
+}

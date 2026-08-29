@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useHarness } from './harness'
-import { useEngineState, activeSimulation, phaseFor } from './state'
+import { useEngineState, activeSimulation, simulationFor, phaseFor } from './state'
 import { Experience } from './experience/Experience'
 import { Overlay } from './experience/Overlay'
 import { useFreshness } from './experience/useFreshness'
 
 export default function App() {
-  const { feed, running, pending, send, respond } = useHarness()
-  const engine = useEngineState()
-  const sim = activeSimulation(engine)
+  const { feed, running, pending, send, respond, replayReleased } = useHarness()
+  // Judge mode: ?replayEvents=… holds at the gate; once countersigned, engine state comes
+  // from ?replayAfter=… (the post-commit snapshot of the same recorded run).
+  const replayAfter = new URLSearchParams(window.location.search).get('replayAfter') ?? undefined
+  const engine = useEngineState(1500, replayReleased ? replayAfter : undefined)
+  // While an approval is pending the stage shows the simulation that approval names
+  // (args.simulation_id); a gate without a loaded, matching simulation stays BLOCKED.
+  const gated = pending.find((a) => a.toolName === 'commit_change' || a.toolName === 'fire_undo')
+  const sim = gated ? simulationFor(engine, (gated.args as { simulation_id?: unknown })?.simulation_id) : activeSimulation(engine)
   const phase = phaseFor(sim, pending.length > 0)
   const { left, fraction } = useFreshness(sim)
   const [modelName, setModelName] = useState('')

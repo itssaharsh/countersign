@@ -7,6 +7,7 @@ import { Html, Line, OrbitControls } from '@react-three/drei'
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { useReducedMotion } from 'framer-motion'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import type { Phase, Simulation } from '../state'
 
@@ -53,9 +54,15 @@ function Galaxy({ phase, sim }: Props) {
   const colors = useMemo(() => { const a = new Float32Array(N * 3); for (let i = 0; i < N; i++) { const c = VIOLET.clone().lerp(TEAL, (i % 97) / 97); a.set([c.r, c.g, c.b], i * 3) } return a }, [])
   const tex = useMemo(() => sprite(), [])
   const v = useMemo(() => new THREE.Vector3(), []); const c = useMemo(() => new THREE.Color(), [])
+  const stream = useMemo(() => new THREE.Vector3(), [])
+  // Reduced motion: run the loop only long enough to settle into the current scene, then hold.
+  const reduced = useReducedMotion()
+  const settle = useRef(0)
+  useEffect(() => { settle.current = 2.5 }, [phase])
 
   useFrame((state, dt) => {
-    const t = state.clock.elapsedTime
+    if (reduced) { settle.current -= dt; if (settle.current <= 0) return }
+    const t = reduced ? 0 : state.clock.elapsedTime
     const p = phaseRef.current
     const geom = ref.current!.geometry
     const pos = geom.attributes.position.array as Float32Array
@@ -71,7 +78,7 @@ function Galaxy({ phase, sim }: Props) {
         else if (l === 0) { const a = s + t * 0.3; v.set(CLUSTER.users.x + Math.cos(a) * 1.0, CLUSTER.users.y + Math.sin(a) * 1.0, Math.sin(s * 3) * 0.35); c.copy(CORAL) }
         else if (l === 1) { fib(i, N, 0.75, v); v.add(CLUSTER.orders); c.copy(VIOLET) }
         else { fib(i, N, 0.68, v); v.add(CLUSTER.payments); c.copy(TEAL) }
-        if (i % 29 === 0 && doomed) { const u = (t * 0.3 + s) % 1; const a = u < 0.5 ? new THREE.Vector3().lerpVectors(CLUSTER.users, CLUSTER.orders, u * 2) : new THREE.Vector3().lerpVectors(CLUSTER.orders, CLUSTER.payments, (u - 0.5) * 2); v.copy(a); c.copy(AMBER) }
+        if (i % 29 === 0 && doomed) { const u = (t * 0.3 + s) % 1; if (u < 0.5) stream.lerpVectors(CLUSTER.users, CLUSTER.orders, u * 2); else stream.lerpVectors(CLUSTER.orders, CLUSTER.payments, (u - 0.5) * 2); v.copy(stream); c.copy(AMBER) }
       } else if (p === 'DECIDING') {
         if (!doomed) { fib(i, N, 3.8, v); c.copy(DIM) }
         else { fib(i, N, 1.15 * breathe, v); c.copy(CORAL).lerp(GREEN, 0.4 + 0.4 * Math.sin(t * 2.4)) }
@@ -104,7 +111,8 @@ function Beams({ phase }: { phase: Phase }) {
     new THREE.QuadraticBezierCurve3(CLUSTER.users, new THREE.Vector3(-1, 1.6, 0.3), CLUSTER.orders).getPoints(48),
     new THREE.QuadraticBezierCurve3(CLUSTER.orders, new THREE.Vector3(1.9, 0.6, -0.3), CLUSTER.payments).getPoints(48),
   ], [])
-  useFrame((_, dt) => { dash.current -= dt * 0.9; for (const r of refs.current) if (r) r.material.dashOffset = dash.current })
+  const reduced = useReducedMotion()
+  useFrame((_, dt) => { if (reduced) return; dash.current -= dt * 0.9; for (const r of refs.current) if (r) r.material.dashOffset = dash.current })
   if (phase !== 'INVESTIGATING') return null
   return (
     <group>
@@ -159,6 +167,7 @@ function Rig({ phase }: { phase: Phase }) {
     DECIDING: { pos: new THREE.Vector3(0, 2.2, 6.4), look: new THREE.Vector3(0, 0, 0) },
     WITNESSING: { pos: new THREE.Vector3(-0.8, 1.2, 8.2), look: new THREE.Vector3(0, 0, 0) },
   }), [])
+  const reduced = useReducedMotion()
   useFrame((_, dt) => {
     const g = goal[phase]
     const k = 1 - Math.pow(0.05, dt)
@@ -168,7 +177,7 @@ function Rig({ phase }: { phase: Phase }) {
       if (controls.current) { controls.current.target.copy(target); controls.current.update() }
     }
   })
-  return <OrbitControls ref={controls} enabled={phase === 'IDLE'} enableZoom={false} enablePan={false} autoRotate={phase === 'IDLE'} autoRotateSpeed={0.35} enableDamping dampingFactor={0.06} minPolarAngle={0.9} maxPolarAngle={2.2} />
+  return <OrbitControls ref={controls} enabled={phase === 'IDLE'} enableZoom={false} enablePan={false} autoRotate={phase === 'IDLE' && !reduced} autoRotateSpeed={0.35} enableDamping dampingFactor={0.06} minPolarAngle={0.9} maxPolarAngle={2.2} />
 }
 
 export function Experience(props: Props) {

@@ -68,8 +68,21 @@ bypassing the button changes nothing.
 ```bash
 git clone https://github.com/itssaharsh/countersign && cd countersign
 npm install
-npm run dev -w console      # → http://localhost:5199/?replay=/fixtures/state-witnessing.json
+npm run dev -w console
 ```
+Then open the recorded real-model run (gpt-oss-120b on TrueForge, 217 harness events,
+`console/public/fixtures/real-run.jsonl`):
+
+```
+http://localhost:5199/?replayEvents=/fixtures/real-run.jsonl&replay=/fixtures/state-investigating.json&replayAfter=/fixtures/state-witnessing.json
+```
+
+The stream is fed through the same SDK reducer the live console uses and **holds at the
+gate exactly where TrueForge paused** (`tool.approval_required`). Click **Countersign** to
+release it: engine state switches to the post-commit snapshot of the same run and the
+receipt lands. `state-*.json` are `/state` snapshots keyed to that recording
+(`simulation_id cdac3df6`); single scenes: `?replay=/fixtures/state-investigating.json`
+or `?replay=/fixtures/state-witnessing.json`.
 
 ### Full live setup (~15 min)
 ```bash
