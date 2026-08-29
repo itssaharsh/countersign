@@ -292,7 +292,15 @@ export function useHarness() {
     void stream([{ type: 'user.tool_response', threadId: q.threadId, toolCallId: q.toolCallId, content }])
   }, [pending, stream])
 
-  return { feed, running, pending, send, respond, answer, replayReleased, sessionId: sessionRef.current }
+  /** Forget the saved session and start clean: the escape hatch for a stuck tab. */
+  const startOver = useCallback(() => {
+    try { localStorage.removeItem(RESUME_KEY) } catch { /* storage unavailable */ }
+    // Keep the query string: in judge mode that is the replay itself (restart the
+    // fixture stream), never a switch into live mode.
+    window.location.href = window.location.pathname + window.location.search
+  }, [])
+
+  return { feed, running, pending, send, respond, answer, startOver, replayReleased, sessionId: sessionRef.current }
 }
 
 /**

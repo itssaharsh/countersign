@@ -14,6 +14,7 @@ type Props = {
   freshnessLeft: number; modelName: string; engineOnline: boolean; scroll: MotionValue<number>
   onSend: (t: string) => void; respond: (status: 'allow' | 'deny', reason?: string, toolCallId?: string) => void
   answer: (toolCallId: string, content: string) => void
+  onStartOver: () => void
 }
 
 const EXAMPLE = "Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'"
@@ -49,7 +50,9 @@ export function Hero(p: Props) {
     : isUndo
       ? (p.sim.committed ? [] : ['committed change'])
       : ([p.sim.kind === 'destructive-cascade' && !p.sim.fingerprint && 'blast radius', !p.sim.undo.verified && 'verified undo', p.sim.policy?.verdict !== 'PASS' && 'policy pass'].filter(Boolean) as string[])
-  const gate: 'BLOCKED' | 'ARMED' | 'STALE' = missing.length ? 'BLOCKED' : p.freshnessLeft <= 0 ? 'STALE' : 'ARMED'
+  // Freshness belongs to the commit fingerprint only; fire_undo is gated by committed state,
+  // verification and its one-shot token, never by the pre-commit timer.
+  const gate: 'BLOCKED' | 'ARMED' | 'STALE' = missing.length ? 'BLOCKED' : (!isUndo && p.freshnessLeft <= 0) ? 'STALE' : 'ARMED'
   const [t1, t2] = TITLE[p.phase]
   const railRef = useRef<HTMLDivElement>(null)
   useEffect(() => { const el = railRef.current; if (el) el.scrollTop = el.scrollHeight }, [p.feed])
@@ -69,6 +72,7 @@ export function Hero(p: Props) {
           <div className="t-mono mt-2 text-[12px]" style={{ color: PHASE_COLOR[p.phase] }}>
             <span className="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle" style={{ background: PHASE_COLOR[p.phase], boxShadow: `0 0 12px ${PHASE_COLOR[p.phase]}` }} />
             {p.phase.toLowerCase()}
+            {(p.feed.length > 0 || p.pending.length > 0) && <button type="button" className="linkish hit ml-3" style={{ fontSize: 11 }} onClick={p.onStartOver} title="Forget this session and start clean">start over</button>}
           </div>
           {p.sim && (
             <div className="t-mono mt-3 text-[11px] space-y-1" style={{ color: 'var(--ink-dim)' }}>
@@ -133,7 +137,7 @@ export function Hero(p: Props) {
             <motion.div key="gate" className="text-right hit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
               <div className="t-tag">{isUndo ? 'fire the verified undo' : 'commit the change'} · {pending.toolName} · <span style={{ color: gate === 'ARMED' ? 'var(--green)' : gate === 'STALE' ? 'var(--amber)' : 'var(--coral)' }}>{gate.toLowerCase()}</span></div>
               <div className="t-mono mt-2 text-[12px]" style={{ color: 'var(--ink-dim)' }}>
-                {gate === 'BLOCKED' ? `missing: ${missing.join(', ')}` : `${isUndo ? '+' : '−'}${p.sim?.fingerprint?.count.toLocaleString()} rows in the fingerprinted set · fresh for ${Math.ceil(p.freshnessLeft)}s of ${FRESHNESS_SECONDS}`}
+                {gate === 'BLOCKED' ? `missing: ${missing.join(', ')}` : gate === 'STALE' ? 'this approval expired: deny it, then send the order again for a fresh measurement' : isUndo ? `+${p.sim?.fingerprint?.count.toLocaleString()} rows come back · one shot, verified on committed state` : `−${p.sim?.fingerprint?.count.toLocaleString()} rows in the fingerprinted set · fresh for ${Math.ceil(p.freshnessLeft)}s of ${FRESHNESS_SECONDS}`}
               </div>
               <div className="mt-4 flex items-end justify-end gap-7">
                 <Magnetic><button className="tbtn" disabled={gate !== 'ARMED'} onClick={() => p.respond('allow', undefined, pending.toolCallId)} style={{ fontSize: 40, color: gate === 'ARMED' ? 'var(--green)' : 'var(--ink-faint)' }}>{isUndo ? 'Restore' : 'Countersign'}<span className="underline" /></button></Magnetic>

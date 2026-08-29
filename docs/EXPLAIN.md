@@ -161,6 +161,19 @@ that fails both errors are shown rather than a silent "reopening". Trade-off: re
 re-reads the whole turn (hundreds of events at most); it runs once per reload and only when
 a gate is actually open.
 
+### Start over (console v5.1.2)
+Seen live: a tab that outlived a stack restart kept a session whose gate had expired, and
+Send looked dead. Decision: give the operator one obvious exit. "Start over" in the HUD
+removes only the saved session pointer (localStorage) and reloads the page. A full reload,
+not in-place state surgery, because the harness client, the engine poll and the stage all
+key off that pointer at mount; reloading is the one path that is guaranteed consistent.
+The query string is kept: in judge mode it is the replay itself, so start over restarts the
+fixture stream and never turns replay into live mode. Nothing server-side is touched; the
+old turn stays answerable from any tab that still points at it. Freshness applies to the
+commit gate only: fire_undo is gated by committed state, verification and its one-shot
+token, so the console never marks an undo gate stale, and a STALE commit gate now says
+what to do (deny, then send the order again).
+
 ## 3. TrueForge usage map (Double-O track answers)
 - MCP tools: custom countersign server + shipped github (PR fetch, receipt comment)
   + supabase connector planned for independent post-commit verification.
