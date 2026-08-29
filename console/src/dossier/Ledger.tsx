@@ -79,6 +79,13 @@ function DyingRow({ t, slot }: { t: TableRow; slot: number }) {
 
 export function Ledger({ sim }: { sim: Simulation }) {
   const [open, setOpen] = useState(false)
+  // Qodo #5 — the ledger is reused across runs without remounting, so the expanded
+  // group would stay open when a different simulation arrives. Collapse on identity.
+  const [lastSim, setLastSim] = useState(sim.simulation_id)
+  if (lastSim !== sim.simulation_id) { setLastSim(sim.simulation_id); setOpen(false) }
+  // §5 REFUSED carries no red: nothing destructive is on offer there, so the total
+  // does not seal when the evidence behind it failed.
+  const evidenceHolds = sim.undo.verified && sim.policy?.verdict !== 'FAIL'
 
   const dying = dyingTables(sim)
   const touched = touchedTables(sim)
@@ -177,7 +184,7 @@ export function Ledger({ sim }: { sim: Simulation }) {
           complete, and hands it to the countersign control when that control
           exists. The handoff is in index.css: `.console:has(.gate-bar .hold)`
           drops this back to --ink, so the two can never be red at once. */}
-      <div className={`ledger-total ${landed ? 'is-sealed' : ''}`}>
+      <div className={`ledger-total ${landed && evidenceHolds ? 'is-sealed' : ''}`}>
         <span className="ledger-total-n t-display" data-total={total}>{fmt(totalShown)}</span>
         <span className="ledger-total-l t-label">rows die</span>
       </div>

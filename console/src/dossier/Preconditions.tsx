@@ -28,6 +28,11 @@ type Line = { key: string; ok: boolean; label: string; detail: string | null }
 
 function lines(sim: Simulation): Line[] {
   const fp = sim.fingerprint
+  // A reversible change has no fingerprint and the server does not ask for one —
+  // GateBar's refusal codes only require blast radius for destructive-cascade
+  // kinds. Showing a failed prerequisite for a reversible change would report a
+  // failure the engine never claimed.
+  const measured = sim.kind === 'destructive-cascade' ? Boolean(fp) : true
   const report = (sim.undo.report ?? {}) as { restored_rows?: unknown }
   const restored = Number(report.restored_rows ?? 0)
   const expected = fp?.count ?? 0
@@ -37,8 +42,8 @@ function lines(sim: Simulation): Line[] {
   return [
     {
       key: 'blast-radius',
-      ok: Boolean(fp),
-      label: fp ? 'BLAST RADIUS MEASURED' : 'BLAST RADIUS NOT MEASURED',
+      ok: measured,
+      label: measured ? 'BLAST RADIUS MEASURED' : 'BLAST RADIUS NOT MEASURED',
       detail: null,
     },
     {

@@ -99,9 +99,22 @@ export function rowsThatDie(sim: Simulation | undefined): number {
  * separately and never added to the death toll.
  */
 export function referencesCleared(sim: Simulation | undefined): number {
-  return (sim?.tables ?? [])
-    .filter((t) => !(t.delta ?? 0) && (t.affected ?? 0) > 0)
-    .reduce((n, t) => n + (t.affected ?? 0), 0)
+  return clearsReferences(sim).reduce((n, t) => n + (t.affected ?? 0), 0)
+}
+
+/**
+ * Edges whose rows survive with a foreign key set to null. The engine gives every
+ * non-CASCADE terminal edge the same zero-delta/affected shape, so filtering on
+ * counts alone sweeps RESTRICT edges in with them — and a RESTRICT edge clears
+ * nothing. It blocks the delete outright. Classify by the edge's semantics.
+ */
+export function clearsReferences(sim: Simulation | undefined): TableRow[] {
+  return (sim?.tables ?? []).filter((t) => t.onDelete === 'SET NULL' && !(t.delta ?? 0) && (t.affected ?? 0) > 0)
+}
+
+/** RESTRICT edges standing in the blast path. These block; they do not clear. */
+export function blockingEdges(sim: Simulation | undefined): TableRow[] {
+  return (sim?.tables ?? []).filter((t) => t.onDelete === 'RESTRICT' && (t.affected ?? 0) > 0)
 }
 
 /** The tables that lose rows, root first, then by foreign-key depth. */
@@ -109,7 +122,7 @@ export function dyingTables(sim: Simulation | undefined): TableRow[] {
   return (sim?.tables ?? []).filter((t) => (t.delta ?? 0) > 0).sort((a, b) => depthOf(a) - depthOf(b))
 }
 
-/** The tables that keep their rows but lose a reference. */
+/** The tables that keep their rows but lose a reference. SET NULL edges only. */
 export function touchedTables(sim: Simulation | undefined): TableRow[] {
-  return (sim?.tables ?? []).filter((t) => !(t.delta ?? 0) && (t.affected ?? 0) > 0)
+  return clearsReferences(sim)
 }

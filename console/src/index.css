@@ -475,3 +475,5 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
   .ledger-sub > li { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .ledger-sub .ledger-edge { text-align: left; }
 }
+
+.panel-note { font-size: var(--t-13); color: var(--graphite); margin-bottom: 16px; max-width: 60ch; }

@@ -49,7 +49,20 @@ export function Dossier(p: Props) {
           {p.sim && <p className="dossier-sql t-data">{p.sim.change_sql}</p>}
 
           {p.sim && measured ? (
-            <Ledger sim={p.sim} />
+            <>
+              {/* In WITNESSING the ledger is a record of what was destroyed, not a
+                  forecast of what would be. Saying so is the difference between a
+                  measurement and a receipt; the receipt itself lands separately. */}
+              {p.phase === 'WITNESSING' && (
+                <p className="panel-note">
+                  Committed{p.sim.committed_at ? ` at ${new Date(p.sim.committed_at).toISOString().replace('T', ' ').slice(0, 19)} UTC` : ''}.
+                  {p.sim.execution
+                    ? ` The commit was scoped to ${p.sim.execution.scoped_to_pks.toLocaleString()} keys and removed ${p.sim.execution.deleted_root_rows.toLocaleString()} root rows.`
+                    : ''} These are the rows it took.
+                </p>
+              )}
+              <Ledger sim={p.sim} />
+            </>
           ) : (
             <>
               <h2 className="t-label">{p.phase === 'WITNESSING' ? 'Receipt' : 'Blast radius'}</h2>
