@@ -49,9 +49,9 @@ A migration lands in a GitHub PR. The Countersign agent (running on TrueForge):
 
 ## The console
 
-| INVESTIGATING | DECIDING | WITNESSING |
-|---|---|---|
-| ![investigating](docs/screenshots/phase-investigating.png) | ![deciding](docs/screenshots/phase-deciding.png) | ![witnessing](docs/screenshots/phase-witnessing.png) |
+| IDLE | INVESTIGATING | DECIDING | WITNESSING |
+|---|---|---|---|
+| ![idle](docs/screenshots/phase-idle.png) | ![investigating](docs/screenshots/phase-investigating.png) | ![deciding](docs/screenshots/phase-deciding.png) | ![witnessing](docs/screenshots/phase-witnessing.png) |
 
 *Real-model run (Groq-hosted `openai/gpt-oss-120b`): the agent investigated, TrueForge paused on the gated commit, the operator countersigned, and the scoped commit executed — [gate](docs/screenshots/real-model-deciding.png) · [ledger](docs/screenshots/real-model-witnessing.png).*
 
