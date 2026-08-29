@@ -84,8 +84,30 @@ Three of the six cannot survive the inversion unchanged. On an `--ink` ground th
 ```
 
 Same six roles, same rationing, same meanings — only the values move, and only far enough
-to clear the floor. Contrast on the light ground for reference: ink 17.6:1, graphite 4.9:1,
-seal 5.7:1, proof 10.0:1.
+to clear the floor.
+
+Every ratio, computed from the token values rather than estimated (WCAG 2.1, and re-derived
+after an earlier figure in this document turned out to be wrong):
+
+| | on `--bone` (light) | on `--ink` ground (dark) | on the WITNESSING tint |
+| --- | --- | --- | --- |
+| `--ink` / `--bone` text | **16.27:1** | **16.27:1** | 15.70:1 light · 15.88:1 dark |
+| `--graphite` | **4.91:1** | **5.10:1** | 4.74:1 light · 4.98:1 dark |
+| `--seal` | **5.73:1** | **5.14:1** | 5.53:1 light · 5.01:1 dark |
+| `--proof` | **9.99:1** | **8.85:1** | 9.64:1 light · 8.64:1 dark |
+| `--rule` | 1.31:1 | 1.31:1 | — |
+
+Two consequences that are rules, not observations:
+
+- **`--rule` is never text.** At 1.31:1 it fails the floor by a wide margin in both themes.
+  §2 already gives it no text role — "hairlines, table rules, card edges" — and §5's
+  instruction that future phase segments are `--rule` must be read as the *dot*, not the
+  label. The label is `--graphite`, which §2 itself names as the inactive-phase colour.
+- **Do not darken the WITNESSING tint past 2%.** `--graphite` on it measures 4.74:1; there
+  is very little margin left before the floor.
+
+The WITNESSING ground is `color-mix(in srgb, var(--proof) 2%, var(--bone))` — `#EEEBE3`
+light, `#161512` dark — derived from the six, never a seventh value.
 
 **Rationing rule for `--seal`:** at most one element on screen may be `--seal` at a time.
 It belongs to the destructive row count *or* the countersign control — never both at once.
@@ -410,7 +432,7 @@ the hold-to-countersign fill, which becomes stepped.
 - Responsive to 390px. On mobile the gate bar stays fixed to the bottom.
 - Visible keyboard focus ring: 2px `--ink` offset 2px. Never `outline: none`.
 - Full keyboard path: input → submit → countersign hold → deny → undo → restore hold.
-- Contrast: all text ≥ 4.5:1 on its ground. `--graphite` on `--bone` passes; do not lighten it.
+- Contrast: all text ≥ 4.5:1 on its ground — measured, not assumed; the table in §2 carries every ratio. `--graphite` on `--bone` is 4.91:1, so do not lighten it, and `--rule` is never text at 1.31:1.
 - The console must render a sane empty state with no agent connected, so a judge cloning
   the repo sees something rather than a blank page.
 - No layout shift when the transcript streams — reserve the column width.

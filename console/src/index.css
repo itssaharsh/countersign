@@ -20,6 +20,13 @@
   --seal:     #B3241C;  /* DESTRUCTIVE ONLY — one element at a time */
   --proof:    #1F3A5F;  /* verified / undo-proven / receipt ink */
 
+  /* The ground the console is printed on. Not a seventh colour: an alias that
+     resolves to --bone everywhere except WITNESSING, where §5 shifts it to a
+     2% --proof tint. Both values are struck from the six. Contrast on the
+     tint: ink 15.7:1 · graphite 4.7:1 · seal 5.5:1 · proof 9.6:1 — all still
+     clear of §8's 4.5:1 floor. */
+  --ground: var(--bone);
+
   /* ── §2 type — three roles ───────────────────────────────────────────── */
   --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --sans:    "Inter Tight", ui-sans-serif, system-ui, sans-serif;
@@ -64,13 +71,17 @@
   }
 }
 
+/* §5 WITNESSING — the ground shifts. Set on the root by the Receipt so the
+   fixed gate bar shifts with the page: the console is one sheet of paper. */
+:root[data-ground="proof"] { --ground: color-mix(in srgb, var(--proof) 2%, var(--bone)); }
+
 /* ── base ─────────────────────────────────────────────────────────────── */
 * { border-color: var(--rule); }
 
 html { scroll-behavior: auto; }
 
 body {
-  background: var(--bone);
+  background: var(--ground);
   color: var(--ink);
   font-family: var(--sans);
   font-size: var(--t-16);
@@ -169,7 +180,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
   align-items: stretch;
   gap: 8px;
   padding: 10px var(--gutter);
-  background: var(--bone);
+  background: var(--ground);
   border-top: 1px solid var(--ink);
   z-index: 10;
 }
@@ -246,7 +257,14 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .phase-track .seg.on { color: var(--ink); }
 .phase-track .seg.on .dot { background: currentColor; }
 .phase-track .seg.past { color: var(--graphite); }
-.phase-track .seg.future { color: var(--rule); }
+/* §5 asks for --rule here, but --rule is a 1.3:1 hairline colour and §2 gives it
+   no text role at all ("hairlines, table rules, card edges"); as label text it
+   breaks §8's non-negotiable 4.5:1 floor, which the same spec calls
+   non-negotiable. --graphite is §2's own "inactive phase" value, so the label
+   takes it and --rule keeps the segment's dot — its documented role, a border.
+   Future still reads as unreached: an empty ruled dot, not a filled one. */
+.phase-track .seg.future { color: var(--graphite); }
+.phase-track .seg.future .dot { border-color: var(--rule); }
 .phase-status { font-family: var(--sans); font-size: var(--t-11); letter-spacing: 0.08em; text-transform: uppercase; color: var(--graphite); }
 
 /* §2 — below 900 the columns stack; the transcript becomes a strip and the
@@ -260,6 +278,13 @@ button, input, textarea, select { font: inherit; color: inherit; }
   .gate-note, .gate-countdown { grid-column: 1 / -1; text-align: left; }
   .gate-input { width: 100%; grid-column: 1; }
   .gate-secondary { grid-column: 2; }
+  /* §8 is responsive-to-390 without saying how big a target has to be; the review
+     tool holds every control to 40x32 on a narrow viewport, which is where a
+     thumb — not a pointer — is resolving the gate. These three were under it:
+     Deny at 38x36, the reason field at 29 tall, and 'start over' at 17 tall.
+     Padding only; nothing moves, no colour changes. */
+  .gate-secondary { padding: 8px 10px; }
+  .gate-input { padding: 8px 0; }
   .hold { grid-column: 3; padding: 10px 14px; font-size: var(--t-13); }
   .console-body { grid-template-columns: minmax(0, 1fr); gap: var(--gutter); }
   .col-transcript {
@@ -346,6 +371,10 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 .submit-go:disabled { color: var(--graphite); border-color: var(--rule); }
 
 @media (max-width: 900px) {
+  /* Declared here, after the base .linkish rule, so it actually wins: at equal
+     specificity the later declaration takes it. 'start over' was 46x17 — under
+     a thumb on a phone. */
+  .linkish { padding: 8px 2px; }
   .brand { flex-direction: column; gap: 2px; }
   .brand-sub { display: none; }
   .console-header { height: auto; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
@@ -477,3 +506,65 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 }
 
 .panel-note { font-size: var(--t-13); color: var(--graphite); margin-bottom: 16px; max-width: 60ch; }
+/* ── §5 WITNESSING — the receipt ──────────────────────────────────────────
+   Printed matter. Mono throughout, because everything on it came out of the
+   database (§2's type rule); the two prose lines are the only place the
+   interface speaks, and they are Inter Tight. No red: nothing destructive is
+   being offered any more. --proof is the ink. */
+.receipt { max-width: 68ch; }
+.receipt-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  padding-bottom: 8px; border-bottom: 1px solid var(--rule); margin-bottom: 16px;
+}
+/* Persistent, never printed away — the undo is armed for as long as this screen
+   is up and the operator should not have to wait for a line to learn it. */
+.receipt-chip {
+  font-size: var(--t-11); letter-spacing: 0.08em;
+  color: var(--proof); border: 1px solid var(--proof); border-radius: var(--radius);
+  padding: 3px 8px; white-space: nowrap;
+}
+.receipt-body { display: block; }
+.receipt-section { margin: 20px 0 6px; }
+.receipt-section:first-child { margin-top: 0; }
+.receipt-sql { font-size: var(--t-13); color: var(--ink); margin: 4px 0 0; word-break: break-word; }
+
+.receipt-line {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 46%);
+  column-gap: 16px; align-items: baseline;
+  padding: 2px 0; font-size: var(--t-13);
+}
+.receipt-line .r-name { color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.receipt-line .r-val { display: grid; grid-template-columns: minmax(0, 1fr) 76px; column-gap: 12px; align-items: baseline; }
+.receipt-line .r-fig { text-align: right; color: var(--proof); overflow-wrap: anywhere; }
+.receipt-line .r-note { font-size: var(--t-11); color: var(--graphite); }
+/* A total is the sum of the lines above it, and is ruled off like one. */
+.receipt-line.is-total { border-top: 1px solid var(--rule); margin-top: 6px; padding-top: 6px; }
+.receipt-line.is-total .r-name,
+.receipt-line.is-total .r-fig { color: var(--ink); }
+
+.receipt-note { font-size: var(--t-13); color: var(--graphite); margin-top: 8px; max-width: 52ch; }
+
+/* §5 — the undo control: a plain --ink outline button, deliberately undramatic,
+   because the whole thesis is that the undo is boring and certain. It sends an
+   order; the gate bar re-arms with HOLD TO RESTORE (§4, A8). */
+.receipt-undo { margin-top: var(--section-gap); padding-top: 16px; border-top: 1px solid var(--rule); }
+.undo-go {
+  font-family: var(--sans); font-weight: 500; font-size: var(--t-13);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 10px 20px; border: 1px solid var(--ink); border-radius: var(--radius);
+  background: transparent; color: var(--ink);
+}
+.undo-go:hover { background: var(--ink); color: var(--bone); }
+.undo-go:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.receipt-undo .receipt-note { margin-top: 8px; }
+
+@media (max-width: 900px) {
+  .receipt-line { grid-template-columns: minmax(0, 1fr) minmax(0, 42%); column-gap: 12px; }
+  .receipt-line .r-val { grid-template-columns: minmax(0, 1fr) 62px; column-gap: 8px; }
+}
+
+/* A spent one-shot reads as done, not as armed. Still --proof: restoring rows is
+   not destructive, and the seal belongs elsewhere. */
+.receipt-chip.is-spent { opacity: 0.75; }
+.undo-go:disabled { color: var(--graphite); border-color: var(--rule); }

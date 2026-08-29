@@ -9,6 +9,7 @@ import { useState } from 'react'
 import type { Phase, Simulation } from '../state'
 import { Ledger } from '../dossier/Ledger'
 import { Preconditions } from '../dossier/Preconditions'
+import { Receipt } from '../dossier/Receipt'
 
 // The statement that actually runs against the seeded estate. Never a table or
 // column that does not exist — a judge copies this on the one screen that has to
@@ -50,18 +51,15 @@ export function Dossier(p: Props) {
 
           {p.sim && measured ? (
             <>
-              {/* In WITNESSING the ledger is a record of what was destroyed, not a
-                  forecast of what would be. Saying so is the difference between a
-                  measurement and a receipt; the receipt itself lands separately. */}
-              {p.phase === 'WITNESSING' && (
-                <p className="panel-note">
-                  Committed{p.sim.committed_at ? ` at ${new Date(p.sim.committed_at).toISOString().replace('T', ' ').slice(0, 19)} UTC` : ''}.
-                  {p.sim.execution
-                    ? ` The commit was scoped to ${p.sim.execution.scoped_to_pks.toLocaleString()} keys and removed ${p.sim.execution.deleted_root_rows.toLocaleString()} root rows.`
-                    : ''} These are the rows it took.
-                </p>
-              )}
-              <Ledger sim={p.sim} />
+              {/* §5 — WITNESSING is the receipt's screen: it carries the per-table
+                  figures, the fingerprint, the commit time and the armed undo, so the
+                  ledger's forecast is not shown beside it. The same numbers under two
+                  headings would leave the operator working out which is the record.
+                  Rendered here rather than from an early return, because the command
+                  form below has to survive into WITNESSING (#20). */}
+              {p.phase === 'WITNESSING'
+                ? <Receipt sim={p.sim} onSend={p.onSend} approvalOpen={p.approvalOpen} running={p.running} />
+                : <Ledger sim={p.sim} />}
             </>
           ) : (
             <>

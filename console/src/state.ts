@@ -20,7 +20,7 @@ export type Simulation = {
   duration_ms: number
   tables: TableRow[]
   fingerprint: { count: number; pk_hash: string; pk_column: string; measured_at: string } | null
-  undo: { verified: boolean; verified_at: string | null; statements: number; report: Record<string, unknown> | null }
+  undo: { verified: boolean; verified_at: string | null; statements: number; report: Record<string, unknown> | null; fired?: boolean }
   policy: { verdict: 'PASS' | 'FAIL'; rules: { rule: string; pass: boolean; detail: string }[] } | null
   committed: boolean
   committed_at: string | null

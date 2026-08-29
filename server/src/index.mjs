@@ -191,7 +191,9 @@ const httpServer = createServer(async (req, res) => {
       simulation_id: s.simulation_id, change_sql: s.change_sql, kind: s.kind,
       started_at: s.started_at, duration_ms: s.duration_ms,
       tables: s.tables, fingerprint: s.fingerprint ? { ...s.fingerprint } : null,
-      undo: { verified: s.undo?.verified ?? false, verified_at: s.undo?.verified_at ?? null, report: s.undo?.report ?? null, statements: s.undo?.sql ? s.undo.sql.split(';\n').length : 0 },
+      // `fired` is the one-shot state. Without it the console cannot tell an armed
+      // undo from a spent one, and would keep offering a restore the engine refuses.
+      undo: { verified: s.undo?.verified ?? false, verified_at: s.undo?.verified_at ?? null, report: s.undo?.report ?? null, statements: s.undo?.sql ? s.undo.sql.split(';\n').length : 0, fired: s.undo?.fired ?? false },
       policy: s.policy ?? null, committed: s.committed, committed_at: s.committed_at ?? null,
       execution: s.execution ?? null,
     }));
