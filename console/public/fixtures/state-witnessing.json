@@ -389,7 +389,7 @@
      ],
      "rows_during_outage": 12000,
      "undo_error": null,
-     "undo_token": "8fda6d06-0b83-4ebd-8446-e997dd224f0d",
+     "undo_token": "00000000-0000-4000-8000-000000000000",
      "note": "undo replayed against COMMITTED shadow state; 6000/6000 rows restored, PK set identical",
      "shadow_dirty": false
     },

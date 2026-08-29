@@ -126,8 +126,10 @@ export function seedSql() {
 
   let orderId = 0, paymentId = 0;
   const orderRows = [], paymentRows = [];
-  // Orders belonging to doomed users, so invoices can reference a few of them and
-  // the RESTRICT edge actually has rows in the blast path.
+  // Orders belonging to doomed users. Tracked so the invoice seeding can be sure to
+  // AVOID them: an invoice against a doomed order puts rows behind the RESTRICT
+  // edge, and the shadow DELETE then aborts on the foreign key before policy runs.
+  // See COUNTS and the README on why that rule cannot be reached at all.
   const doomedOrderIds = [];
   // Orders belonging to a reserved band of the newest users. Invoices hang off
   // these, so no demo statement's blast path ever reaches the RESTRICT edge and
