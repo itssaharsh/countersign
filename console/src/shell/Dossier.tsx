@@ -7,9 +7,9 @@
 // possible while a simulation exists.
 import { useState } from 'react'
 import type { Phase, Simulation } from '../state'
-import { Ledger } from '../dossier/Ledger'
-import { Preconditions } from '../dossier/Preconditions'
+import { Section, Revisions } from '../dossier/Section'
 import { Receipt } from '../dossier/Receipt'
+import { Measuring } from '../dossier/Measuring'
 
 // The statement that actually runs against the seeded estate. Never a table or
 // column that does not exist — a judge copies this on the one screen that has to
@@ -25,6 +25,7 @@ type Props = {
   // shows the operator the wrong active state.
   approvalOpen: boolean
   questionOpen: boolean
+  demo?: boolean
   onSend: (text: string) => void
 }
 
@@ -58,25 +59,33 @@ export function Dossier(p: Props) {
                   Rendered here rather than from an early return, because the command
                   form below has to survive into WITNESSING (#20). */}
               {p.phase === 'WITNESSING'
-                ? <Receipt sim={p.sim} onSend={p.onSend} approvalOpen={p.approvalOpen} running={p.running} />
-                : <Ledger sim={p.sim} />}
+                ? <Receipt sim={p.sim} onSend={p.onSend} approvalOpen={p.approvalOpen} running={p.running} demo={p.demo} />
+                : <Section sim={p.sim} />}
             </>
           ) : (
             <>
-              <h2 className="t-label">{p.phase === 'WITNESSING' ? 'Receipt' : 'Blast radius'}</h2>
-              <p className="panel-empty">
-                {p.phase === 'WITNESSING'
-                  ? 'The commit is done. The per-table figures, the fingerprint and the armed undo appear here.'
-                  : p.questionOpen
-                    ? 'The agent is asking you something. Answer or decline it below.'
-                    : p.approvalOpen
-                      ? 'The evidence for this approval appears here.'
-                      : 'Measuring. The per-table counts appear here when the shadow transaction reports.'}
-              </p>
+              {/* The plain waiting states stay one sentence. INVESTIGATING does not:
+                  it is 18 to 43 seconds long, and a single grey line in an empty
+                  column is the console's worst screen precisely where the operator
+                  most needs to know it has not hung. */}
+              {p.phase === 'WITNESSING' || p.questionOpen || p.approvalOpen ? (
+                <>
+                  <h2 className="t-label">{p.phase === 'WITNESSING' ? 'Receipt' : 'Blast radius'}</h2>
+                  <p className="panel-empty">
+                    {p.phase === 'WITNESSING'
+                      ? 'The commit is done. The per-table figures, the fingerprint and the armed undo appear here.'
+                      : p.questionOpen
+                        ? 'The agent is asking you something. Answer or decline it below.'
+                        : 'The evidence for this approval appears here.'}
+                  </p>
+                </>
+              ) : (
+                <Measuring />
+              )}
             </>
           )}
 
-          {p.sim && hasEvidence && <Preconditions sim={p.sim} />}
+          {p.sim && hasEvidence && p.phase !== 'WITNESSING' && <Revisions sim={p.sim} />}
         </>
       )}
 
@@ -100,7 +109,7 @@ export function Dossier(p: Props) {
           {p.questionOpen
             ? 'The agent asked a question. Answer or decline it below before sending anything else.'
             : p.approvalOpen
-              ? 'A gate is open. Countersign or deny it below before sending anything else — the deny reason goes back to the agent.'
+              ? 'A gate is open. Countersign or deny it below before sending anything else. The deny reason goes back to the agent.'
               : idle
                 ? 'Paste a destructive statement. Nothing runs until you countersign.'
                 : 'Ask for a re-measurement, or say "fire the undo" to bring the rows back. Nothing runs until you countersign.'}

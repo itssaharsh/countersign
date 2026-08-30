@@ -42,6 +42,13 @@ async function main() {
     console.log('Seeding PGlite at', dataDir);
   }
   const t0 = Date.now();
+  // --reset drops the public schema first. Never implicit: this points at whatever
+  // database the URL names, and a seed script that quietly drops tables is a worse
+  // hazard than the one this project exists to prevent.
+  if (args.includes('--reset')) {
+    console.log('resetting public schema');
+    await exec('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
+  }
   for (const s of schemaSql()) await exec(s);
   for (const s of seedSql()) await exec(s);
   const counts = await exec(`SELECT
@@ -49,7 +56,11 @@ async function main() {
     (SELECT count(*) FROM users WHERE last_active < '2025-01-01') AS doomed_users,
     (SELECT count(*) FROM orders o JOIN users u ON u.id=o.user_id WHERE u.last_active < '2025-01-01') AS doomed_orders,
     (SELECT count(*) FROM payments p JOIN orders o ON o.id=p.order_id JOIN users u ON u.id=o.user_id WHERE u.last_active < '2025-01-01') AS doomed_payments`);
-  const row = Array.isArray(counts) ? counts[counts.length - 1].rows[0] : counts.rows?.[0] ?? counts[0];
+  // PGlite returns [{rows:[…]}] per statement; the postgres driver returns the rows
+  // directly. Read whichever shape came back rather than assuming the local one.
+  const row = Array.isArray(counts)
+    ? (counts[counts.length - 1]?.rows?.[0] ?? counts[0])
+    : (counts.rows?.[0] ?? counts[0]);
   console.log('Seeded in', ((Date.now() - t0) / 1000).toFixed(1) + 's —', JSON.stringify(row));
   await close();
 }

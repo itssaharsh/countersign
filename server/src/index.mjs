@@ -130,7 +130,11 @@ const transports = new Map();
 
 // Only the local console may call this server from a browser; a wildcard here
 // would let any website drive the tools through a visitor's browser (Qodo PR2#4).
-const ALLOWED_ORIGINS = new Set((process.env.COUNTERSIGN_ALLOWED_ORIGINS ?? 'http://localhost:5199,http://127.0.0.1:5199').split(','));
+// 5199 is the dev server; 5200 is `vite preview`, which serves the production
+// bundle and is the build the review tools scan and a judge can run without a
+// dev toolchain. Override with COUNTERSIGN_ALLOWED_ORIGINS.
+const ALLOWED_ORIGINS = new Set((process.env.COUNTERSIGN_ALLOWED_ORIGINS
+  ?? 'http://localhost:5199,http://127.0.0.1:5199,http://localhost:5200,http://127.0.0.1:5200').split(','));
 
 const httpServer = createServer(async (req, res) => {
   const origin = req.headers.origin;
@@ -219,7 +223,11 @@ const httpServer = createServer(async (req, res) => {
   }
 });
 
-httpServer.listen(PORT, '127.0.0.1', () => {
+// Loopback by default: the engine holds database credentials and should not be
+// reachable from the network unless someone deliberately says so. A deployment
+// sets COUNTERSIGN_HOST=0.0.0.0 and puts its own auth in front.
+const HOST = process.env.COUNTERSIGN_HOST ?? '127.0.0.1';
+httpServer.listen(PORT, HOST, () => {
   const restored = restoreSimulations();
   console.log(`countersign MCP server on http://127.0.0.1:${PORT}/mcp`);
   console.log('backends:', JSON.stringify(describeBackends()));

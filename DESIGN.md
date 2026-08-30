@@ -1,5 +1,14 @@
 # DESIGN.md — Countersign console
 
+> **Superseded.** This document specifies the counterfoil direction — a paper ground, hard
+> rules, one seal. The console that ships took a different path: a dark ground with the stage
+> behind it, and the blast radius drawn as a section rather than tabulated. The rules here that
+> still hold and are still enforced are the structural ones — the approve control does not exist
+> until it is earned, red is rationed to one element, contrast is measured rather than assumed,
+> and nothing on screen may claim more than the harness reported. The palette and the layout are
+> history. Kept because §9 records ten places where a specification was corrected against the
+> running system, which is worth more than a spec that was never wrong.
+
 The single source of truth for visual and interaction decisions. Claude Code: read this
 file fully before touching any component. Do not invent colors, fonts, or animations that
 are not in here.
@@ -18,6 +27,11 @@ invent the data. See §9 for the record of where the spec was corrected against 
 person sits in front of while a TrueForge agent investigates a destructive database change
 and waits to be countersigned.
 
+This section originally put the 3D stage out of scope. **§11 reverses that**, and the rule
+it lands on governs everything below: the world shows the shape of the blast, the console
+shows the figures, and neither does the other's job. Read §11 alongside §1 and §2 — the
+direction still holds, the ground it is printed on does not.
+
 The judging line for the Best UI track is: *an interface that shows what the agent is
 doing, what it is waiting on, and what it did, and asks before the irreversible step
 rather than after it — judged on the demo video and on the running project.*
@@ -35,6 +49,11 @@ A stranger with no context must be able to drive it. That is the whole brief.
 ## 1. Direction
 
 **The counterfoil.**
+
+*(§11: the paper ground below was re-struck onto the stage. The doctrine in this section —
+one seal, rationed; every value that came out of the database set in mono; the approve
+control absent until earned — is unchanged and is what keeps the console legible over a
+moving field.)*
 
 Countersign is the second signature on a release order. The visual world is not "AI
 dashboard" — it is the paperwork of authorised destruction: a munitions release form, a
@@ -463,3 +482,107 @@ Two of these — A2 and A3 — could be made literally true by exposing the engi
 `onProgress` stages over a progress channel. That is a real feature, not a workaround, and
 if it is built this spec should be revised to describe it. Until then the spec describes
 what the console can actually observe.
+
+---
+
+## 10. The review pass (design audit, Aug 30)
+
+The spec above was written before the components existed. Once all six screens were running,
+they were audited against two external design skills rather than against this file alone:
+
+- **[impeccable](https://github.com/pbakaus/impeccable)** — 61 deterministic detector rules,
+  run headlessly against the live console at 390, 1280 and 1920 with no model in the loop
+  (`impeccable detect http://localhost:5199/`). Findings below are its exact rule ids.
+- **[taste-skill](https://github.com/leonxlnx/taste-skill)** — its AI-tells list (§9). Scoped
+  to landing pages and portfolios rather than product UI, so it was used as a checklist, not
+  as a direction. Only two of its rules bound here: the em-dash ban and the middle-dot
+  ration.
+
+The console source itself scanned clean (`detect console/src` — zero findings). Every finding
+was against the rendered page, which is the only place layout defects exist.
+
+| # | Finding | What was wrong | Decision |
+| --- | --- | --- | --- |
+| B1 | `first-viewport-column-overflow` | The cold open ran §5 literally: one input in a two-column grid, with a 72px transcript beside it and the rest of the viewport blank. On a reload against a committed run, the dossier ran 2,251px beside a 72px sibling. | §5 gains a cold-open cover: one column until the first agent event, the claim at Display 44, and the three measurements listed as pending. The second column arrives with the transcript. |
+| B2 | `flat-type-hierarchy` (11/13/16px) | Nothing above 16px was on screen before a simulation existed. The scale has seven steps; the cold open used three adjacent ones. | The claim is Display 44. **76 stays the ledger total's alone** — §5 gives it one moment and a second 76 would spend it. |
+| B3 | `cream-palette` | `--bone: #F2EFE6` sat in the middle of the detector's warm off-white band (`r ≥ g ≥ b`, `6 ≤ r-b ≤ 48`). A warm cream page is the reflex "tasteful" AI surface. | Re-struck cool at the same lightness: `#EBEDE8`, with `--rule` following to `#D7DAD2`. Every contrast figure in §2 was recomputed, not assumed: ink 16.1, graphite 4.8, seal 5.7, proof 9.9. Dark mode re-struck to match. |
+| B4 | `wide-tracking` | `UNDO ARMED · verified` was 21 characters of mixed-case text at 0.08em. §7 rations that tracking to short uppercase labels, and the chip was neither short nor uppercase in CSS. | The chip is two spans: a tracked uppercase label and an untracked value. |
+| B5 | `line-length` (~102 ch) | `.submit` is 72ch measured at 16px; the note under it sets at 13px and inherited a 100-character line. | Capped in the note's own measure. The same trap was caught in the new proof list before it shipped. |
+| B6 | *(not a detector rule)* | The receipt printed all 37 `SET NULL` tables in full: 1,878px of identical rows between the death count and the fingerprint, the two figures the screen exists for. §5 already collapses them on the ledger; the receipt did not follow its own doctrine. | The receipt collapses them behind the same expander, with the same words. The list is one click away, so the record is intact. |
+| B7 | *(not a detector rule)* | INVESTIGATING is the longest state in the run — 18 to 43 seconds — and it was one grey sentence in an empty column. Nothing on screen said whether it had hung. | A pending panel naming the three measurements. It says explicitly that nothing publishes until the tool returns, because A2 above means the console cannot honestly imply a stream. No bar, no spinner, no percentage: the elapsed counter on the open call is the only real progress signal and it was already there. |
+| B8 | taste-skill §9.G | Seven em-dashes in user-visible copy. | Removed. The dash is not a design element and the spec's own prose is not the product's voice. Comments in this repo keep them. |
+
+After the pass: **zero findings at 390, 1280 and 1920.** The detector is a floor, not a
+verdict — B6, B7 and the composition of the cover are judgement, and it caught none of them.
+
+---
+
+## 11. The stage returns (Aug 30)
+
+§0 of this spec said the artifact is the operator console and put the 3D stage out of
+scope. That was wrong, and the person who wrote it said so: *"there was a planetary UI
+before, it looked better."* It did. What the counterfoil bought was legibility, and what it
+cost was the one thing that made a judge stop scrolling.
+
+So the stage comes back, and this section is the rule that keeps both:
+
+> **The world shows the shape of the blast. The console shows the figures.**
+> Neither is allowed to do the other's job.
+
+### What that decides
+
+- **The stage is a fixed layer behind everything**, never in the flow, never a section you
+  scroll past. `Experience.tsx` is restored from the v4 branch unchanged in its physics: the
+  geometry still *is* the phase (idle sphere, cascade clusters and beams, the breathing core
+  inside the freshness ring, the vortex), and every number that shapes it is still real. The
+  share of points that ignite is the fingerprint's key count; the ring's arc is the real
+  freshness fraction.
+- **The 3D count labels are gone.** They read `…` for the whole of INVESTIGATING, because
+  §9 A2 means nothing is published until the tool returns, and the moment they had numbers
+  was the moment the ledger was on screen carrying the same numbers with their edge
+  semantics. Two copies of 17,971, one floating over the card, is the world arguing with the
+  console.
+- **The freshness ring is wide.** At the v4 radius the whole ring sat behind the two glass
+  columns and the countdown — the one element literally counting down the operator's window
+  — was a green sliver in a gap. At 4.2 the arc sweeps out past both columns.
+- **Every reading surface is glass**, cut from `--bone`: `--panel` where the content is
+  prose, `--panel-solid` where a judge reads figures off the screen. One surface per column,
+  never a card inside a card. `prefers-reduced-transparency` gets the same colour, solid.
+- **There is no light mode.** A light console over a dark starfield is two designs at once,
+  so §2's inversion is deleted rather than kept as dead code.
+
+### The palette, re-struck a second time
+
+`--bone` is now the canvas's own clear colour, so the page and the WebGL background are one
+surface with no seam at the viewport edge. `--seal` and `--proof` are the coral and green
+the point field already uses: a row that is dying is the same red in the ledger as it is in
+the world. Contrast on `--bone`: ink 17.2, graphite 7.0, seal 7.3, proof 13.1, and no lower
+than 6.4 on the lightest glass.
+
+### The countersign control
+
+§4's hold used `mix-blend-mode: difference` to invert its label as the fill crossed it. That
+only worked on paper. On the stage the unfilled ground is near-black, the difference of two
+dark colours is a dark colour, and **the control the whole product turns on was invisible
+until the fill reached the letter.** It is now two pixel-aligned copies of the label, the
+lower one in `--seal`, the upper one in `--bone` and clipped to exactly the fill. Dumber,
+and legible at every point in the hold.
+
+### Weak GPUs are a first-class case
+
+The stage measures its own renderer once, through `WEBGL_debug_renderer_info`, and on a
+software rasteriser (SwiftShader, llvmpipe) it drops to 3,500 points, `dpr: 1` and no bloom.
+This is not a test affordance: a judge on a laptop with no driver gets the same world at a
+frame rate that reads as a world. On this machine it took the console from **3 fps to 45**.
+
+### One honest limitation
+
+`impeccable detect <url>` cannot scan the running console any more. Its browser engine waits
+for `networkidle0`, and the console polls the engine every 1.5s forever, so the navigation
+never resolves — with `networkidle2` it does, but the CLI does not expose the setting. The
+source scan (`impeccable detect console/src`) still runs clean, and `tools/design-review.mjs`
+— which is Playwright, checks contrast, overlap, tap targets and the whole keyboard path,
+and is the gate that actually blocks — runs against the real page. The detector findings in
+§10 were fixed before the stage returned and the rules they came from still hold; what is
+gone is the ability to re-run that particular tool against a live WebGL page on a box with
+no GPU.

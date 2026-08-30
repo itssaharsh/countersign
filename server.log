@@ -1,2 +1,0 @@
-countersign MCP server on http://127.0.0.1:8977/mcp
-backends: {"live":"pglite:/home/saharsh/contri/wemk/countersign/pglite-data/live","shadow":"pglite:/home/saharsh/contri/wemk/countersign/pglite-data/shadow"}

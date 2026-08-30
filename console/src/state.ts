@@ -2,6 +2,7 @@
 // read-only /state endpoint (or a recorded fixture in replay mode) — measurements,
 // never model prose.
 import { useEffect, useState } from 'react'
+import { endpoints } from './endpoints'
 
 export type TableRow = {
   name: string
@@ -28,7 +29,7 @@ export type Simulation = {
 }
 export type EngineState = { simulations: Simulation[]; backends: Record<string, string> }
 
-const SERVER = import.meta.env.VITE_COUNTERSIGN_SERVER ?? 'http://127.0.0.1:8977'
+const SERVER = endpoints().engine
 
 export function useEngineState(pollMs = 1500, source?: string): EngineState {
   const [state, setState] = useState<EngineState>({ simulations: [], backends: {} })

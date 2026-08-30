@@ -30,7 +30,10 @@ const browser = await chromium.launch();
 const errors = [];
 
 for (const [name, viewport] of VIEWPORTS) {
-  const context = await browser.newContext({ viewport });
+  // reducedMotion: the stage's frame loop settles into the current phase and holds
+  // (§6). Without it Playwright waits on a canvas that never stops changing and the
+  // screenshot times out under software WebGL.
+  const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
   const page = await context.newPage();
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`[${name}] ${m.text().slice(0, 200)}`); });
   page.on('pageerror', (e) => errors.push(`[${name}] pageerror: ${String(e).slice(0, 200)}`));
