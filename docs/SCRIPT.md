@@ -1,197 +1,167 @@
-# SCRIPT.md — the demo video, shot by shot
+# SCRIPT.md — the demo video
 
-The hackathon asks for **"a demo of about three minutes showing the agent working."** Best UI
-is judged on *"demo video and running project"*, so the video is half of that track's
-evidence, not a formality.
+Written for the deployed demo at **countersign-xi.vercel.app**, which is what is being filmed.
+[SHOOT.md](SHOOT.md) is the production companion: what triggers each screen, how long it takes,
+what to reset.
 
-This is the narrated script. [SHOOT.md](SHOOT.md) is its production companion: what triggers
-each state, how long it really takes, what has to be reset between takes, and which takes
-cannot share a run. Read SHOOT.md before rolling; read this while editing.
+**Total 3:00. About 450 words, which is 3:00 at a deliberate 150 wpm.** The gaps are meant to
+be silent. Record the voiceover separately from the screen and cut the picture to the words.
 
-- **Total: 2:55.** Every timing below is a measured duration from a live run, not a target.
-- **Narration: ~430 words**, which is 2:50 at a deliberate 150 wpm. Leave the gaps silent.
-- Record the voiceover **separately** from the screen. The model's thinking time varies by
-  more than twenty seconds between runs; a live read will not survive it.
-- Say **"the console"**, never "the UI". Say **"measured"**, never "estimated" or "predicted".
-- Nothing in the narration is a number the screen does not show at that moment.
+**One thing about pacing on the deployment.** The replay streams while you are still on the
+landing, so the gate arrives about two seconds after the click. There is no waiting to fill.
+That means the edit holds still frames while the narration runs, rather than the narration
+racing to keep up with the screen. Let each screen sit.
 
----
-
-## Beat 1 · The consent form — 0:00 to 0:16
-
-**Screen.** TrueForge's own default approval dialog: the tool name, the raw JSON arguments.
-Not the Countersign console. Hold it still. Do not scroll.
-
-> "This is what an approval looks like in almost every agent shipping today. A tool name. A
-> blob of JSON. If I click allow, what happens to the database?
->
-> I don't know. And I'm the safety layer.
->
-> That's not a control. That's a consent form."
-
-**Cut hard** on "consent form". No transition.
+**Read it flat.** Every line below is a statement of fact about something visible. Flat and
+certain lands harder than energetic, especially on "there is no button".
 
 ---
 
-## Beat 2 · The claim — 0:16 to 0:32
+## Beat 1 · What this is — 0:00 to 0:18
 
-**Screen.** The Countersign console, cold: a slowly turning sphere of 14,000 points, and the
-claim over it in one column. *Every approval gate shows you the command. This one shows you
-the consequence.* **Let it sit for three full seconds before you speak.** The turn of the
-world is the shot; do not rush it, and do not cut on a static frame.
+**On screen.** The landing, still. Do not scroll yet.
 
-> "Countersign is the same gate, inverted. Before you are asked to approve anything, three
-> things get measured: what dies, whether the undo works, and whether policy allows it.
+> Countersign is an approval layer for destructive database changes.
 >
-> Until all three land, there is no approve button on this page. Not greyed out. Absent."
-
-**Drag the sphere once, slowly, then let go.** It is the only piece of play in the console
-and it tells a judge in one gesture that this is running, not a render. Then leave the mouse
-alone: the screen is the argument.
+> When an AI agent wants to delete something from your database, it has to ask a person first.
+> This is the screen where that question gets asked, and it is the only screen I know of that
+> shows you the answer before you have to give one.
 
 ---
 
-## Beat 3 · The order — 0:32 to 0:52
+## Beat 2 · The consent form — 0:18 to 0:38
 
-**Screen.** Click the field, paste the order, press **Measure it**. Two things happen at once
-and both are worth the frame: the layout splits, transcript left and dossier right, and the
-sphere breaks apart into three clusters with light beams drawing the cascade between them.
+**On screen.** Scroll slowly to the claim. Hold on the number.
 
-Order (paste, do not type — typing on camera reads as filler):
-
-```
-Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'.
-Simulate, verify the undo, evaluate policy, then commit.
-```
-
-> "One delete. Six thousand inactive users.
+> Every agent harness ships human approval, and every one of them asks the same way. A tool
+> name, some JSON, allow or deny.
 >
-> The agent runs on TrueForge. It reaches a custom MCP server that holds the database
-> credentials, so the model never sees them, and it opens a transaction it is never allowed
-> to commit."
-
-**This is where the run costs 18 to 43 seconds.** Cut the dead middle in the edit; the elapsed
-counter climbing in the transcript is the shot that survives.
+> Nobody can answer that honestly. You cannot see how many rows die, what cascades behind
+> them, or whether any of it can be undone. So the person clicking becomes the safety layer
+> while being handed nothing to be safe with. That is not a control. It moves the blame.
 
 ---
 
-## Beat 4 · The ledger — 0:52 to 1:30
+## Beat 3 · The order — 0:38 to 0:52
 
-**Screen.** The ledger stamps in complete on its glass panel, with the world still moving
-behind it. Rows count up by foreign-key depth. The total turns
-`--seal` the instant the ledger is complete, and **hands the red back** a moment later when the
-countersign control materialises: only one element in the console wears it at a time. Do not
-talk over either transition, and do not be surprised when the number goes black again. That is
-the design, and it is worth one line of narration in beat 5.
+**On screen.** The statement field, then click **Watch the recorded run**.
 
-> "It ran the delete inside a shadow transaction and rolled it back. This is what came out.
+> Here is one real statement against one real database. Delete the users who have not logged
+> in since the start of last year.
 >
-> Six thousand users. They pull seventeen thousand nine hundred and seventy-one orders.
-> Those pull nineteen thousand four hundred and forty-two payments. Every one of those arrows
-> is a real foreign key, walked in the real schema.
->
-> Thirty-seven more tables lose references but keep every row. That distinction is the whole
-> product, and the console never blurs it.
->
-> Forty-three thousand four hundred and thirteen rows die."
-
-**Pause two seconds on the total.** It is the only 76-pixel number in the console and this is
-the second it exists for.
+> Six thousand users. That is what it says.
 
 ---
 
-## Beat 5 · The three proofs — 1:30 to 1:47
+## Beat 4 · What it actually takes — 0:52 to 1:22
 
-**Screen.** The three precondition lines, stamped. The world pulls back and the doomed set
-draws into a breathing core inside a wide green ring: that ring is the freshness countdown
-and its arc is real. Then the countersign control materialises in the gate bar, the red
-arriving after the shape.
+**On screen.** The section. Hold here. This is the longest beat and the most important frame
+in the video.
 
-**Frame this wide.** The ring sweeps out past both columns and the shot only works if both
-ends of the arc are in it.
-
-> "Blast radius measured. Undo proven: six thousand of six thousand rows came back in shadow.
-> Policy passed: four rules, none blocking.
+> Forty three thousand four hundred and thirteen.
 >
-> That ring is the clock on this approval. While it is open, those rows are being watched.
+> The extra thirty seven thousand are orders those users placed, and payments made against
+> those orders, reached through foreign keys the approval prompt never mentioned.
 >
-> Now the control exists."
+> The drawing is the measurement. Depth down the page is foreign key depth. Bar length is how
+> many rows. Solid means the rows are gone. The hatched band is thirty seven tables that keep
+> their rows but lose a reference, which is a completely different thing, and separating those
+> two is the entire product.
+>
+> None of this is predicted. The statement was run for real inside a transaction that was then
+> rolled back.
 
 ---
 
-## Beat 6 · The hold — 1:47 to 2:08
+## Beat 5 · The three proofs — 1:22 to 1:42
 
-**Screen.** Press and hold. The coral fill crosses the label left to right over 1200ms and
-the letterforms invert as it passes them. Release only once it reads COUNTERSIGNED. The gate
-clears, the world vortexes, and the receipt prints.
+**On screen.** The revision block, A, B and C.
 
-> "Approving is a press and hold, because a click is something you can do by accident.
+> Blast radius measured across forty one tables.
 >
-> The commit runs scoped to the exact key set that was fingerprinted. If those rows changed
-> while I was reading, the commit reports the drift instead of destroying it."
-
-**The hold is the single most important second in the video.** SHOOT.md says film it
-deliberately. A fumbled hold costs the whole take.
+> Rollback proven. The undo was generated, applied to a committed copy of the database, and
+> six thousand of six thousand rows came back. If twelve had failed to return, this line would
+> say so and we would stop here.
+>
+> Policy passed. Four rules, evaluated by code. There is no model anywhere in that verdict.
 
 ---
 
-## Beat 7 · The receipt — 2:08 to 2:24
+## Beat 6 · The button that did not exist — 1:42 to 2:04
 
-**Screen.** The receipt, printed. The `Undo armed · verified` chip. Click the collapsed
-references line once so it expands, then leave it.
+**On screen.** The gate bar. Then press and hold for 1.2 seconds and let the fill cross.
 
-> "The receipt is the record. What was scoped, what was actually deleted, the fingerprint, the
-> commit time.
+> Only now is there a button.
 >
-> And the undo is armed. Not offered. Proven, before any of this ran."
+> It was not greyed out a moment ago. It was absent, and the bar said what was missing. A
+> disabled button still tells you an action is available. An absent one tells you the truth.
+>
+> And it is a hold, not a click, because this is irreversible and a stray click should not be
+> able to do it.
 
 ---
 
-## Beat 8 · It can say no — 2:24 to 2:44
+## Beat 7 · The receipt — 2:04 to 2:20
 
-**Screen.** Two cuts, roughly ten seconds each. Both are separate takes; see SHOOT.md.
+**On screen.** The receipt printing, and the undo chip.
 
-1. **Stale.** The gate armed, untouched for 120 seconds. The control *withdraws*.
-2. **Policy failure.** The `audit_log` order. No gate ever opens.
-
-> "A gate that can only say yes isn't a gate.
+> The commit deleted by that exact key list and nothing else. If a row had started matching
+> while I was reading, it would have voided the approval instead of dying with it.
 >
-> Leave this one sitting and the measurement ages out. The control withdraws itself, because
-> the evidence behind it expired.
->
-> And when policy fails, the agent never asks. There is nothing to approve."
+> And the undo is armed and already proven. Firing it is countersigned the same way, because
+> writing to production is writing to production.
 
 ---
 
-## Beat 9 · Close — 2:44 to 2:55
+## Beat 8 · It can say no — 2:20 to 2:40
 
-**Screen.** The repo, then the Qodo review trail, then the AI disclosure line in the README.
+**On screen.** Cut to the refused screen, then the stale one.
 
-> "Everything you just watched was measured, not predicted. Every change went through a
-> pull request reviewed by Qodo. There is a zero-key replay in the repo, so you can drive
-> this yourself without a model key.
+> This is the same console refusing.
 >
-> Countersign. The approve button that shows you the consequence."
+> Here the evidence behind the approval is missing, so there is no control at all, only deny.
+>
+> And here the measurement expired while the operator was reading. The button withdrew. The
+> drawing is still true, but the count is two minutes old, and a count you read two minutes
+> ago is not a count.
+
+---
+
+## Beat 9 · On your own database — 2:40 to 2:56
+
+**On screen.** The connect screen on the landing, then the repository.
+
+> None of this is written against my schema. The foreign key walk reads the database's own
+> constraints, so it measures whatever yours declares.
+>
+> To point it at your own: two connection strings, one for the database the change would
+> touch and one for a copy where the rollback gets proven, and a short file of your rules.
+> Your credentials stay in the engine. The model only ever sees measurements.
+
+---
+
+## Beat 10 · Close — 2:56 to 3:00
+
+**On screen.** The section, held.
+
+> We only delete what we can prove we can restore.
 
 ---
 
 ## Editing notes
 
-Descript, via Underlord:
+- **Cut the picture to the words, not the reverse.** On the deployment the gate arrives in two
+  seconds; hold the frame and let beat 4 breathe over a still section.
+- **Do not speed up the hold.** The 1.2 seconds of the fill crossing the control is the single
+  most legible second in the video. If anything, hold a beat after it completes.
+- **Beat 8 is two separate takes** cut together. Neither can be reached from the run in beats
+  3 to 7. SHOOT.md has the URLs.
+- Leave the gaps silent. Roughly a third of the runtime has no narration and that is deliberate.
 
-- Trim dead air and filler words first, then Studio Sound, then captions.
-- **Do not let it add zooms to beats 2, 4 or 5.** Those three are compositions: a push-in
-  crops the claim, the ledger total is the wrong shape for a zoom, and cropping beat 5 cuts
-  the ends off the freshness ring, which is the whole point of the frame.
-- Auto-zoom on the hold (beat 6) and on the chip (beat 7) is worth keeping.
-- Captions: on. Judges watch muted more often than not.
+## Before export
 
-## Safety check before export
-
-- **No keys on screen.** The rotor, the `.env`, the TrueForge Settings page: none of them are
-  in any frame.
-- **TrueForge's own turn view stays off camera** except beat 1's approval dialog. It renders
-  tool arguments verbatim and `commit_change` carries `undo_token`. The console redacts it;
-  TrueForge does not.
-- **Scrub the browser chrome:** no other tabs, no bookmarks bar, no notifications.
-- Watch the export once at 1x, muted, with captions on. That is how it will be judged.
+- The connect fields must still show the dummy values. No real credential on screen, ever.
+- Keep the harness's own turn view out of frame: it renders tool arguments verbatim, and those
+  include a token.
+- Confirm the demo banner is visible at least once, so nobody can mistake the replay for a live
+  database connection.
