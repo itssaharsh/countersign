@@ -94,7 +94,65 @@ Scale: 11 / 13 / 16 / 20 / 26 / 40 / 88. The 88 is the depth figure and appears 
 
 ---
 
-## 3. Layout
+## 3. Two surfaces, not one page
+
+The cover and the console are different jobs and they do not share a screen. A landing that
+also has to hold a field log, a section and a cut line is congested at exactly the moment the
+operator needs to read carefully.
+
+```
+  /            the cover        explains the thing, takes one statement
+     │
+     │  submit
+     ▼
+  /run         the console      section · field log · cut line
+```
+
+**Submitting is a navigation, not a state change.** The order is carried to `/run`, which
+opens on the empty section and starts the turn. Nothing on the cover follows you in.
+
+### 3a · The cover
+
+One screen, centred, no scrolling required to reach the input.
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  COUNTERSIGN                                    SECTION A–A · SHEET 1/1  │
+│                                                                          │
+│                                                                          │
+│         An approval that shows you the command                           │
+│         instead of the consequence is a consent form.                    │
+│                                                                          │
+│         Countersign runs your destructive statement in a shadow          │
+│         transaction, draws what it would take, proves the rollback,      │
+│         and only then lets the cut exist.                                │
+│                                                                          │
+│    ┌──────────────────────────────────────────────────────────────┐      │
+│    │ DELETE FROM users WHERE last_active < '2025-01-01'           │      │
+│    └──────────────────────────────────────────────────────────────┘      │
+│      Nothing runs until you countersign.          [ DRAW THE SECTION ]   │
+│                                                                          │
+│      ── grade ────────────────────────────────────────────────────       │
+│      ▓▓▓▓▓▓▓▓  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  ╱╱╱╱╱╱╱╱                               │
+│      measured   cascaded            disturbed                            │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+The claim is set in Archivo at 40, expanded. Beneath the input sits a **legend** — three
+sample strata showing what solid fill, a longer solid bar and hatching mean. It is the
+drawing's key, and it teaches the notation before the reader needs it. That is the cover's
+only decoration and it earns its place by being functional.
+
+No feature grid, no logo wall, no scroll story. The cover has one job: make the claim, teach
+the notation, take the statement.
+
+**The button reads `DRAW THE SECTION`**, not "Submit" or "Try it" — it names what happens
+next, and the same verb appears as the console's first action.
+
+### 3b · The console
+
+
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
