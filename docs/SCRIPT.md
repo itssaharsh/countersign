@@ -11,7 +11,7 @@ is (1), a working demo (2 to 7), the stack and architecture (8), and what buildi
 
 ---
 
-### 1 · The landing, still
+### 1 · countersign-xi.vercel.app, top of the page, still
 
 > Countersign is an approval layer for destructive database changes.
 >
@@ -22,7 +22,7 @@ is (1), a working demo (2 to 7), the stack and architecture (8), and what buildi
 
 ---
 
-### 2 · The statement field, then click Watch the recorded run
+### 2 · Same page, scrolled down to THE CHANGE TO MEASURE. Show the statement, then click WATCH THE RECORDED RUN
 
 > One real statement, against one real database. Delete the users who have not logged in since
 > the start of last year.
@@ -31,7 +31,10 @@ is (1), a working demo (2 to 7), the stack and architecture (8), and what buildi
 
 ---
 
-### 3 · The section. Hold here, this is the longest shot
+### 3 · The run screen, right hand panel. The longest shot
+
+Five bars under BLAST RADIUS BY FOREIGN KEY DEPTH, then the big 43,413 below them. Stay on
+this for twenty seconds longer than the narration needs; the tail becomes shot 9.
 
 > Forty three thousand four hundred and thirteen.
 >
@@ -43,7 +46,10 @@ is (1), a working demo (2 to 7), the stack and architecture (8), and what buildi
 
 ---
 
-### 4 · The revision block
+### 4 · Same screen, scrolled down a little
+
+The A / B / C lines sit below the fold at a 900px window, so scroll until all three are on
+camera before you start speaking.
 
 > None of it is predicted. The statement ran for real on a shadow copy, in a transaction that
 > was rolled back. Then the undo ran, and six thousand of six thousand rows came back.
@@ -52,7 +58,7 @@ is (1), a working demo (2 to 7), the stack and architecture (8), and what buildi
 
 ---
 
-### 5 · The gate bar, then press and hold for a second and a half
+### 5 · The bottom bar of the run screen. Press HOLD TO COUNTERSIGN and hold it for a second and a half
 
 > Only now is there a button.
 >
@@ -62,20 +68,28 @@ is (1), a working demo (2 to 7), the stack and architecture (8), and what buildi
 
 ---
 
-### 6 · The receipt printing, and the undo chip
+### 6 · The right hand panel again, where the receipt replaces the bars
 
 > It deleted by that exact key list and nothing else. A row that started matching while I read
 > would have voided the approval instead of dying with it.
 
 ---
 
-### 7 · Two clips, cut together. First this URL, waiting about twelve seconds; then the run from shot 5 left alone until the window runs out
+### 7 · Two separate recordings, cut together
+
+**First**, this URL in a fresh tab. Give it about twelve seconds to settle.
 
 ```
 https://countersign-xi.vercel.app/run?replayEvents=/fixtures/real-run.jsonl
 ```
 
-Point the camera at the empty space where the button was.
+The panel says THE CHANGE and offers MEASURE IT. The bottom bar reads *nothing measured yet*
+on the left, and on the right *waiting: this approval is missing its evidence* with only a
+reason box and Deny. Frame the bottom right, where HOLD TO COUNTERSIGN was in shot 5.
+
+**Second**, get back to the armed gate from shot 5 and leave it completely alone for two
+minutes. The freshness window is 120 seconds. The hold control withdraws by itself. Start
+this tab before you record anything else and let it age in the background.
 
 > The same console, refusing. The agent is still asking, but the measurement is gone, so there
 > is nothing to countersign.
@@ -85,7 +99,11 @@ Point the camera at the empty space where the button was.
 
 ---
 
-### 8 · Back to the landing. Show the connect fields, then click show the resolved environment
+### 8 · Back on the landing, scrolled to CONNECT YOUR DATABASE
+
+Four fields across, LIVE DATABASE, SHADOW DATABASE, AGENT HARNESS, COUNTERSIGN ENGINE, with
+MODEL KEY underneath. Partway through the narration, click **show the resolved environment**
+and let the printed variables sit on screen.
 
 > The stack is those four fields.
 >
@@ -102,7 +120,10 @@ Point the camera at the empty space where the button was.
 
 ---
 
-### 9 · The section, held still on the number
+### 9 · The tail of shot 3, held still on 43,413
+
+Not a new recording. The receipt has replaced the bars by this point in the run, so this is
+the twenty seconds you left running at the end of shot 3.
 
 > What I got wrong first was trusting the count in the request. Six thousand is not a lie. It
 > is just the only number the agent can see.
@@ -118,7 +139,7 @@ Point the camera at the empty space where the button was.
 - Record the voiceover separately and cut the picture to the words. On the deployed build the
   gate arrives about two seconds after the click, so the edit holds still frames while the
   narration runs.
-- Shot 7 is two separate recordings. Neither can be reached from the run in shots 2 to 6.
+- Shot 7's first clip cannot be reached from the run in shots 2 to 6. It is its own URL.
 - Shot 8 is the longest block of narration over the least motion. Cut between the connect
   fields and the resolved environment reveal partway through it.
 - Do not speed up the hold in shot 5. That second and a half is the most legible moment in
