@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { Simulation } from '../state'
 
-export const FRESHNESS_SECONDS = 120
+// How long a measurement stays signable. 120s fits a local database, where an
+// investigation takes about twenty seconds. Against a remote one it can take
+// seventy, and most of the window is gone before the gate even opens — so a
+// hosted deployment raises this rather than handing the operator ten seconds to
+// read a blast radius.
+export const FRESHNESS_SECONDS = Number(import.meta.env.VITE_FRESHNESS_SECONDS ?? 120)
 const LOAD_TIME = Date.now()
 const REPLAY_MODE = typeof window !== 'undefined' && (new URLSearchParams(window.location.search).has('replay') || new URLSearchParams(window.location.search).has('replayEvents'))
 

@@ -87,3 +87,49 @@ Stated plainly, because a safety tool that overstates its coverage is worse than
 Point it at two databases, write four lines of policy, pin two tool names for approval. The
 measurement, the undo proof and the gate work the same on any Postgres schema, because none of
 it is written against a schema.
+
+## Hosting it for other people
+
+Everything above runs on a laptop. Putting it somewhere other people can reach means
+hosting three things, and only one of them is a static site.
+
+| Piece | Where it can live | Why |
+| --- | --- | --- |
+| `console/` | Vercel, Netlify, any static host | a Vite build, nothing stateful |
+| the engine | Fly, Railway, Render, a container | long lived process, holds your database credentials |
+| TrueForge | the same kind of host | the agent harness, keeps its own SQLite state |
+
+The console reaches the other two by URL, so both are configuration rather than a fork:
+
+```bash
+# console build
+VITE_TRUEFORGE_URL=https://forge.example.com   # your hosted harness
+VITE_COUNTERSIGN_SERVER=https://engine.example.com
+VITE_FRESHNESS_SECONDS=240                     # see below
+
+# engine
+COUNTERSIGN_HOST=0.0.0.0                       # bind beyond loopback, deliberately
+COUNTERSIGN_PORT=8977
+COUNTERSIGN_ADMIN_TOKEN=…                      # guards the admin routes
+LIVE_DATABASE_URL=…
+SHADOW_DATABASE_URL=…
+```
+
+Two things to get right, both learned by doing it:
+
+**Raise the freshness window for a remote database.** An investigation against a local
+database takes about twenty seconds. Against a managed Postgres in another region it took
+**71 seconds**, most of it replaying the rollback across the network. The signature expires
+120 seconds after the rows are counted, so by the time the gate opens the operator may have
+under a minute to read a blast radius. `VITE_FRESHNESS_SECONDS` exists for that. Do not
+raise it past what your team will actually spend reading, because the expiry is the feature.
+
+**The engine binds to loopback by default, and that default is correct.** It holds your
+database credentials. `COUNTERSIGN_HOST=0.0.0.0` opens it to the network and puts the
+responsibility for authentication on whatever you place in front of it. There is no auth in
+the engine itself.
+
+**Use a session pooler, not a direct connection.** Managed Postgres often resolves its direct
+host to IPv6 only, which fails from hosts without an IPv6 route. Supabase's session pooler on
+port 5432 works and supports the multi statement transactions the measurement depends on; the
+transaction pooler on 6543 does not support everything the driver expects.
