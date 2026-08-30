@@ -13,11 +13,36 @@ import { Header } from './shell/Header'
 import { Transcript } from './transcript/Transcript'
 import { Dossier } from './shell/Dossier'
 import { Cover } from './shell/Cover'
+import { Landing } from './shell/Landing'
 import { Experience } from './experience/Experience'
 import { GateBar } from './gate/GateBar'
 
+/**
+ * Two surfaces. The landing carries the product and the connect step; the console
+ * carries the run. They do not share a screen — a landing that also holds a
+ * transcript, a blast radius and a gate is congested exactly when the operator
+ * needs to read carefully. Entering is a real navigation so the back button works
+ * and the console never inherits the landing's scroll position.
+ */
+function useRoute(): [string, (p: string) => void] {
+  const [path, setPath] = useState(window.location.pathname)
+  useEffect(() => {
+    const onPop = () => setPath(window.location.pathname)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+  return [path, (p: string) => { window.history.pushState({}, '', p); setPath(p) }]
+}
+
 export default function App() {
   const { feed, running, pending, send, respond, answer, startOver, replayReleased } = useHarness()
+  const [path, go] = useRoute()
+  // Judge mode and a resumed session both land straight in the console: a replay
+  // has nothing to connect, and a session already underway must not be sent back
+  // to a setup screen it has already passed.
+  const params = new URLSearchParams(window.location.search)
+  const skipLanding = params.has('replay') || params.has('replayEvents') || feed.length > 0 || pending.length > 0
+  const onLanding = path === '/' && !skipLanding
   // Judge mode: ?replayEvents=… holds at the gate; once countersigned, engine state comes
   // from ?replayAfter=… (the post-commit snapshot of the same recorded run).
   const replayAfter = new URLSearchParams(window.location.search).get('replayAfter') ?? undefined
@@ -56,6 +81,24 @@ export default function App() {
       onSend={send}
     />
   )
+
+  if (onLanding) {
+    return (
+      <div className="console is-landing">
+        <Experience phase={phase} sim={sim} freshness={fraction} />
+        <Header
+          phase={phase}
+          waiting={false}
+          running={false}
+          modelName={modelName}
+          engineOnline={Boolean(engine.backends.live)}
+          canStartOver={false}
+          onStartOver={startOver}
+        />
+        <Landing onEnter={(statement) => { go('/run'); send(statement) }} />
+      </div>
+    )
+  }
 
   return (
     <div className="console">

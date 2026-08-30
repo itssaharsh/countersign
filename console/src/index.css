@@ -878,3 +878,46 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
    not destructive, and the seal belongs elsewhere. */
 .receipt-chip.is-spent { opacity: 0.75; }
 .undo-go:disabled { color: var(--graphite); border-color: var(--rule); }
+
+/* ── the landing ────────────────────────────────────────────────────────
+   The product, the connect step, and the statement — the three things the
+   console should not have to hold at once. It rides on the same stage as the
+   console so the two read as one product, and it never scrolls sideways. */
+.console.is-landing { padding-bottom: var(--section-gap); }
+.landing {
+  position: relative; z-index: 1;
+  max-width: var(--max-content); margin: 0 auto;
+  padding: clamp(40px, 7vh, 88px) var(--gutter) 64px;
+  display: grid; gap: clamp(40px, 6vh, 72px);
+}
+.landing-eyebrow {
+  font-size: var(--t-11); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--graphite); margin: 0 0 18px;
+}
+.landing-claim h1 {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(30px, 4.6vw, 52px); line-height: 1.08; letter-spacing: -0.015em;
+  text-wrap: balance; max-width: 22ch; margin: 0 0 20px;
+}
+.landing-claim h1 em { font-style: normal; color: var(--seal); }
+.landing-stand { color: var(--graphite); max-width: 62ch; margin: 0; font-size: var(--t-16); }
+
+.landing-connect, .landing-start { display: grid; gap: 14px; }
+.landing-note { color: var(--graphite); font-size: var(--t-13); max-width: 66ch; margin: 0; }
+.connect-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.connect-field { display: grid; gap: 6px; min-width: 0; }
+.connect-field input {
+  font-size: var(--t-13); color: var(--ink); background: transparent;
+  border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; padding: 9px 2px;
+  min-width: 0;
+}
+.connect-field input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.connect-hint { font-size: var(--t-11); color: var(--graphite); }
+.connect-reveal { justify-self: start; font-size: var(--t-13); }
+.connect-env {
+  margin: 0; padding: 14px 16px; border: 1px solid var(--rule); border-radius: var(--radius);
+  font-size: var(--t-13); color: var(--graphite); overflow-x: auto; white-space: pre;
+}
+.landing-form { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
+.landing-form .submit-input { flex: 1 1 420px; min-width: 0; }
+@media (max-width: 700px) { .landing { gap: 36px; } }
