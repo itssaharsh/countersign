@@ -20,3 +20,7 @@ logs/
 .claude/
 evidence/
 .vercel
+
+# vite local overrides
+.env.local
+**/.env.local

@@ -15,9 +15,14 @@ changes what the next take opens on. The console shows the latest simulation, so
 run puts you in INVESTIGATING before you have typed anything.
 
 ```bash
-curl -sX POST 127.0.0.1:8977/admin/reseed && curl -s 127.0.0.1:8977/state | head -c 60
+curl -sX POST --max-time 300 127.0.0.1:8977/admin/reseed
+curl -s 127.0.0.1:8977/state | head -c 60
 # must print  {"simulations":[],...
 ```
+
+Against Supabase this takes **103 seconds**, not the instant it takes locally. It drops and
+rebuilds 41 tables and 18,000 users over the network. Factor a reset into the gap between
+takes rather than discovering it between them.
 
 **Keep TrueForge's turn view off camera.** It renders tool arguments verbatim and
 `commit_change` carries `undo_token`. The console redacts it; TrueForge does not, and that
@@ -28,8 +33,24 @@ Vite 5199, agent created with `--real`. TrueForge started without `SQLITE_PATH` 
 on every endpoint while having no model providers, and agent creation fails with a 422 — a
 failure that looks like the app is fine.
 
-**Model timing varies.** Order-to-gate was 18.9s, 22.5s, 39.2s and 42.7s across four recorded
-runs. Budget for 45s and cut it down; do not plan a fixed-length hole.
+**Timings depend on where the database is, far more than on the model.** Measured, not
+estimated:
+
+| | local PGlite | Supabase (managed, another region) |
+| --- | --- | --- |
+| send to first transcript line | ~0.9s | **10.1s** |
+| send to gate armed | 18.9–42.7s | **95.6s** |
+| hold to receipt on screen | ~8s | **20.9s** |
+| reset between takes | instant | **103s** |
+
+Against Supabase the whole run is about two minutes. Plan the takes around that, and do not
+plan a fixed-length hole for the wait.
+
+**Raise the signature window before filming against Supabase.** The measurement expires 120
+seconds after the rows are counted, and the gate does not open until 95 seconds have passed,
+so the operator can be left with twenty seconds to read a blast radius before it goes stale on
+camera. `console/.env.local` sets `VITE_FRESHNESS_SECONDS=300` for exactly this. Check it is
+in place before the first take, or the spine take expires while you are talking over it.
 
 **Replay freshness.** A fixture recorded less than ten minutes ago replays as STALE, because
 the freshness anchor only rewrites measurements older than that. If you re-record fixtures,
@@ -84,7 +105,8 @@ Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'.
 Simulate, verify the undo, evaluate policy, then commit.
 ```
 
-**Duration.** ~0.9s to the first transcript line, then **18–43s of the agent working**.
+**Duration.** 10s to the first transcript line against Supabase, then **about 85 seconds more
+of the agent working**. Locally it is 0.9s and 18–43s.
 **On screen, in order.** The layout splits into two columns → phase track lights INVESTIGATING
 and the header reads `working` → the model's reasoning appears in the transcript →
 `run_investigation` with an elapsed counter climbing → the dossier lists the three pending
@@ -93,7 +115,8 @@ measurements → nothing else moves until the tool returns.
 
 ### 3 · Deciding
 **Trigger.** None. TrueForge pauses on `commit_change` by itself.
-**Duration.** Arrives 18–43s after the send. Holds for 120s, then becomes state 6.
+**Duration.** Arrives about 95s after the send against Supabase, 18–43s locally. Holds for
+the freshness window, then becomes state 6.
 **On screen, in order.** Ledger rows count up by foreign-key depth → the SET NULL edges
 collapse to one line → **43,413 rows die** at 76px turns `--seal` → three preconditions stamp
 in `--proof` → the countersign control materialises last, the red arriving after the shape.
@@ -101,8 +124,8 @@ in `--proof` → the countersign control materialises last, the red arriving aft
 
 ### 4 · Witnessing
 **Trigger.** Press and hold the control for 1200ms. Releasing early resets it.
-**Duration.** Receipt appears ~8s after the hold begins — the agent resumes, then commits —
-and finishes printing ~1.2s later.
+**Duration.** Receipt appears about 21s after the hold begins against Supabase, ~8s locally:
+the agent resumes, then commits across the network.
 **On screen, in order.** Control fills left to right → `COUNTERSIGNED` → gate clears → ground
 shifts to the `--proof` tint → receipt prints line by line → `UNDO ARMED · verified`. The 37
 `SET NULL` tables are collapsed to one line; click it once if you want the full list on
@@ -150,8 +173,10 @@ point).
 
 ## What cannot be filmed in one continuous run
 
-- **States 1 → 2 → 3 → 4 are one continuous take**, roughly 35–60s end to end. That is the
-  spine of the video and the only sequence that flows without a cut.
+- **States 1 → 2 → 3 → 4 are one continuous take** — about **two minutes** against Supabase,
+  35–60s against local PGlite. That is the spine of the video and the only sequence that flows
+  without a cut. If two minutes is too long to hold, run the spine locally and keep Supabase
+  for a single shot that proves it works on a managed database.
 - **State 6 forks from state 3.** You cannot film 4 and 6 in the same run: countersigning ends
   the gate, waiting expires it. Two separate takes that share an identical first 25 seconds.
 - **State 5a needs its own order**, so it cannot join the main run.
@@ -175,6 +200,24 @@ Ordered to minimise reseeds, and to put the two hardest takes first while you ar
 One reseed before each of takes 1, 2, 3 and 5. Take 4 needs none.
 
 ---
+
+## Which database to film against
+
+Both work. They film differently.
+
+**Local PGlite** is fast: the spine is 35 to 60 seconds and a reset is instant. It is the
+right choice for the takes that need repetition, which is all of them.
+
+**Supabase** is slow but it is the honest production shape: managed Postgres, credentials in
+the engine's environment, the rollback proven on a second managed database. One take against
+it proves the thing works where it would actually run.
+
+The measurement is identical either way, because the foreign key walk reads `pg_constraint`
+rather than anything this repo wrote: 43,413 rows across 41 tables, rollback verified, policy
+pass, on both. That equivalence is worth saying out loud on camera, and it is checkable.
+
+Suggested split: film the spine, refused and stale locally, then one Supabase run for the
+claim that it is not a toy.
 
 ## The two hardest takes, and why
 
