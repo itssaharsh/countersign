@@ -1,5 +1,14 @@
 # DESIGN.md — Countersign console
 
+> **Superseded.** This document specifies the counterfoil direction — a paper ground, hard
+> rules, one seal. The console that ships took a different path: a dark ground with the stage
+> behind it, and the blast radius drawn as a section rather than tabulated. The rules here that
+> still hold and are still enforced are the structural ones — the approve control does not exist
+> until it is earned, red is rationed to one element, contrast is measured rather than assumed,
+> and nothing on screen may claim more than the harness reported. The palette and the layout are
+> history. Kept because §9 records ten places where a specification was corrected against the
+> running system, which is worth more than a spec that was never wrong.
+
 The single source of truth for visual and interaction decisions. Claude Code: read this
 file fully before touching any component. Do not invent colors, fonts, or animations that
 are not in here.

@@ -79,6 +79,17 @@ The UI is a *window* onto the gate, not the gate itself: `commit_change` refuses
 server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint;
 bypassing the button changes nothing.
 
+## Try it
+
+**[Live demo →](https://countersign.vercel.app)** — no keys, no setup, nothing to install.
+
+The demo replays a recorded run of the real agent: the same event stream through the same
+reducer, holding at the approval TrueForge actually raised. Press **Watch the recorded run**,
+read the section, and hold the countersign control. It is not connected to a database, and it
+says so on the page.
+
+To run it against a database — including your own — see below.
+
 ## Run it
 
 ### Zero-key replay (fastest — judge mode)
@@ -245,11 +256,11 @@ is a true statement about a table with rows instead of a statement about an empt
 invoices are deliberately attached to a reserved band of orders that no demo statement
 touches, because attaching them anywhere else aborts the demo's own change.
 
-## AI Assistance Disclosure
+## Colophon
 
-Built with heavy AI coding assistance (Claude Code, Anthropic). All architecture
-decisions, code, and claims were reviewed and are understood by the participant —
-see [docs/EXPLAIN.md](docs/EXPLAIN.md) for the decision-by-decision briefing.
+Built with AI coding assistance (Claude Code). Every architectural decision, and every
+claim made here, is reviewed and explainable by the author — the reasoning behind each one
+is written up in [docs/EXPLAIN.md](docs/EXPLAIN.md).
 
 ## License
 
