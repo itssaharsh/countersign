@@ -35,9 +35,7 @@ const COMMIT_MS = 240_000;
 mkdirSync(dir, { recursive: true });
 
 const browser = await chromium.launch();
-// colorScheme is forced: headless Chromium reports prefers-color-scheme: dark,
-// and every screenshot in docs/ is of the light ground.
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: 'light' });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
 const errors = [];
 page.on('pageerror', (e) => errors.push(`pageerror: ${String(e).slice(0, 200)}`));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });

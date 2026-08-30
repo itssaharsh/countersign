@@ -30,6 +30,12 @@
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
+// Headless Chromium has no GPU: the stage's WebGL runs on SwiftShader at about
+// 3 frames a second, so every wait in this file is against a page an order of
+// magnitude slower than the one an operator sees. The timeouts are generous for
+// that reason and not because anything here is flaky.
+const STEP_MS = 60000;
+
 const out = process.argv[2] ?? 'review';
 const base = (process.argv[3] ?? 'http://localhost:5199').replace(/\/$/, '');
 mkdirSync(out, { recursive: true });
@@ -363,7 +369,10 @@ if (!SIM_ID) {
 }
 
 for (const [vname, viewport] of VIEWPORTS) {
-  const context = await browser.newContext({ viewport });
+  // reducedMotion: the stage settles into its phase and holds (§6), so every wait
+  // below is against a page that stops changing. Under software WebGL a canvas that
+  // never settles makes page.screenshot itself time out.
+  const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
   const errors = [];
   const offline = [];
   const audits = {};
@@ -391,7 +400,7 @@ for (const [vname, viewport] of VIEWPORTS) {
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.waitForFunction(
       () => Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight - 1,
-      null, { timeout: 5000 },
+      null, { timeout: 15000 },
     ).catch(() => {});
     await page.waitForTimeout(250);
     a.occlusion = await page.evaluate(OCCLUSION);
@@ -416,7 +425,17 @@ for (const [vname, viewport] of VIEWPORTS) {
   };
 
   await kpage.goto(`${base}/?replay=/fixtures/review-state.json`, { waitUntil: 'domcontentloaded' });
-  await kpage.waitForSelector('#change-sql', { timeout: 15000 });
+  await kpage.waitForSelector('#change-sql', { timeout: STEP_MS });
+  // The focus-ring assertions read computed style, so they have to run against a
+  // page whose stylesheet is actually applied. Under Vite's dev server the CSS
+  // arrives as its own module after first paint, and a walk that starts before it
+  // lands measures the user-agent ring and reports a failure that does not exist.
+  await kpage.waitForFunction(
+    () => getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() !== ''
+      && getComputedStyle(document.querySelector('.submit-go')).outlineStyle !== undefined,
+    null, { timeout: STEP_MS },
+  );
+  await kpage.waitForTimeout(600);
 
   // 1 — input
   await step('input', '#change-sql');
@@ -424,7 +443,7 @@ for (const [vname, viewport] of VIEWPORTS) {
   // 2 — submit
   await step('submit', '.submit-go');
   await kpage.keyboard.press('Enter');
-  await kpage.waitForSelector('.hold', { timeout: 20000 });
+  await kpage.waitForSelector('.hold', { timeout: STEP_MS });
 
   // 3 — deny is present on every open gate, and reachable
   await step('deny (commit gate)', '.gate-secondary');
@@ -434,23 +453,23 @@ for (const [vname, viewport] of VIEWPORTS) {
   await kpage.keyboard.down('Enter');
   await kpage.waitForTimeout(1500);
   await kpage.keyboard.up('Enter');
-  await kpage.waitForSelector('.receipt', { timeout: 20000 });
-  await kpage.waitForFunction(() => document.querySelector('.receipt')?.dataset.printing === 'false', null, { timeout: 20000 });
+  await kpage.waitForSelector('.receipt', { timeout: STEP_MS });
+  await kpage.waitForFunction(() => document.querySelector('.receipt')?.dataset.printing === 'false', null, { timeout: STEP_MS });
 
   // 5 — the undo control: it sends an order, it does not act
   await step('undo (send the order)', '.undo-go');
   await kpage.keyboard.press('Enter');
-  await kpage.waitForSelector('.hold.is-undo', { timeout: 20000 });
+  await kpage.waitForSelector('.hold.is-undo', { timeout: STEP_MS });
 
   // 6 — deny the restore gate, for real
   await step('deny (restore gate)', '.gate-secondary');
   await kpage.keyboard.press('Enter');
-  await kpage.waitForSelector('.undo-go', { timeout: 20000 });
+  await kpage.waitForSelector('.undo-go', { timeout: STEP_MS });
 
   // 7 — send it again, and countersign the restore
   await step('undo again', '.undo-go');
   await kpage.keyboard.press('Enter');
-  await kpage.waitForSelector('.hold.is-undo', { timeout: 20000 });
+  await kpage.waitForSelector('.hold.is-undo', { timeout: STEP_MS });
   await step('restore hold', '.hold');
   const restoreVerb = await kpage.textContent('.hold .hold-text');
   await kpage.keyboard.down('Enter');

@@ -1,6 +1,10 @@
 // The console. DESIGN.md §3: a 56px header, two columns — transcript left,
 // dossier right — and a gate bar fixed to the bottom that never scrolls away.
-// No stage, no scroll story: the artifact is the operator console.
+//
+// Behind all of it, the stage: a three.js field of points whose geometry is the
+// phase (§11). The two are not alternatives. The stage carries what the numbers
+// mean and the console carries the numbers, and a judge has to be able to read
+// the second while the first is moving.
 import { useEffect, useState } from 'react'
 import { useHarness } from './harness'
 import { useEngineState, activeSimulation, simulationFor, phaseFor } from './state'
@@ -9,6 +13,7 @@ import { Header } from './shell/Header'
 import { Transcript } from './transcript/Transcript'
 import { Dossier } from './shell/Dossier'
 import { Cover } from './shell/Cover'
+import { Experience } from './experience/Experience'
 import { GateBar } from './gate/GateBar'
 
 export default function App() {
@@ -22,7 +27,7 @@ export default function App() {
   const gated = pending.find((a) => a.toolName === 'commit_change' || a.toolName === 'fire_undo')
   const sim = gated ? simulationFor(engine, (gated.args as { simulation_id?: unknown })?.simulation_id) : activeSimulation(engine)
   const phase = phaseFor(sim, pending.length > 0, running)
-  const { left, elapsed } = useFreshness(sim)
+  const { left, elapsed, fraction } = useFreshness(sim)
 
   const [modelName, setModelName] = useState('')
   useEffect(() => {
@@ -54,6 +59,8 @@ export default function App() {
 
   return (
     <div className="console">
+      {/* Fixed behind everything, its own layer, never in the flow. */}
+      <Experience phase={phase} sim={sim} freshness={fraction} />
       <Header
         phase={phase}
         waiting={pending.length > 0}

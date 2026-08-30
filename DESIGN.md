@@ -18,6 +18,11 @@ invent the data. See §9 for the record of where the spec was corrected against 
 person sits in front of while a TrueForge agent investigates a destructive database change
 and waits to be countersigned.
 
+This section originally put the 3D stage out of scope. **§11 reverses that**, and the rule
+it lands on governs everything below: the world shows the shape of the blast, the console
+shows the figures, and neither does the other's job. Read §11 alongside §1 and §2 — the
+direction still holds, the ground it is printed on does not.
+
 The judging line for the Best UI track is: *an interface that shows what the agent is
 doing, what it is waiting on, and what it did, and asks before the irreversible step
 rather than after it — judged on the demo video and on the running project.*
@@ -35,6 +40,11 @@ A stranger with no context must be able to drive it. That is the whole brief.
 ## 1. Direction
 
 **The counterfoil.**
+
+*(§11: the paper ground below was re-struck onto the stage. The doctrine in this section —
+one seal, rationed; every value that came out of the database set in mono; the approve
+control absent until earned — is unchanged and is what keeps the console legible over a
+moving field.)*
 
 Countersign is the second signature on a release order. The visual world is not "AI
 dashboard" — it is the paperwork of authorised destruction: a munitions release form, a
@@ -495,3 +505,75 @@ was against the rendered page, which is the only place layout defects exist.
 
 After the pass: **zero findings at 390, 1280 and 1920.** The detector is a floor, not a
 verdict — B6, B7 and the composition of the cover are judgement, and it caught none of them.
+
+---
+
+## 11. The stage returns (Aug 30)
+
+§0 of this spec said the artifact is the operator console and put the 3D stage out of
+scope. That was wrong, and the person who wrote it said so: *"there was a planetary UI
+before, it looked better."* It did. What the counterfoil bought was legibility, and what it
+cost was the one thing that made a judge stop scrolling.
+
+So the stage comes back, and this section is the rule that keeps both:
+
+> **The world shows the shape of the blast. The console shows the figures.**
+> Neither is allowed to do the other's job.
+
+### What that decides
+
+- **The stage is a fixed layer behind everything**, never in the flow, never a section you
+  scroll past. `Experience.tsx` is restored from the v4 branch unchanged in its physics: the
+  geometry still *is* the phase (idle sphere, cascade clusters and beams, the breathing core
+  inside the freshness ring, the vortex), and every number that shapes it is still real. The
+  share of points that ignite is the fingerprint's key count; the ring's arc is the real
+  freshness fraction.
+- **The 3D count labels are gone.** They read `…` for the whole of INVESTIGATING, because
+  §9 A2 means nothing is published until the tool returns, and the moment they had numbers
+  was the moment the ledger was on screen carrying the same numbers with their edge
+  semantics. Two copies of 17,971, one floating over the card, is the world arguing with the
+  console.
+- **The freshness ring is wide.** At the v4 radius the whole ring sat behind the two glass
+  columns and the countdown — the one element literally counting down the operator's window
+  — was a green sliver in a gap. At 4.2 the arc sweeps out past both columns.
+- **Every reading surface is glass**, cut from `--bone`: `--panel` where the content is
+  prose, `--panel-solid` where a judge reads figures off the screen. One surface per column,
+  never a card inside a card. `prefers-reduced-transparency` gets the same colour, solid.
+- **There is no light mode.** A light console over a dark starfield is two designs at once,
+  so §2's inversion is deleted rather than kept as dead code.
+
+### The palette, re-struck a second time
+
+`--bone` is now the canvas's own clear colour, so the page and the WebGL background are one
+surface with no seam at the viewport edge. `--seal` and `--proof` are the coral and green
+the point field already uses: a row that is dying is the same red in the ledger as it is in
+the world. Contrast on `--bone`: ink 17.2, graphite 7.0, seal 7.3, proof 13.1, and no lower
+than 6.4 on the lightest glass.
+
+### The countersign control
+
+§4's hold used `mix-blend-mode: difference` to invert its label as the fill crossed it. That
+only worked on paper. On the stage the unfilled ground is near-black, the difference of two
+dark colours is a dark colour, and **the control the whole product turns on was invisible
+until the fill reached the letter.** It is now two pixel-aligned copies of the label, the
+lower one in `--seal`, the upper one in `--bone` and clipped to exactly the fill. Dumber,
+and legible at every point in the hold.
+
+### Weak GPUs are a first-class case
+
+The stage measures its own renderer once, through `WEBGL_debug_renderer_info`, and on a
+software rasteriser (SwiftShader, llvmpipe) it drops to 3,500 points, `dpr: 1` and no bloom.
+This is not a test affordance: a judge on a laptop with no driver gets the same world at a
+frame rate that reads as a world. On this machine it took the console from **3 fps to 45**.
+
+### One honest limitation
+
+`impeccable detect <url>` cannot scan the running console any more. Its browser engine waits
+for `networkidle0`, and the console polls the engine every 1.5s forever, so the navigation
+never resolves — with `networkidle2` it does, but the CLI does not expose the setting. The
+source scan (`impeccable detect console/src`) still runs clean, and `tools/design-review.mjs`
+— which is Playwright, checks contrast, overlap, tap targets and the whole keyboard path,
+and is the gate that actually blocks — runs against the real page. The detector findings in
+§10 were fixed before the stage returned and the rules they came from still hold; what is
+gone is the ability to re-run that particular tool against a live WebGL page on a box with
+no GPU.

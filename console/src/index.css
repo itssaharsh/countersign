@@ -11,29 +11,34 @@
 
 :root {
   /* ── §2 color — six values, no others ───────────────────────────────────
-     Contrast on --bone: ink 16.1:1 · graphite 4.8:1 · seal 5.7:1 · proof 9.9:1
-     All ≥ 4.5:1. Do not lighten --graphite.
+     Contrast on --bone: ink 17.2:1 · graphite 7.0:1 · seal 7.3:1 · proof 13.1:1
+     All ≥ 4.5:1, and all still ≥ 6.4:1 on the lightest glass panel (#14121f).
 
-     --bone was #F2EFE6, a warm cream. Re-struck cool at the same lightness:
-     a warm off-white is the reflex "tasteful" AI surface (impeccable's
-     cream-palette detector fires on any light ground with r ≥ g ≥ b and
-     6 ≤ r-b ≤ 48, which #F2EFE6 sat in the middle of), and the counterfoil
-     this console is named for is ledger stock, not cream stationery. The
-     role, the lightness and every contrast figure are unchanged; the hue is
-     deliberate rather than default. --rule follows it cool for the same
-     reason: a warm tan hairline on a cool ground reads as a mistake. */
-  --bone:     #EBEDE8;  /* page ground — ledger paper, cool */
-  --ink:      #14120E;  /* primary text, hairline rules at 100% */
-  --graphite: #6B675C;  /* secondary text, labels, inactive phase */
-  --rule:     #D7DAD2;  /* hairlines, table rules, card edges */
-  --seal:     #B3241C;  /* DESTRUCTIVE ONLY — one element at a time */
-  --proof:    #1F3A5F;  /* verified / undo-proven / receipt ink */
+     The console is printed on the stage, not on paper. --bone is the canvas's
+     own clear colour, so the page and the three.js background are one surface
+     with no seam at the edge of the viewport; --seal and --proof are the coral
+     and the green the point field already uses, so a row that is dying is the
+     same red in the ledger as it is in the world. There is no light inversion:
+     a light console over a dark starfield is two designs at once.
+     See DESIGN.md §11. */
+  --bone:     #07060f;  /* page ground — the stage's clear colour */
+  --ink:      #EDEBFF;  /* primary text, hairline rules at 100% */
+  --graphite: #9A94B8;  /* secondary text, labels, inactive phase */
+  --rule:     #2A2740;  /* hairlines, table rules, card edges */
+  --seal:     #FF6B6B;  /* DESTRUCTIVE ONLY — one element at a time */
+  --proof:    #7DE3C3;  /* verified / undo-proven / receipt ink */
+
+  /* The glass the panels are cut from. Two weights: --panel for a card that
+     carries prose, --panel-solid for one that carries figures a judge reads off
+     the screen. Both are struck from --bone, not from a seventh colour. */
+  --panel:       rgba(14, 12, 26, 0.72);
+  --panel-solid: rgba(14, 12, 26, 0.88);
+  --blur: blur(14px) saturate(1.1);
 
   /* The ground the console is printed on. Not a seventh colour: an alias that
      resolves to --bone everywhere except WITNESSING, where §5 shifts it to a
-     2% --proof tint. Both values are struck from the six. Contrast on the
-     tint (#E7E9E5): ink 15.3:1 · graphite 4.6:1 · seal 5.4:1 · proof 9.4:1 —
-     all still clear of §8's 4.5:1 floor. */
+     4% --proof tint. On paper 2% was the whole shift; against the stage it was
+     invisible, so the tint is doubled and still struck from the six. */
   --ground: var(--bone);
 
   /* ── §2 type — three roles ───────────────────────────────────────────── */
@@ -61,29 +66,49 @@
   --t-base: 140ms;
   --ease: ease-out;
 
-  color-scheme: light dark;
+  color-scheme: dark;
 }
 
-/* ── §2 dark mode — same six roles, same rationing ──────────────────────
-   The three ink-adjacent roles cannot keep their light values on an --ink
-   ground and still clear 4.5:1 (graphite would land at 3.4:1, seal 2.9:1,
-   proof 1.7:1). They are re-struck at the same role, lighter:
-   graphite 5.7:1 · seal 5.1:1 · proof 8.8:1 on --ink. The dark ground and its
-   hairline are cool for the same reason the light pair is (§2 above). */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bone:     #111310;
-    --ink:      #EBEDE8;
-    --graphite: #8B8F84;
-    --rule:     #282B26;
-    --seal:     #E4574C;
-    --proof:    #8FB6E0;
-  }
-}
+/* There is no prefers-color-scheme inversion any more: the stage is dark and a
+   light console over it would be two designs at once. Struck once, above. */
 
-/* §5 WITNESSING — the ground shifts. Set on the root by the Receipt so the
-   fixed gate bar shifts with the page: the console is one sheet of paper. */
-:root[data-ground="proof"] { --ground: color-mix(in srgb, var(--proof) 2%, var(--bone)); }
+/* §5 WITNESSING — the ground shifts. The shift that a viewer actually sees is the
+   canvas's own clear colour and fog, in Experience.tsx: the body is never visible
+   behind a full-viewport canvas. This keeps the token honest for the glass, which
+   is mixed from --bone and does sit on top. */
+:root[data-ground="proof"] { --ground: color-mix(in srgb, var(--proof) 4%, var(--bone)); }
+
+/* ── §11 the stage ────────────────────────────────────────────────────────
+   Fixed, full viewport, behind every pixel of the console and never in the
+   flow. It keeps pointer events: dragging the empty ground turns the world in
+   IDLE, which is the one piece of play the console has. Every control sits in
+   .console above it and takes its own clicks first. */
+.stage-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+.stage-canvas canvas { display: block; }
+
+/* Everything the operator reads rides above the world. .console-body needs the
+   z-index in its own right: the canvas is a positioned child of .console, and a
+   positioned element paints above an unpositioned sibling whatever the DOM order
+   says, so the cover went under the planet until this was explicit. */
+.console { position: relative; z-index: 1; }
+.console-body { position: relative; z-index: 1; }
+
+/* The 3D count labels drei renders in the world, on the console's own scale. */
+.stage-label { text-align: center; pointer-events: none; }
+.stage-label-n {
+  font-family: var(--display); font-weight: 800; font-size: var(--t-25);
+  line-height: 1; letter-spacing: -0.02em;
+  text-shadow: 0 2px 24px rgba(7, 6, 15, 0.9);
+}
+.stage-label-t {
+  font-family: var(--mono); font-size: var(--t-11); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink); margin-top: 6px;
+  text-shadow: 0 2px 16px rgba(7, 6, 15, 0.95);
+}
 
 /* ── base ─────────────────────────────────────────────────────────────── */
 * { border-color: var(--rule); }
@@ -144,6 +169,12 @@ button, input, textarea, select { font: inherit; color: inherit; }
 }
 
 .console-header {
+  /* Sticky and washed: the world moves behind it, and a bare wordmark over a
+     point field is unreadable the moment a bright cluster passes under it. */
+  position: sticky; top: 0; z-index: 11;
+  background: var(--panel-solid);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
   height: var(--header-h);
   display: flex;
   align-items: center;
@@ -162,6 +193,13 @@ button, input, textarea, select { font: inherit; color: inherit; }
 }
 
 .col-transcript {
+  /* Lighter glass than the ledger: this column is prose and the world should
+     still be legible through it. */
+  background: var(--panel);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius);
+  padding: 16px var(--gutter) 16px 16px;
   /* §8 — reserve the width so streaming causes no layout shift. */
   width: var(--transcript-w);
   font-family: var(--mono);
@@ -170,7 +208,18 @@ button, input, textarea, select { font: inherit; color: inherit; }
   padding-right: var(--gutter);
 }
 
-.col-dossier { min-width: 0; }
+/* One glass surface for the whole column. The ledger and the receipt keep their
+   hairline but drop their own fill: a card inside a card is the oldest tell in
+   generated UI, and over a moving field the doubled wash goes muddy. */
+.col-dossier {
+  min-width: 0;
+  background: var(--panel-solid);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--gutter);
+}
 
 /* §3 — persistent, fixed, never scrolls away. */
 .gate-bar {
@@ -190,7 +239,11 @@ button, input, textarea, select { font: inherit; color: inherit; }
   align-items: stretch;
   gap: 8px;
   padding: 10px var(--gutter);
-  background: var(--ground);
+  /* The one control surface that must never be ambiguous: the heaviest glass in
+     the console, so the countersign control is never read against a moving star. */
+  background: var(--panel-solid);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
   border-top: 1px solid var(--ink);
   z-index: 10;
 }
@@ -236,7 +289,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
   font-family: var(--display); font-weight: 800; font-variation-settings: "wdth" 100;
   font-size: var(--t-16); letter-spacing: 0.08em;
   padding: 14px 24px; border: 1px solid var(--seal); border-radius: var(--radius);
-  background: var(--bone); color: var(--seal);
+  background: transparent; color: var(--seal);
   touch-action: none; user-select: none; -webkit-user-select: none;
 }
 /* Restoring is not destructive, so it never takes the seal (§4). */
@@ -249,7 +302,14 @@ button, input, textarea, select { font: inherit; color: inherit; }
 }
 .hold.is-undo .hold-fill { background: var(--proof); }
 @keyframes hold-fill-in { from { opacity: 0; } to { opacity: 1; } }
-.hold-label { position: relative; display: inline-block; mix-blend-mode: difference; color: var(--bone); }
+.hold-label { position: relative; display: inline-block; }
+/* The label on the unfilled ground: the seal itself, 7.3:1 on the stage. */
+.hold-text { color: var(--seal); }
+.hold.is-undo .hold-text { color: var(--proof); }
+/* The same label, clipped to exactly the fill, in the ground colour: 7.3:1 the
+   other way round. The two are pixel-aligned, so the letterform appears to
+   invert as the fill crosses it. */
+.hold-text-filled { color: var(--bone); }
 .hold-sizer { visibility: hidden; }
 .hold-text { position: absolute; inset: 0; display: grid; place-items: center; white-space: nowrap; }
 .hold.is-done { border-color: var(--ink); }
@@ -403,6 +463,12 @@ button, input, textarea, select { font: inherit; color: inherit; }
 /* Everything outside the five: color and border only, 140ms. No transforms. */
 a, button, .hit { transition: color var(--t-base) var(--ease), background-color var(--t-base) var(--ease), border-color var(--t-base) var(--ease); }
 
+/* Asked for less transparency: the glass becomes a solid cut from the same
+   colour, and nothing else changes. */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --panel: #0e0c1a; --panel-solid: #0e0c1a; --blur: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -462,6 +528,9 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
   font-size: clamp(var(--t-25), 3.4vw, var(--t-44));
   color: var(--ink);
   text-wrap: balance;
+  /* The one piece of type with nothing behind it. The shadow is not a glow:
+     it is the floor under the letterform when a bright cluster drifts under it. */
+  text-shadow: 0 2px 40px rgba(7, 6, 15, 0.95), 0 1px 4px rgba(7, 6, 15, 0.8);
 }
 /* The working console's own split, one screen early: the operator's column on
    the left, the engine's on the right. */
@@ -473,6 +542,17 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   gap: var(--section-gap);
   align-items: start;
+}
+/* The claim floats free over the world; everything under it sits on glass.
+   13px graphite over a 14,000-point field is unreadable, and the answer is not
+   to make the type louder: it is to give the reading a surface. */
+.cover-act, .cover-proofs {
+  background: var(--panel);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--gutter);
 }
 .cover-act { display: grid; gap: 24px; align-content: start; }
 .cover-lead { font-size: var(--t-16); color: var(--graphite); max-width: 54ch; }
@@ -692,7 +772,11 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
    the URL opened after the demo. Stated once, above the record. */
 .loaded-note {
   font-size: var(--t-13); color: var(--graphite); max-width: 62ch;
-  padding-bottom: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--rule);
+  margin-bottom: 20px; padding: 12px var(--gutter);
+  background: var(--panel);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--rule); border-radius: var(--radius);
 }
 
 /* A total is bigger than the lines it sums. Without this the receipt is 11, 13

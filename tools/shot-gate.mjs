@@ -25,8 +25,7 @@ const base = (process.argv[3] ?? 'http://localhost:5199').replace(/\/$/, '');
 mkdirSync(dir, { recursive: true });
 
 const browser = await chromium.launch();
-// Headless Chromium reports prefers-color-scheme: dark; docs/ is the light ground.
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'light' });
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
 const errors = [];
 
 const shoot = async (page, name) => {

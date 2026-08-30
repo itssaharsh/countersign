@@ -49,20 +49,31 @@ A migration lands in a GitHub PR. The Countersign agent (running on TrueForge):
 
 ## The console
 
-| IDLE | INVESTIGATING | DECIDING | WITNESSING |
-|---|---|---|---|
-| _re-capture pending_ | _re-capture pending_ | _re-capture pending_ | _re-capture pending_ |
+| IDLE | INVESTIGATING |
+|---|---|
+| ![idle](docs/screenshots/state-1-empty.png) | ![investigating](docs/screenshots/state-2-investigating.png) |
+| **DECIDING** | **WITNESSING** |
+| ![deciding](docs/screenshots/state-3-deciding.png) | ![witnessing](docs/screenshots/state-4-witnessing.png) |
 
-*Real-model run (Groq-hosted `openai/gpt-oss-120b`): the agent investigated, TrueForge paused on the gated commit, the operator countersigned, and the scoped commit executed. Screenshots are being re-captured against the current console.*
+*Every shot above is a real-model run (Groq-hosted `openai/gpt-oss-120b`) driven through the
+real console by `node tools/walkthrough.mjs`: the agent investigated, TrueForge paused on
+the gated commit, the operator held the control for 1200ms, and the scoped commit executed.
+The two screens a live run cannot reach — a refused gate and an expired one — are
+`docs/screenshots/state-5-refused.png` and `state-6-stale.png`, taken from replay by
+`node tools/shot-gate.mjs`. All six are described in [docs/DEMO-STATES.md](docs/DEMO-STATES.md).*
 
-The stage is the live console (drag the galaxy when idle, transmit an order, countersign at
-the gate). Scroll down and the page becomes the story: the problem, the four proofs as stacked
-tiles with the real evidence, the numbers from the recorded run, how TrueForge is
-load-bearing, the review trail, and how to run it.
+Behind the console is the stage: a three.js field of 14,000 points whose geometry **is** the
+phase. Idle is a slowly turning sphere you can drag. Investigating breaks it into the three
+tables that actually die, with beams along the real foreign keys. Deciding draws the doomed
+set into a breathing core inside a ring whose arc is the live freshness countdown. Witnessing
+vortexes it away. Nothing in it is decoration keyed off a timer: the share of points that
+ignite is the fingerprint's key count, and the ring is the real remaining window.
 
-| what it is | the problem | four proofs | the numbers |
-|---|---|---|---|
-| _the scroll story was removed with the v5 stage_ | | | |
+The world shows the shape of the blast. The console shows the figures. Neither does the
+other's job — see [DESIGN.md §11](DESIGN.md).
+
+On a machine with no usable GPU the stage measures its own renderer and drops to 3,500
+points with no bloom, so it stays a world rather than a slideshow.
 
 The UI is a *window* onto the gate, not the gate itself: `commit_change` refuses
 server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint;

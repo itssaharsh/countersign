@@ -228,9 +228,21 @@ export function GateBar(p: Props) {
                         A hidden sizer pins the width to the longest variant: without
                         it the control shrinks under the held pointer, the pointer
                         ends up outside it, and the hold cancels itself. */}
+                    {/* Two copies of the label, one for each ground it crosses.
+                        mix-blend-mode:difference used to do this in one span, but
+                        it only worked while the button sat on paper: on the stage
+                        the unfilled ground is near-black and the difference of two
+                        dark colours is a dark colour, so the control the whole
+                        product turns on was invisible until the fill reached the
+                        letter. The clipped copy is dumber and always legible. */}
                     <span className="hold-label">
                       <span className="hold-sizer" aria-hidden>{`HOLD TO ${verb}`}</span>
                       <span className="hold-text">{label}</span>
+                      {progress > 0 && (
+                        <span className="hold-text hold-text-filled" style={{ clipPath: `inset(0 ${(1 - progress) * 100}% 0 0)` }} aria-hidden>
+                          {label}
+                        </span>
+                      )}
                     </span>
                   </motion.button>
                 )}
