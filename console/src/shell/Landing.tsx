@@ -8,6 +8,7 @@
 // environment the engine expects, so the operator can copy it rather than hunt
 // through a README.
 import { useState } from 'react'
+import { clearEndpoints, endpoints, isOverridden, saveEndpoints } from '../endpoints'
 
 // Dummy by design. Real credentials never belong in a form that will be filmed,
 // and these are shaped like the real thing so the screen can be checked without
@@ -25,6 +26,11 @@ export function Landing({ onEnter, demo = false }: Props) {
   const [shadow, setShadow] = useState(SAMPLE.shadow)
   const [key, setKey] = useState(SAMPLE.key)
   const [statement, setStatement] = useState("DELETE FROM users WHERE last_active < '2025-01-01'")
+  // Addresses, not secrets. These point the console at a harness and an engine
+  // running anywhere; no credential passes through here.
+  const [forge, setForge] = useState(endpoints().forge)
+  const [engine, setEngine] = useState(endpoints().engine)
+  const moved = forge.trim() !== endpoints().forge || engine.trim() !== endpoints().engine
   const [shown, setShown] = useState(false)
 
   const masked = (v: string) => v.replace(/\/\/([^:]+):([^@]+)@/, '//$1:••••••••@')
@@ -81,6 +87,18 @@ export function Landing({ onEnter, demo = false }: Props) {
           </label>
 
           <label className="connect-field">
+            <span className="t-label">Agent harness</span>
+            <input className="t-data" value={forge} onChange={(e) => setForge(e.target.value)} spellCheck={false} />
+            <span className="connect-hint">your TrueForge, or another runner speaking the same API</span>
+          </label>
+
+          <label className="connect-field">
+            <span className="t-label">Countersign engine</span>
+            <input className="t-data" value={engine} onChange={(e) => setEngine(e.target.value)} spellCheck={false} />
+            <span className="connect-hint">the service that measures and holds your credentials</span>
+          </label>
+
+          <label className="connect-field">
             <span className="t-label">Model key</span>
             <input className="t-data" type="password" value={key} onChange={(e) => setKey(e.target.value)} spellCheck={false} />
             <span className="connect-hint">held by the harness, never by the engine</span>
@@ -107,7 +125,14 @@ export function Landing({ onEnter, demo = false }: Props) {
         <h2 className="t-label">The change to measure</h2>
         <form
           className="landing-form"
-          onSubmit={(e) => { e.preventDefault(); if (statement.trim()) onEnter(statement.trim()) }}
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!statement.trim()) return
+            // A changed address only takes effect on a fresh page, so saving
+            // navigates rather than pretending the running clients moved.
+            if (moved) saveEndpoints({ forge, engine }, '/run')
+            else onEnter(statement.trim())
+          }}
         >
           <input
             className="submit-input t-data"
@@ -118,7 +143,15 @@ export function Landing({ onEnter, demo = false }: Props) {
           />
           <button type="submit" className="submit-go">{demo ? 'Watch the recorded run' : 'Measure it'}</button>
         </form>
-        <p className="landing-note">Nothing runs until you countersign.</p>
+        <p className="landing-note">
+          Nothing runs until you countersign.
+          {moved && ' Changing an address reloads the console onto it.'}
+          {isOverridden() && (
+            <> This browser is pointed at endpoints you set.{' '}
+              <button type="button" className="linkish" onClick={clearEndpoints}>use the defaults</button>
+            </>
+          )}
+        </p>
       </section>
 
       <section className="landing-about">

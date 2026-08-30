@@ -115,6 +115,23 @@ LIVE_DATABASE_URL=…
 SHADOW_DATABASE_URL=…
 ```
 
+### Connecting without rebuilding
+
+The build time variables above are for a deployment you control. Anyone else can point the
+console at their own services from the **connect screen** instead: it takes an **agent
+harness** address and a **Countersign engine** address alongside the database fields, stores
+them in that browser only, and reloads onto them. There is a link to fall back to the build's
+defaults.
+
+Those two fields are addresses, not credentials. No database URL and no model key passes
+through the browser: the engine reads its connection strings from its own environment, and the
+harness holds the model key. The reload is deliberate, because the harness client and the
+engine poller are created once when the page loads, and quietly keeping the old connection
+while the form displayed a new one would be worse than either.
+
+The harness field is not TrueForge specific. Anything that speaks the same session and turn
+API, and raises an approval the console can answer, will work.
+
 Two things to get right, both learned by doing it:
 
 **Raise the freshness window for a remote database.** An investigation against a local

@@ -3,12 +3,12 @@
 // pause/resume approval events. No wrapper; this IS the harness surface.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TrueForge, isEventDelta, mergeEventDelta } from '@truefoundry/trueforge-sdk'
+import { endpoints } from './endpoints'
 
 // A hosted harness is addressed directly; the default keeps the dev server's
-// proxy, which is what a local checkout uses. Set VITE_TRUEFORGE_URL to point
-// the console at TrueForge running anywhere else.
-const FORGE_URL = import.meta.env.VITE_TRUEFORGE_URL ?? '/'
-const client = new TrueForge({ baseUrl: FORGE_URL, timeoutInSeconds: 600 })
+// proxy, which is what a local checkout uses. The address can come from the
+// build, or from what the operator typed on the connect screen — see endpoints.ts.
+const client = new TrueForge({ baseUrl: endpoints().forge, timeoutInSeconds: 600 })
 const RESUME_KEY = 'countersign-session'
 
 // `createdAt` is the event's own timestamp, carried through untouched so the transcript
