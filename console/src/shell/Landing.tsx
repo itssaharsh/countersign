@@ -18,9 +18,9 @@ const SAMPLE = {
   key: 'gsk_••••••••••••••••••••••••',
 }
 
-type Props = { onEnter: (statement: string) => void }
+type Props = { onEnter: (statement: string) => void; demo?: boolean }
 
-export function Landing({ onEnter }: Props) {
+export function Landing({ onEnter, demo = false }: Props) {
   const [live, setLive] = useState(SAMPLE.live)
   const [shadow, setShadow] = useState(SAMPLE.shadow)
   const [key, setKey] = useState(SAMPLE.key)
@@ -31,6 +31,14 @@ export function Landing({ onEnter }: Props) {
 
   return (
     <main className="landing">
+      {demo && (
+        <p className="demo-banner">
+          <b>Demo.</b> This deployment replays a recorded run of the real agent — the same
+          event stream through the same reducer, holding at the approval TrueForge actually
+          raised. It is not connected to a database. To run it against your own, see the
+          repository.
+        </p>
+      )}
       <section className="landing-claim">
         <p className="landing-eyebrow">The approval layer for destructive database changes</p>
         <h1>
@@ -48,8 +56,8 @@ export function Landing({ onEnter }: Props) {
         <h2 className="t-label">Connect your database</h2>
         <p className="landing-note">
           The engine reads these from its own environment — nothing typed here is sent anywhere,
-          stored, or shown to the model. The fields are pre-filled with dummy values so this screen
-          can be checked without a real credential on screen.
+          stored, or shown to the model. The fields are pre-filled with dummy values, so this screen
+          can be read without a real credential on it{demo ? ', and this deployment has no engine to configure' : ''}.
         </p>
 
         <div className="connect-grid">
@@ -101,7 +109,7 @@ export function Landing({ onEnter }: Props) {
             aria-label="The statement to measure"
             spellCheck={false}
           />
-          <button type="submit" className="submit-go">Measure it</button>
+          <button type="submit" className="submit-go">{demo ? 'Watch the recorded run' : 'Measure it'}</button>
         </form>
         <p className="landing-note">Nothing runs until you countersign.</p>
       </section>

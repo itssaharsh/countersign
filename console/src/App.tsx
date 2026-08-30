@@ -41,8 +41,13 @@ export default function App() {
   // has nothing to connect, and a session already underway must not be sent back
   // to a setup screen it has already passed.
   const params = new URLSearchParams(window.location.search)
+  const demo = import.meta.env.VITE_DEMO_REPLAY === '1'
   const skipLanding = params.has('replay') || params.has('replayEvents') || feed.length > 0 || pending.length > 0
-  const onLanding = path === '/' && !skipLanding
+  // The demo build arms its replay at mount, so those parameters are always
+  // present and would send every visitor straight past the landing. In that
+  // build the root path is the landing regardless; the replay streams behind it
+  // and is already holding at the gate by the time anyone walks in.
+  const onLanding = path === '/' && (demo || !skipLanding)
   // Judge mode: ?replayEvents=… holds at the gate; once countersigned, engine state comes
   // from ?replayAfter=… (the post-commit snapshot of the same recorded run).
   const replayAfter = new URLSearchParams(window.location.search).get('replayAfter') ?? undefined
@@ -95,7 +100,16 @@ export default function App() {
           canStartOver={false}
           onStartOver={startOver}
         />
-        <Landing onEnter={(statement) => { go('/run'); send(statement) }} />
+        <Landing
+          demo={demo}
+          onEnter={(statement) => {
+            go('/run')
+            // A deployed demo has no harness to send to; the recorded run is
+            // already streaming. Sending would surface a connection error that
+            // says nothing true about the product.
+            if (!demo) send(statement)
+          }}
+        />
       </div>
     )
   }

@@ -988,3 +988,11 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 }
 .about-grid p { margin: 0; color: var(--graphite); font-size: var(--t-13); line-height: 1.6; max-width: 46ch; }
 .about-grid .t-data { color: var(--ink); font-size: 0.94em; }
+
+/* A deployed demo says so, at the top, before anything it shows can be mistaken
+   for a live connection. */
+.demo-banner {
+  margin: 0; padding: 12px 14px; border: 1px solid var(--rule); border-radius: var(--radius);
+  font-size: var(--t-13); color: var(--graphite); max-width: 78ch; line-height: 1.55;
+}
+.demo-banner b { color: var(--ink); font-weight: 500; }
