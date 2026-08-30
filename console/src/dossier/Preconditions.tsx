@@ -62,7 +62,7 @@ function lines(sim: Simulation): Line[] {
         ? null
         : sim.policy.verdict === 'PASS'
           ? `${fmt(rules.length)} rules, ${fmt(blocking.length)} blocking`
-          : `${blocking[0]?.rule ?? 'policy'} — ${blocking[0]?.detail ?? 'failed'}`,
+          : `${blocking[0]?.rule ?? 'policy'}: ${blocking[0]?.detail ?? 'failed'}`,
     },
   ]
 }

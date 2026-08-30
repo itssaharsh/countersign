@@ -1,3 +1,8 @@
+> **Superseded.** The narrated script for the current console is [docs/SCRIPT.md](../docs/SCRIPT.md),
+> and its production companion is [docs/SHOOT.md](../docs/SHOOT.md). This file is the v4 draft:
+> the stage it describes is back (DESIGN.md §11), but the HUD, the giant kinetic titles and the
+> inline gate it narrates were replaced by the console. Kept for the record, not for filming.
+
 # Demo video — beats + spoken narration (~3:00)
 
 Record 1080p with Cursorful (auto-zoom on click). Edit via Descript MCP (Underlord: trim dead air,

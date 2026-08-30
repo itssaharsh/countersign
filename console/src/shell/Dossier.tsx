@@ -10,6 +10,7 @@ import type { Phase, Simulation } from '../state'
 import { Ledger } from '../dossier/Ledger'
 import { Preconditions } from '../dossier/Preconditions'
 import { Receipt } from '../dossier/Receipt'
+import { Measuring } from '../dossier/Measuring'
 
 // The statement that actually runs against the seeded estate. Never a table or
 // column that does not exist — a judge copies this on the one screen that has to
@@ -63,16 +64,24 @@ export function Dossier(p: Props) {
             </>
           ) : (
             <>
-              <h2 className="t-label">{p.phase === 'WITNESSING' ? 'Receipt' : 'Blast radius'}</h2>
-              <p className="panel-empty">
-                {p.phase === 'WITNESSING'
-                  ? 'The commit is done. The per-table figures, the fingerprint and the armed undo appear here.'
-                  : p.questionOpen
-                    ? 'The agent is asking you something. Answer or decline it below.'
-                    : p.approvalOpen
-                      ? 'The evidence for this approval appears here.'
-                      : 'Measuring. The per-table counts appear here when the shadow transaction reports.'}
-              </p>
+              {/* The plain waiting states stay one sentence. INVESTIGATING does not:
+                  it is 18 to 43 seconds long, and a single grey line in an empty
+                  column is the console's worst screen precisely where the operator
+                  most needs to know it has not hung. */}
+              {p.phase === 'WITNESSING' || p.questionOpen || p.approvalOpen ? (
+                <>
+                  <h2 className="t-label">{p.phase === 'WITNESSING' ? 'Receipt' : 'Blast radius'}</h2>
+                  <p className="panel-empty">
+                    {p.phase === 'WITNESSING'
+                      ? 'The commit is done. The per-table figures, the fingerprint and the armed undo appear here.'
+                      : p.questionOpen
+                        ? 'The agent is asking you something. Answer or decline it below.'
+                        : 'The evidence for this approval appears here.'}
+                  </p>
+                </>
+              ) : (
+                <Measuring />
+              )}
             </>
           )}
 
@@ -100,7 +109,7 @@ export function Dossier(p: Props) {
           {p.questionOpen
             ? 'The agent asked a question. Answer or decline it below before sending anything else.'
             : p.approvalOpen
-              ? 'A gate is open. Countersign or deny it below before sending anything else — the deny reason goes back to the agent.'
+              ? 'A gate is open. Countersign or deny it below before sending anything else. The deny reason goes back to the agent.'
               : idle
                 ? 'Paste a destructive statement. Nothing runs until you countersign.'
                 : 'Ask for a re-measurement, or say "fire the undo" to bring the rows back. Nothing runs until you countersign.'}

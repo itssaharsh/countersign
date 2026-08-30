@@ -30,9 +30,18 @@ cannot be fixed from this repo.
 
 **Steps:** reseed, load `http://localhost:5199/`.
 
-**On screen:** the submit field with the placeholder that actually runs, the note *Nothing
-runs until you countersign*, and a gate bar reading `waiting: nothing submitted yet`. All
-three phase segments are `--rule`: nothing has been reached.
+**On screen:** the stage — a slowly turning sphere of 14,000 points — with the cold-open
+cover over it in one column, because there is no transcript to put beside it yet: the claim
+at Display 44 (*Every approval gate shows you the command. This one shows you the
+consequence.*), the submit field with the placeholder that actually runs, the note *Nothing
+runs until you countersign*, and the three measurements listed as pending on glass. The gate
+bar reads `waiting: nothing submitted yet` and all three phase segments are `--rule`:
+nothing has been reached.
+
+**Drag the empty ground and the world turns.** That is the only play in the console and it
+is the fastest proof that the stage is live rather than a still.
+
+The second column arrives with the first agent event, not before.
 
 Screenshot: `state-1-empty.png`
 
@@ -47,8 +56,12 @@ Process this change request: DELETE FROM users WHERE last_active < '2025-01-01'.
 Simulate, verify the undo, evaluate policy, then commit.
 ```
 
-**On screen:** the track lights INVESTIGATING and the header says `working`. The transcript
-shows the model's reasoning, then `run_investigation` with an elapsed counter climbing.
+**On screen:** the sphere breaks into three clusters — users, orders, payments — with dashed
+light beams drawing the cascade between them. The track lights INVESTIGATING and the header
+says `working`. The transcript shows the model's reasoning, then `run_investigation` with an
+elapsed counter climbing. The dossier names the three measurements as pending and says
+plainly that nothing publishes until the tool returns: the counts arrive complete or not at
+all.
 
 **Duration: 20–40 seconds**, and the engine publishes nothing until the tool returns. The
 elapsed counter is the only thing moving, and it is the honest answer to "is it stuck?".
@@ -61,10 +74,13 @@ Screenshot: `state-2-investigating.png`
 
 **Steps:** wait. TrueForge pauses on `commit_change` on its own.
 
-**On screen:** the ledger — `users 6,000 ← root`, `orders 17,971 CASCADE`,
-`payments 19,442 CASCADE`, the SET NULL edges collapsed to one line, and **43,413 rows die**
-at 76px in `--seal`. Three preconditions stamped in `--proof`. The gate bar carries the
-fingerprint and `HOLD TO COUNTERSIGN`, which did not exist a moment earlier.
+**On screen:** the doomed set draws into a breathing core inside a wide green ring whose arc
+is the freshness countdown, and the ledger lands on glass over it — `users 6,000 ← root`,
+`orders 17,971 CASCADE`, `payments 19,442 CASCADE`, the SET NULL edges collapsed to one
+line, and **43,413 rows die** at 76px in `--seal`. Three preconditions stamped in `--proof`.
+The gate bar carries the fingerprint and `HOLD TO COUNTERSIGN`, which did not exist a moment
+earlier. The total hands its red to that control the instant it appears: only one element
+wears the seal at a time.
 
 **The control is a 1200ms hold.** Press and hold; release early and it resets. `Enter` works
 identically with the control focused.
@@ -77,7 +93,7 @@ Screenshot: `state-3-deciding.png`
 
 **Steps:** hold the control for 1200ms.
 
-**On screen:** the receipt prints at ~18ms a line — per-table figures, the fingerprint, the
+**On screen:** the world vortexes away and the receipt prints at ~18ms a line — per-table figures, the fingerprint, the
 keys the commit was scoped to shown separately from the root rows actually deleted, and
 `UNDO ARMED · verified`. The undo control below it **sends an order**; it does not act. The
 gate bar re-arms with `HOLD TO RESTORE`.
@@ -146,13 +162,14 @@ Screenshot: `state-5-refused.png`
 **On screen:** a countdown appears in the gate bar at 30 seconds remaining. At zero the
 control **withdraws** — it does not grey out — and the bar reads:
 
-> these rows were counted 2m 2s ago. The count is no longer current — deny this gate, then
+> these rows were counted 2m 2s ago. The count is no longer current. Deny this gate, then
 > send the order again for a fresh measurement.
 
-Recorded from the live run, at 2m 2s. The ledger stays on screen so you can see exactly what
-expired.
+The ledger stays on screen so you can see exactly what expired.
 
-Screenshots: `state-6-countdown.png`, `state-6-stale.png`
+Screenshots: `state-6-countdown.png`, `state-6-stale.png`, both from
+`node tools/shot-gate.mjs`, which also takes state 5b. It waits the freshness window out in
+real time, because there is no way to hurry it that would still be true.
 
 **In replay, freshness is anchored to page load** only when the recorded measurement is more
 than ten minutes old. A fixture recorded minutes ago reads STALE immediately — correct for a
