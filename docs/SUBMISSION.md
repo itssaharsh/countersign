@@ -2,9 +2,18 @@
 
 **Project name:** Countersign
 
-**Live demo:** https://countersign-xi.vercel.app (no keys, replays a recorded run of the real agent)
+**Try it (no setup):** https://countersign-xi.vercel.app
+
+Open it and drive it yourself. It replays a recorded run of the real agent, the same event
+stream through the same code, stopping where the harness actually stopped, and you can hold
+the countersign control. It says on the page that it is a replay and not connected to a
+database, because a static host cannot hold one.
 
 **Repository:** https://github.com/itssaharsh/countersign
+
+Clone it and it runs against a database for real, either local files with no accounts needed
+or your own managed Postgres. Setup is in the README, and docs/ADOPT.md covers pointing it at
+your own estate.
 
 **One-liner:** The approval layer for destructive database changes. The approve button does
 not exist until the agent has measured exactly what dies and proven the rollback.
