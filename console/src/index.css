@@ -26,7 +26,7 @@
   --graphite: #9A94B8;  /* secondary text, labels, inactive phase */
   --rule:     #2A2740;  /* hairlines, table rules, card edges */
   --seal:     #FF6B6B;  /* DESTRUCTIVE ONLY — one element at a time */
-  --proof:    #7DE3C3;  /* verified / undo-proven / receipt ink */
+  --proof:    #8FB0F0;  /* verified / undo-proven / receipt ink — drafting blue */
 
   /* The glass the panels are cut from. Two weights: --panel for a card that
      carries prose, --panel-solid for one that carries figures a judge reads off
@@ -921,3 +921,59 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 .landing-form { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
 .landing-form .submit-input { flex: 1 1 420px; min-width: 0; }
 @media (max-width: 700px) { .landing { gap: 36px; } }
+
+/* ── the section ────────────────────────────────────────────────────────
+   Depth is vertical position, magnitude is bar length, and the delta/affected
+   distinction is carried by fill pattern rather than a column header — solid is
+   material removed, hatching is material cut through but present, an unfilled
+   boundary is a RESTRICT edge that takes nothing. Patterns, not hues, so the
+   drawing survives being read without colour. */
+.section-draw { display: block; }
+.grade { display: flex; align-items: center; gap: 12px; margin: 6px 0 2px; }
+.grade-rule { flex: 1; height: 1.5px; background: var(--ink); }
+.grade-lbl { font-size: var(--t-11); letter-spacing: 0.09em; text-transform: uppercase; color: var(--graphite); white-space: nowrap; }
+
+.stratum { padding: 13px 0 15px; border-bottom: 1px solid var(--rule); }
+.st-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+.st-name { font-size: var(--t-13); color: var(--ink); }
+.st-fig { font-size: var(--t-13); color: var(--ink); font-variant-numeric: tabular-nums; }
+.st-edge { font-size: var(--t-11); color: var(--graphite); letter-spacing: 0.06em; }
+.depth-tag { font-size: var(--t-11); color: var(--graphite); letter-spacing: 0.08em; text-transform: uppercase; }
+.bar {
+  height: 17px; margin-top: 9px; border: 1px solid var(--ink);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform 240ms ease-out;
+}
+.bar.solid { background: var(--ink); }
+.bar.hatched { background: repeating-linear-gradient(45deg, var(--graphite) 0 2px, transparent 2px 6px); }
+.bar.bound { background: transparent; }
+.col-dossier .bar { transform: scaleX(1); }
+.stratum:nth-of-type(2) .bar { transition-delay: 60ms; }
+.stratum:nth-of-type(3) .bar { transition-delay: 120ms; }
+.stratum:nth-of-type(4) .bar { transition-delay: 180ms; }
+.stratum:nth-of-type(5) .bar { transition-delay: 240ms; }
+
+.section-total { display: flex; align-items: baseline; justify-content: flex-end; gap: 14px; padding: 30px 0 4px; }
+.section-total-n {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(48px, 8vw, 88px); line-height: 0.9; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; color: var(--ink);
+  transition: color 180ms ease-out;
+}
+/* §2 rationing: the total holds the red until the countersign control exists,
+   then hands it over. Structural, so the two can never both be red. */
+.section-total.is-sealed .section-total-n { color: var(--seal); }
+.console:has(.gate-bar .hold) .section-total-n { color: var(--ink); }
+.section-total-l { font-size: var(--t-11); letter-spacing: 0.14em; text-transform: uppercase; color: var(--graphite); }
+
+.revisions { margin-top: 30px; border-top: 1px solid var(--rule); padding-top: 16px; display: grid; gap: 10px; }
+.revision { display: grid; grid-template-columns: 18px 1fr auto; gap: 14px; align-items: baseline; }
+.rev-k { font-size: var(--t-11); color: var(--proof); }
+.rev-t { font-size: var(--t-11); letter-spacing: 0.11em; text-transform: uppercase; color: var(--proof); font-weight: 500; }
+.rev-m { font-size: var(--t-13); color: var(--graphite); font-variant-numeric: tabular-nums; text-align: right; }
+.revision.is-fail .rev-k, .revision.is-fail .rev-t { color: var(--graphite); text-decoration: line-through; }
+.revision.is-fail .rev-m { color: var(--ink); }
+@media (max-width: 700px) {
+  .revision { grid-template-columns: 18px 1fr; }
+  .rev-m { grid-column: 2; text-align: left; }
+}

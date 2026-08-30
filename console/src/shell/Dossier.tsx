@@ -7,8 +7,7 @@
 // possible while a simulation exists.
 import { useState } from 'react'
 import type { Phase, Simulation } from '../state'
-import { Ledger } from '../dossier/Ledger'
-import { Preconditions } from '../dossier/Preconditions'
+import { Section, Revisions } from '../dossier/Section'
 import { Receipt } from '../dossier/Receipt'
 import { Measuring } from '../dossier/Measuring'
 
@@ -60,7 +59,7 @@ export function Dossier(p: Props) {
                   form below has to survive into WITNESSING (#20). */}
               {p.phase === 'WITNESSING'
                 ? <Receipt sim={p.sim} onSend={p.onSend} approvalOpen={p.approvalOpen} running={p.running} />
-                : <Ledger sim={p.sim} />}
+                : <Section sim={p.sim} />}
             </>
           ) : (
             <>
@@ -85,7 +84,7 @@ export function Dossier(p: Props) {
             </>
           )}
 
-          {p.sim && hasEvidence && <Preconditions sim={p.sim} />}
+          {p.sim && hasEvidence && p.phase !== 'WITNESSING' && <Revisions sim={p.sim} />}
         </>
       )}
 
