@@ -119,17 +119,51 @@ in the video.
 
 ---
 
-## Beat 8 · It can say no 2:20 to 2:40
+## Beat 8 · The two ways it refuses, 2:20 to 2:48
 
-**On screen.** Cut to the refused screen, then the stale one.
+Everything so far has been the console saying yes. This beat is the console saying no, and it
+says no in two different ways for two different reasons. **They are two separate recordings,
+cut together.** Neither can be reached from the run you just filmed.
 
-> This is the same console refusing.
+### 8a · No evidence, so no button
+
+**How to get this screen.** Open this URL in a fresh tab and wait about twelve seconds:
+
+```
+https://countersign-xi.vercel.app/run?replayEvents=/fixtures/real-run.jsonl
+```
+
+**What you are looking at.** The agent is asking to commit, exactly as before. But the
+measurement that would justify it is not there. This is the real world case where the page was
+reloaded against a restarted engine: the harness still holds the approval, the console has no
+idea what it is for.
+
+**What is on screen.** The gate bar at the bottom, with **Deny** and nothing else. Point the
+camera at the empty space where the countersign control was in beat 6.
+
+> This is the same console, refusing.
 >
-> Here the evidence behind the approval is missing, so there is no control at all, only deny.
+> The agent is still asking. But the measurement behind the request is gone, so there is
+> nothing to countersign, and the only control here is deny.
+
+### 8b · The measurement expired
+
+**How to get this screen.** Reach the gate normally, then leave it alone until the window runs
+out. You already have this take by accident.
+
+**What you are looking at.** The count was true when it was taken. Then time passed. A row
+could have started matching while the operator was reading, so the signature is no longer
+about the rows on screen.
+
+**What is on screen.** The section still drawn, the number still there, and the gate bar
+carrying the expiry line. The control has withdrawn.
+
+> And here the measurement simply got old.
 >
-> And here the measurement expired while the operator was reading. The button withdrew. The
-> drawing is still true, but the count is two minutes old, and a count you read two minutes
-> ago is not a count.
+> The count was true when it was taken. The button withdrew on its own, because a count you
+> read two minutes ago is not a count.
+>
+> Nothing is lost. Ask again and it measures again.
 
 ---
 
