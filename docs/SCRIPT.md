@@ -11,7 +11,13 @@ is (1), a working demo (2 to 7), the stack and architecture (8), and what buildi
 
 ---
 
-### 1 · countersign-xi.vercel.app, top of the page, still
+### 1 · The landing, top of the page, still
+
+Open it with the filming window on, so the gate in shots 3 to 6 does not expire mid take:
+
+```
+https://countersign-xi.vercel.app/?freshness=1200
+```
 
 > Countersign is an approval layer for destructive database changes.
 >
@@ -87,8 +93,9 @@ The panel says THE CHANGE and offers MEASURE IT. The bottom bar reads *nothing m
 on the left, and on the right *waiting: this approval is missing its evidence* with only a
 reason box and Deny. Frame the bottom right, where HOLD TO COUNTERSIGN was in shot 5.
 
-**Second**, get back to the armed gate from shot 5 and leave it completely alone for two
-minutes. The freshness window is 120 seconds. Two things change on their own: the 43,413 turns
+**Second**, a fresh tab on the plain URL, with no `freshness` parameter, so the window is back
+to its normal 120 seconds. Click through to the run, reach the gate, and leave it completely
+alone for two minutes. Two things change on their own: the 43,413 turns
 red, and HOLD TO COUNTERSIGN disappears. The bottom bar then reads *these rows were counted
 2m 17s ago. The count is no longer current. Deny this gate, then send the order again for a
 fresh measurement*, with only Deny beside it.
@@ -149,6 +156,9 @@ the twenty seconds you left running at the end of shot 3.
   fields and the resolved environment reveal partway through it.
 - Do not speed up the hold in shot 5. That second and a half is the most legible moment in
   the video.
+- `?freshness=1200` widens only what the console shows you. It is there so a re-take does not
+  cost you the whole measurement. Leave it off for shot 7's second clip, which is the one that
+  needs the window to actually run out.
 - The narration is continuous. It fits three minutes with about six seconds to spare, so cut
   the picture underneath it rather than pausing between shots.
 
