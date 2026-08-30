@@ -1,7 +1,7 @@
 // The cold-open screen: what a judge, or anyone else, lands on before a change
 // has been submitted.
 //
-// DESIGN.md §5 specifies the empty state as "a single Plex Mono input, full
+// The empty state is "a single Plex Mono input, full
 // width" with one line under it. Built literally, that put a 200px form at the
 // top of a 1280px page beside a 72px transcript column and left the rest of the
 // viewport blank — the fold fell a long way inside an empty section, and the

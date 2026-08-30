@@ -73,117 +73,28 @@ keeps the full-capability profile for choreography. Judge question: "isn't the m
 cheating?" Answer: mocksmith is a scripted *test driver* that exercises the real harness,
 tools and gates; the recorded demo runs the real model, and the README says so.
 
-### The visual system (console v6): the counterfoil
-Superseded v4/v5 below, which is kept for the record of what was tried and why.
-Why the change: the v4 stage answered "make it cinematic" but not the thing the Best UI
-track is actually judged on — *shows what the agent is doing, what it is waiting on, what
-it did, and asks before the irreversible step*. A galaxy is a second read of the
-measurement; it is not an answer to "what is it waiting on from me". So the console is now
-an operator console, and `DESIGN.md` at the repo root is its single source of truth.
-The direction is the paperwork of authorised destruction — a munitions release form, a bank
-counterfoil — because that is what a countersignature is. Paper ground, ink text, hairline
-rules, one seal. The inversion that makes it work: the calm surface is the default and
-danger is *rationed*. Most agent UIs are dark and alarming all the time, which means nothing
-in them reads as alarming. Here at most one element on screen may be red, and it is either
-the destructive row count or the countersign control, never both — the total hands the red
-over when the control materialises. Six colours, three faces (Bricolage Grotesque for
-display, Inter Tight for prose, IBM Plex Mono for **anything that came out of the
-database**, which is the whole type system: you can tell at a glance what is measured data
-and what is Countersign talking), a 1.25 type scale, 2px radius, no box shadows anywhere,
-and a hard budget of five animations on the page.
-Judge question: "isn't light just a safer choice?" Answer: it is the riskier one in a
-judging queue where every other submission is dark, and it is the only ground on which
-rationing a single red element reads at all.
-Cost and trade-off: the three.js stage, the scroll story and their dependencies come out.
-That is a real loss of spectacle, taken deliberately — the spectacle was not answering the
-judging line, and every animation kept has to earn a slot in the budget of five.
-Written against the running system, not against a mockup: `DESIGN.md` §9 records ten places
-where the first draft of the spec described behaviour the harness does not have (a
-fine-grained tool transcript that does not exist, a ledger that cannot stream row by row, a
-RESTRICT edge coexisting with a passing policy) and what was changed instead. The rule the
-spec states for itself: if a screen cannot be drawn from data the console actually receives,
-that is a bug in the spec, not a licence to invent the data.
-Migration note: the ground (tokens, type, focus, motion budget, layout frame) landed before
-any component moved, so it could be reviewed on its own. Until the components are rewritten,
-a block marked `LEGACY BRIDGE — TEMPORARY` at the bottom of `console/src/index.css` keeps the
-v5.1 layout rules and re-points the old dark-stage variables at the six new tokens; it is
-deleted with the components it serves. Dark mode needed three values `DESIGN.md` §2 does not
-give: on an ink ground the light graphite, seal and proof measure 3.4:1, 2.9:1 and 1.7:1,
-under the 4.5:1 floor the spec calls non-negotiable, so they are re-struck lighter at the
-same roles and the measured ratios are recorded beside them in the file.
+### The visual system: the counterfoil
+The console is the paperwork of authorised destruction: a munitions release form, a bank
+counterfoil, because that is what a countersignature is. Hairline rules, one seal, and a
+hard rule that at most one element on screen may be red, and it is either the destructive
+row count or the countersign control, never both. The total hands the red over when the
+control materialises.
 
-### The visual system (console v4): a cinematic stage
-Why not a dashboard: the Best UI track is judged on the demo video and usability, and
-the brief was explicit about the references (Lusion, Unseen Studio, Active Theory,
-Bruno Simon): an experience, not a website. Those share one property: no chrome, no
-cards. The 3D world is the page, typography is the interface, and the camera moves.
-So the console is a full-screen three.js world (react-three-fiber, bloom, fog) with
-type drawn over it. The world is a galaxy of rows that IS the database: idle it drifts
-and you can drag to explore; while the agent investigates the doomed rows ignite and
-gather into users, orders and payments with dashed light beams drawing the cascade and
-floating 3D counts; when the gate arms the doomed set is held breathing inside a ring
-of light whose arc is the freshness countdown; on commit the rows vortex away and the
-field settles. A camera rig flies between scenes. The interface is a wordmark, a HUD
-readout of the three proofs, a giant per-phase title, a thin transcript rail, one
-command line with the agent's narration typed live, magnetic typographic Countersign
-and Deny, and a glass receipt slab. Reduced-motion users get a still stage.
-Judge question: "is the 3D just decoration?" Answer: it is state. Every scene is a
-second read of what the engine measured, and the gate ring is the actual freshness
-timer that the server enforces.
-Cost: every frame lerps all 14k points toward their phase target and re-uploads the
-position and colour arrays (one 168 KB upload). That is deliberate: the galaxy is the
-readout, so it must move when state moves; there are no per-frame allocations, the
-DPR is capped at 1.5, and reduced-motion users get a stage that settles and holds.
-Judge mode: `?replayEvents=` feeds the recorded gpt-oss-120b stream through the same
-reducer the live console uses and holds at `tool.approval_required` until Countersign,
-then `?replayAfter=` supplies the post-commit state snapshot of that run. Fixture note:
-the recorder that captured `real-run.jsonl` had already merged deltas into base events,
-so base `content`/`arguments` were cleared (the deltas rebuild them byte-for-byte).
+Three faces carry the whole type system: Bricolage Grotesque for display, Inter Tight for
+prose, and IBM Plex Mono for **anything that came out of the database**. You can tell at a
+glance what is measured data and what is Countersign talking.
 
-### The page around the stage (console v5): a story you scroll
-Why: judges and first-time visitors could not tell from the stage alone what Countersign
-is. The stage stays the hero (100 svh, the live console), and the page now scrolls into
-an editorial story: what this is (scroll-scrubbed text reveal), the problem (the one
-bright orange section: what the human is shown versus what actually happens), four
-stacked tiles for the four proofs (sticky stack, each tile its own hue, with the real
-SQL, undo report, policy rules and fingerprint as evidence asides), the numbers from the
-recorded run (one anchor number, satellites, tickers), the harness as an index rather
-than a card grid, the review trail with the receipt, and how to run it. One scroll
-model: Lenis drives the page, GSAP ScrollTrigger scrubs the reveals and the stack,
-framer-motion handles in-view reveals, magnetic buttons and springs; the galaxy bleeds
-through the darker sections as the camera pulls back with scroll.
-Collision rule: the order, the agent's words, the transcript and the title each own a
-region (title zone left, rail right, dock bottom). The dock shows the last order as a
-chip and the agent's words clamped to two lines; the transcript scrolls inside itself.
-The title is sized to its zone with container units so it can never run into the rail.
-Palette: state colours are reserved for state on the stage; every story section has its
-own accent world (rose, orange, cobalt/forest/plum/graphite, lime, ice, ultramarine,
-bone) so no two neighbours share one.
-Review loop: tools/design-review.mjs renders every section at 1920×1080 and 390×844,
-hovers controls, and reports overflow, overlaps, clipped text, tiny text, unnamed
-controls and small tap targets; prompts/07-design-loop.md is the standing brief.
-Libraries: three/react-three-fiber (stage), framer-motion, GSAP ScrollTrigger, Lenis;
-MagicUI and Aceternity patterns (marquee, border beam, number ticker, spotlight card,
-sticky stack, text reveal) rebuilt in src/story/fx.tsx. The MagicUI, shadcn and 21st
-MCP servers were not connected in the build session, so nothing was fetched from them;
-the patterns are reimplementations, not copies.
+The blast radius is drawn as a sectional elevation rather than tabulated, because a
+foreign-key cascade is a load path failing through dependent members and a section is the
+drawing you make before cutting. Depth down the page is foreign-key depth, bar length is
+row count, and the distinction the product turns on is carried by fill pattern rather than
+a column header: solid means the rows are gone, hatching means they survive with a
+reference nulled, an unfilled boundary is a RESTRICT edge that takes nothing. Patterns
+rather than colours, so the drawing still reads if you cannot tell the hues apart.
 
-### One world (console v5.1): colour as accent, not background
-Feedback on v5: the coloured section backgrounds read as too much. Decision: every
-section now sits on the stage's own ground with the galaxy showing through; each section
-gets one soft glow (ember for the problem and the numbers, ice for the harness,
-ultramarine for the review trail) and colour is spent only on numerals and labels. The
-four proof tiles are tinted glass over the same ground, not solid fills, so they read as
-one family. The Problem section is the single bold moment: an unboxed ledger whose ember
-numbers count up. A wayfinder rail on the right names every section, marks the one in
-view and jumps on click; the example order in the dock is clickable. Numbered markers
-survive only on the four proofs, because that list is a real sequence; the harness list
-is not, so it lost its numbers.
-What judges of a UI prize reward, and how this maps: a clear identity (one ground, one
-display face, one accent), motion that means something (phase-driven stage, scrubbed
-reveals, counting numbers), obvious usability (four regions that never collide, a
-wayfinder, a clickable example, a gate that says why it is blocked), and no visual
-defects at desktop or phone widths (tools/design-review.mjs reports zero).
+Earlier drafts went through a cinematic three.js stage and a scrolling story page. Both
+were cut: they were a second read of the measurement, not an answer to "what is it waiting
+on from me". The stage survives only as an ambient field behind the console.
 
 ### Reopening a gate after a reload (console v5.1.1)
 Seen live: TrueForge answered `422 user message cannot be sent while approvals or questions

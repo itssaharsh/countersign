@@ -1,4 +1,4 @@
-// DESIGN.md §5 — the phase indicator is not decoration, it is the answer to
+// The phase indicator is not decoration, it is the answer to
 // "what is it waiting on". Three segments; the active one is --ink with a filled
 // dot, past segments --graphite, future segments --rule. Before a change is
 // submitted all three are --rule.

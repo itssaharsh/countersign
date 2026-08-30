@@ -1,4 +1,4 @@
-// DESIGN.md §4 — the signature element.
+// The signature element.
 //
 // The Approve control does not exist until it is earned. Not disabled. Not greyed
 // out. Absent. Until then the bar carries the fingerprint and a --graphite line

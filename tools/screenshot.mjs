@@ -1,5 +1,5 @@
 // Screenshot the operator console at the two viewports the console is designed
-// for: 1920x1080 and 390x844 (DESIGN.md §8 — responsive to 390px, and the gate
+// for: 1920x1080 and 390x844 (responsive to 390px, and the gate
 // bar stays fixed to the bottom there).
 //
 // Retargeted from the deleted v5 scroll story, which keyed off section[data-shot]

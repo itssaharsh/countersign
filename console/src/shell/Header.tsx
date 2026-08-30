@@ -1,4 +1,4 @@
-// DESIGN.md §3 — the 56px header, ruled 2px beneath. Wordmark on the left, the
+// The 56px header, ruled 2px beneath. Wordmark on the left, the
 // phase track on the right, and the two facts an operator needs about the rig
 // behind it: which model is driving, and whether the engine is answering.
 import type { Phase } from '../state'

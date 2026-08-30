@@ -24,3 +24,7 @@ evidence/
 # vite local overrides
 .env.local
 **/.env.local
+
+# supabase cli local state
+supabase/.temp/
+supabase/.branches/

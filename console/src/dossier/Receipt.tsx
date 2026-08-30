@@ -1,4 +1,4 @@
-// DESIGN.md §5 WITNESSING — the receipt.
+// WITNESSING: the receipt.
 //
 // The ground shifts to a 2% --proof tint and the receipt prints, ~18ms a line.
 // This is the ONE place a typewriter effect is permitted in the whole design

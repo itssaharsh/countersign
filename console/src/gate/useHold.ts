@@ -1,4 +1,4 @@
-// DESIGN.md §4 — hold to countersign, not click. 1200ms of sustained intent;
+// Hold to countersign, not click. 1200ms of sustained intent;
 // release early and it resets. Keyboard parity is required, not optional: focus
 // the control and hold Enter for the same duration with the same fill.
 //

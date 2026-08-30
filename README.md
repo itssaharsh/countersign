@@ -60,6 +60,8 @@ A migration lands in a GitHub PR. The Countersign agent (running on TrueForge):
 | ![landing](docs/screenshots/landing.png) | ![deciding](docs/screenshots/deciding.png) |
 | **The receipt** | **Refused** |
 | ![witnessing](docs/screenshots/witnessing.png) | ![refused](docs/screenshots/refused.png) |
+| **Expired** | **At 390px** |
+| ![stale](docs/screenshots/stale.png) | ![landing on a phone](docs/screenshots/landing-mobile.png) |
 
 The blast radius is drawn as a section rather than tabulated. Depth down the page is foreign
 key depth, bar length is how many rows, and the distinction the whole product turns on is
@@ -160,7 +162,21 @@ Then in TrueForge (http://localhost:8790):
 5. Watch the evidence board fill, the gate arm, and TrueForge pause. The decision is yours.
 
 End-to-end scripted proof (pause → approve → commit → undo → restore): `node agent/e2e.mjs --approve`
-Engine test suite (11 tests, every demo claim): `npm test -w server`
+
+## Tests
+
+`npm test` runs both suites, 48 tests.
+
+| Suite | What it covers |
+|---|---|
+| `server/tests/pipeline.test.mjs` | The engine end to end against a real PGlite database: the shadow run leaves the live database untouched, the cascade deltas are the demo's numbers, the undo verifies against *committed* shadow state, child and content drift each void the approval, the commit deletes exactly the approved key set, and the undo is one-shot. Slow, because it is real. |
+| `server/tests/policy.test.mjs` | Every policy verdict on its own, in milliseconds. The pipeline test only ever produces `PASS`, so each `FAIL` path is asserted here instead: the row ceiling counted across the whole cascade, a protected table losing rows, an unproven undo, a blocking `RESTRICT` edge, and that all four failures are reported rather than just the first. |
+| `server/tests/tiny-yaml.test.mjs` | The hand-rolled policy parser, including the limits that fail *silently*: nesting is flattened and an inline list stays a string, either of which would hand the engine a policy that is not the one on disk. |
+| `console/src/state.test.ts` | The selectors that decide what the operator is told. Chiefly that a `RESTRICT` edge is never counted as "references cleared", which is a bug that shipped once: both edges arrive with zero `delta` and some `affected`, so classifying on counts alone reported rows as safely nulled by a change that cannot run at all. |
+
+Each of those carries a mutation that makes it fail. Re-introduce the count-based
+classification in `clearsReferences` and the console suite goes red on the named test, which
+is the only evidence that the test measures anything. See [DECISIONS.md](DECISIONS.md).
 
 ## How it uses TrueForge
 

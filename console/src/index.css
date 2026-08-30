@@ -2,7 +2,7 @@
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Countersign console — the ground.
-   DESIGN.md is the source of truth. Six colors, three faces, one seal.
+   Six colors, three faces, one seal.
    This file is §2 (tokens), §3 (layout frame), §6 (motion budget) and §8
    (quality floor). Components land in later PRs; the LEGACY BRIDGE at the
    bottom keeps the current v5.1 components legible on the new ground until
@@ -20,7 +20,7 @@
      and the green the point field already uses, so a row that is dying is the
      same red in the ledger as it is in the world. There is no light inversion:
      a light console over a dark starfield is two designs at once.
-     See DESIGN.md §11. */
+     */
   --bone:     #07060f;  /* page ground — the stage's clear colour */
   --ink:      #EDEBFF;  /* primary text, hairline rules at 100% */
   --graphite: #9A94B8;  /* secondary text, labels, inactive phase */

@@ -5,7 +5,7 @@
 // is left asking whether it has hung, and the console had nothing to answer with.
 //
 // What it can honestly say is what is being measured and why nothing is moving.
-// DESIGN.md §9 correction A2 is explicit: the ledger arrives complete in ONE tool
+// The ledger arrives complete in ONE tool
 // result, and copy claiming rows arrive as the shadow transaction reports them
 // would be a claim the console cannot make today. So this panel says the opposite
 // in as many words, and lists the three measurements as pending, never as

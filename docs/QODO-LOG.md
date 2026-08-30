@@ -54,7 +54,7 @@ Qodo posted a summary and a clean review ("Great, no issues found!"); no finding
 | 2 | Multiline migrations are corrupted | High | **FIXED** — added-line continuations in the JSON-escaped diff are joined before extraction, so multi-line statements survive intact (downstream also fails safe: a truncated statement fails the server's classifier/simulation, which blocks the flow). |
 | 3 | Additional migrations are ignored | High | **DISMISSED (reason in-thread)** — one migration per PR is the v1 demo contract for the scripted driver; the real-model agent doctrine handles multi-file PRs naturally. Noted in the script header. |
 | 4 | Receipt targets wrong repository | High | **FIXED** — owner/repo now come from the `pull_request_read` call recorded in history, with the parsed order as fallback. |
-| 5 | PR flow lacks design rationale | Rule | Noted — design rationale lives in `prompts/00-mission.md` and `docs/EXPLAIN.md`. |
+| 5 | PR flow lacks design rationale | Rule | Noted — design rationale lives in `docs/EXPLAIN.md`. |
 | 6 | Receipt JSON is truncated | Medium | Noted — the receipt embeds a truncated measurement preview by design; the full JSON persists in the evidence dir. |
 | 7 | Evidence claims unperformed verification | Medium | Noted — the receipt's verification claims are read from the `run_investigation` result, not asserted. |
 
@@ -129,7 +129,7 @@ Qodo posted a summary and a clean review ("Great, no issues found!"); no finding
 | 2 | startOver exits fixture replay | Rule | **FIXED** — the reload keeps the query string, so in judge mode start over restarts the fixture stream rather than entering live mode. |
 | 3 | Start-over decision undocumented | Rule | **FIXED** — EXPLAIN "Start over" entry: why the saved session is removed, why a full reload, what URL state is kept, replay trade-off. |
 
-## PR #16 — DESIGN.md, the console spec (0 findings)
+## PR #16 — the console spec (0 findings)
 Docs only. Clean on the first pass: `🐞 Bugs (0) 📘 Rule violations (0) 📎 Requirement gaps (0)`.
 A follow-up commit corrected §2 against reality before merge — Bricolage Grotesque's width axis
 runs 75–100 on Google Fonts rather than 100–120, and dark mode needed re-struck `--graphite`,
@@ -163,7 +163,7 @@ every one of them lived in a state those tests never entered.
 | 10 | Refusal detail shares row | Bug | **FIXED** — `.gate-refusal` was a flex sibling of `.inner` in a horizontal bar, so the blocked-state explanation was squeezed beside the controls. The `grid-column` rule written for it was dead code: the element is not a child of either mobile grid. |
 | 11 | Replacement gate auto-approves | Bug | **FIXED** — resolved by the same per-gate reset as #2. |
 | 12 | RefusalDetail omits rollback phrase | Rule | **FIXED** — failed-rollback copy must read `NOT RESTORED BY THE GENERATED ROLLBACK`; it now leads with it. |
-| 13 | Gate lacked a REFUSED/STALE surface | — | Built in the same PR from `DESIGN.md` §5, and verified: STALE reached by waiting out the real 120s window, REFUSED by loading a gate with no matching simulation. |
+| 13 | Gate lacked a REFUSED/STALE surface | — | Built in the same PR, and verified: STALE reached by waiting out the real 120s window, REFUSED by loading a gate with no matching simulation. |
 
 **Two of our own assertions passed by measuring the absence of a different bug.** The REFUSED
 check asserted the bar did not overlap the dock and the control was absent; both were true while

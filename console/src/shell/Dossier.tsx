@@ -1,4 +1,4 @@
-// DESIGN.md §3 — the right column: the phase-adaptive panel where the boldness
+// The right column: the phase-adaptive panel where the boldness
 // is spent, and §5's empty state.
 //
 // The command form is present in every phase, not only the empty one. §0

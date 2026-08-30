@@ -12,7 +12,7 @@ const client = new TrueForge({ baseUrl: endpoints().forge, timeoutInSeconds: 600
 const RESUME_KEY = 'countersign-session'
 
 // `createdAt` is the event's own timestamp, carried through untouched so the transcript
-// can print it (DESIGN.md §3). It is optional because it is only ever copied, never
+// can print it. It is optional because it is only ever copied, never
 // invented: base events all carry one, deltas almost never do (3 of 206 in the recorded
 // run), and an item assembled from deltas takes its parent event's stamp or none at all.
 export type FeedItem =

@@ -1,4 +1,4 @@
-// DESIGN.md §3 — the left column: what the agent is doing.
+// The left column: what the agent is doing.
 //
 // The unit is a harness event, not an imagined tool call (§9 A1). The real stream for a
 // complete run is two tool calls — `run_investigation`, then `commit_change` — each

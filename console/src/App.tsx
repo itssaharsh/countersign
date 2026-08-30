@@ -1,4 +1,4 @@
-// The console. DESIGN.md §3: a 56px header, two columns — transcript left,
+// The console: a 56px header, two columns — transcript left,
 // dossier right — and a gate bar fixed to the bottom that never scrolls away.
 //
 // Behind all of it, the stage: a three.js field of points whose geometry is the

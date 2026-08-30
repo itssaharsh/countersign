@@ -64,14 +64,33 @@ function scan(text, label, out) {
 
 const targets = [];
 function walk(dir) {
-  for (const e of readdirSync(dir)) {
+  // A default target that does not exist is not an error: `fixtures/` only exists
+  // on a machine that has recorded one. Crashing there would mean the scan never
+  // runs from a fresh clone, which is exactly when it matters most. An explicitly
+  // named target still throws, because asking for a path that is not there is a
+  // mistake worth hearing about.
+  let entries;
+  try {
+    entries = readdirSync(dir);
+  } catch (err) {
+    if (err.code === 'ENOENT' && !explicit) return;
+    throw err;
+  }
+  for (const e of entries) {
     const p = join(dir, e);
     if (e === 'node_modules' || e === '.git') continue;
     if (statSync(p).isDirectory()) walk(p);
     else targets.push(p);
   }
 }
-for (const root of process.argv.slice(2).length ? process.argv.slice(2) : ['console/public/fixtures', 'fixtures']) walk(root);
+const args = process.argv.slice(2);
+const explicit = args.length > 0;
+// Resolved against the repo root, not the shell's cwd, so `node tools/scan-secrets.mjs`
+// works from anywhere. It was silently only ever run from the root before.
+const REPO = new URL('..', import.meta.url).pathname;
+for (const root of explicit ? args : ['console/public/fixtures', 'fixtures']) {
+  walk(explicit ? root : join(REPO, root));
+}
 
 const fieldOnly = [], reassembled = [];
 for (const p of targets) {
