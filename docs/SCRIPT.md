@@ -11,8 +11,8 @@ Read it flat. Every line is a statement of fact about something visible.
 
 > Countersign is an approval layer for destructive database changes.
 >
-> When an AI agent wants to delete something from your database, it has to ask a person
-> first. Every agent harness does that the same way: a tool name, some JSON, allow or deny.
+> When an AI agent wants to delete something from your database, it asks a person first. Every
+> harness asks the same way: a tool name, some JSON, allow or deny.
 >
 > Nobody can answer that honestly. The person clicking becomes the safety layer with nothing
 > to be safe with.
@@ -35,12 +35,11 @@ Read it flat. Every line is a statement of fact about something visible.
 > The extra thirty seven thousand are orders those users placed, and payments on those
 > orders, reached through foreign keys the prompt never mentioned.
 >
-> Depth down the page is foreign key depth. Solid means the rows are gone. The hatched band
-> is thirty seven tables that keep their rows but lose a reference, which is a different
-> thing, and separating those two is the entire product.
+> Depth down the page is foreign key depth. Solid means the rows are gone. The hatched band is
+> thirty seven tables that keep their rows but lose a reference, which is a different thing,
+> and separating those two is the entire product.
 >
-> None of it is predicted. The statement ran for real, inside a transaction that was rolled
-> back.
+> None of it is predicted. The statement ran for real, inside a transaction that was rolled back.
 
 ---
 
@@ -67,8 +66,8 @@ Read it flat. Every line is a statement of fact about something visible.
 
 ### 6 · The receipt printing, and the undo chip
 
-> It deleted by that exact key list and nothing else. A row that started matching while I was
-> reading would have voided the approval instead of dying with it.
+> It deleted by that exact key list and nothing else. A row that started matching while I read
+> would have voided the approval instead of dying with it.
 >
 > The undo is armed and already proven. Firing it gets countersigned the same way.
 
@@ -84,8 +83,8 @@ Point the camera at the empty space where the button was in shot 5.
 
 > This is the same console, refusing.
 >
-> The agent is still asking. But the measurement behind the request is gone, so there is
-> nothing to countersign, and the only control here is deny.
+> The agent is still asking, but the measurement behind the request is gone. There is nothing
+> to countersign, and the only control here is deny.
 
 ---
 
@@ -93,8 +92,7 @@ Point the camera at the empty space where the button was in shot 5.
 
 > And here the measurement simply got old.
 >
-> The count was true when it was taken. The button withdrew on its own, because a count you
-> read two minutes ago is not a count.
+> The button withdrew on its own, because a count you read two minutes ago is not a count.
 >
 > Nothing is lost. Ask again and it measures again.
 
@@ -104,19 +102,17 @@ Point the camera at the empty space where the button was in shot 5.
 
 > Here is what it takes to run this against your own database.
 >
-> Two connection strings. One for the database the change would touch. One for a copy of it,
-> where the rollback gets proven before you are asked to approve anything.
+> Two connection strings. One for the database the change would touch, one for a copy where
+> the rollback gets proven.
 >
-> A short file of your rules. How many rows may die, which tables must never lose any.
+> A short file of your rules: how many rows may die, which tables must never lose any.
 >
 > And one line in the agent's config, pinning the irreversible tools so the harness stops and
 > asks.
 >
-> Nothing in the measurement is written against my schema, so it works on yours. It reads
-> your database's own foreign keys.
->
-> Your credentials stay in the engine. They never reach the browser, and they never reach the
-> model.
+> None of the measurement is written against my schema, so it works on yours. It reads your
+> database's own foreign keys. And your credentials stay in the engine. They never reach the
+> browser, and they never reach the model.
 
 ---
 
