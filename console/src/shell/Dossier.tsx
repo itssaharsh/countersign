@@ -25,6 +25,7 @@ type Props = {
   // shows the operator the wrong active state.
   approvalOpen: boolean
   questionOpen: boolean
+  demo?: boolean
   onSend: (text: string) => void
 }
 
@@ -58,7 +59,7 @@ export function Dossier(p: Props) {
                   Rendered here rather than from an early return, because the command
                   form below has to survive into WITNESSING (#20). */}
               {p.phase === 'WITNESSING'
-                ? <Receipt sim={p.sim} onSend={p.onSend} approvalOpen={p.approvalOpen} running={p.running} />
+                ? <Receipt sim={p.sim} onSend={p.onSend} approvalOpen={p.approvalOpen} running={p.running} demo={p.demo} />
                 : <Section sim={p.sim} />}
             </>
           ) : (

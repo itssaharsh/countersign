@@ -175,9 +175,11 @@ function ClearedGroup({ id, label, tables }: { id: string; label: string; tables
   )
 }
 
-export function Receipt({ sim, onSend, approvalOpen, running }: {
+export function Receipt({ sim, onSend, approvalOpen, running, demo = false }: {
   sim: Simulation
   onSend: (text: string) => void
+  /** A replay has no harness behind it, so the undo cannot be ordered from here. */
+  demo?: boolean
   // Only an approval concerns the restore. A pending question is a different
   // state and must not be presented as "the restore gate is open below".
   approvalOpen: boolean
@@ -262,7 +264,13 @@ export function Receipt({ sim, onSend, approvalOpen, running }: {
 
       {/* §5 — deliberately undramatic. It sends an order; it does not act. */}
       <div className="receipt-undo">
-        {spent ? (
+        {demo ? (
+          <p className="receipt-note">
+            This is a recorded run, so the undo cannot be fired from here. In a live session the
+            control below sends the order and the gate re arms with hold to restore. Clone the
+            repository to run it against a database.
+          </p>
+        ) : spent ? (
           <p className="receipt-note">
             The undo has been fired and the rows are back. It is one shot. The engine refuses a
             second run, because replaying it would duplicate rows.
