@@ -32,7 +32,11 @@ function useRoute(): [string, (p: string) => void] {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
   return [path, (p: string) => {
-    window.history.pushState({}, '', p)
+    // Keep the query string across the navigation. Judge mode and the deployed
+    // demo carry their replay sources there, and dropping them on the way to /run
+    // loses replayAfter, so countersigning never switches to the post commit
+    // snapshot and the receipt never arrives.
+    window.history.pushState({}, '', p + window.location.search)
     // A navigation starts at the top. Without this the console opens at whatever
     // depth the landing was scrolled to, which puts the reader halfway down a
     // section they have not seen the top of.
