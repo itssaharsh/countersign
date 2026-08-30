@@ -36,6 +36,7 @@ type Row =
   | { k: 'text'; id: string; text: string }
   | { k: 'line'; id: string; name: string; fig: string; note?: string; title?: string; fact?: string; table?: string }
   | { k: 'total'; id: string; name: string; fig: string }
+  | { k: 'group'; id: string; label: string; tables: TableRow[] }
 
 /**
  * An ISO instant as the operator reads it, in the zone the engine recorded it
@@ -79,12 +80,16 @@ function buildRows(sim: Simulation): Row[] {
   rows.push({ k: 'total', id: 'total-died', name: 'rows died', fig: n(rowsThatDie(sim)) })
 
   if (touched.length) {
+    // The same rule the ledger follows (§5): tables that lose references but keep
+    // their rows collapse to one line. Printed out in full they were 37 identical
+    // SET NULL rows between the death count and the fingerprint — the two figures
+    // the receipt exists to show — and the screen ran past three viewports. The
+    // list is one click away, so the record is intact; it is no longer the bulk
+    // of the record.
     rows.push({ k: 'head', id: 'h-cleared', text: 'References cleared' })
-    for (const t of touched) {
-      rows.push({ k: 'line', id: `c-${t.name}`, name: t.name, fig: n(t.affected ?? 0), note: edgeNote(t), table: t.name })
-    }
+    rows.push({ k: 'group', id: 'cleared-group', label: `${n(touched.length)} tables kept every row they had`, tables: touched })
     rows.push({ k: 'total', id: 'total-cleared', name: 'references cleared', fig: n(referencesCleared(sim)) })
-    rows.push({ k: 'text', id: 'cleared-note', text: `${n(touched.length)} tables keep every row they had. A cleared reference is not a death and is never counted as one.` })
+    rows.push({ k: 'text', id: 'cleared-note', text: 'A cleared reference is not a death and is never counted as one.' })
   }
 
   if (untouched.length) {
@@ -137,6 +142,37 @@ function buildRows(sim: Simulation): Row[] {
 
   rows.push({ k: 'text', id: 'measured-note', text: `${n(sim.tables.length)} tables measured in the shadow transaction.` })
   return rows
+}
+
+/**
+ * The collapsed SET NULL block. A button, because it expands to the full list —
+ * the same control the ledger gives the same fact, so an operator who opened it
+ * on the forecast finds it in the same place on the record.
+ */
+function ClearedGroup({ id, label, tables }: { id: string; label: string; tables: TableRow[] }) {
+  const [open, setOpen] = useState(false)
+  const listId = `${id}-list`
+  return (
+    <div className="receipt-group" data-tables={tables.length}>
+      <button type="button" className="receipt-toggle" aria-expanded={open} aria-controls={listId} onClick={() => setOpen((v) => !v)}>
+        <span className="t-data">{label}</span>
+        <span className="receipt-chevron" aria-hidden>{open ? '−' : '+'}</span>
+      </button>
+      {open && (
+        <ul className="receipt-sub" id={listId}>
+          {tables.map((t) => (
+            <li key={t.name} data-name={t.name} data-affected={t.affected ?? 0}>
+              <span className="r-name t-data">{t.name}</span>
+              <span className="r-val">
+                <span className="r-fig t-data">{n(t.affected ?? 0)}</span>
+                <span className="r-note t-data">{edgeNote(t)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 }
 
 export function Receipt({ sim, onSend, approvalOpen, running }: {
@@ -194,7 +230,8 @@ export function Receipt({ sim, onSend, approvalOpen, running }: {
             screen is up, and the operator should never have to wait for a line
             to arrive to learn that. */}
         <span className={`receipt-chip t-data${spent ? ' is-spent' : ''}`}>
-          {spent ? 'UNDO FIRED · rows restored' : 'UNDO ARMED · verified'}
+          <span className="chip-label">{spent ? 'Undo fired' : 'Undo armed'}</span>
+          <span className="chip-value">· {spent ? 'rows restored' : 'verified'}</span>
         </span>
       </div>
 
@@ -203,6 +240,7 @@ export function Receipt({ sim, onSend, approvalOpen, running }: {
           if (r.k === 'head') return <p key={r.id} className="t-label receipt-section">{r.text}</p>
           if (r.k === 'sql') return <p key={r.id} className="receipt-sql t-data">{r.text}</p>
           if (r.k === 'text') return <p key={r.id} className="receipt-note">{r.text}</p>
+          if (r.k === 'group') return <ClearedGroup key={r.id} id={r.id} label={r.label} tables={r.tables} />
           const total = r.k === 'total'
           return (
             <div
@@ -226,7 +264,7 @@ export function Receipt({ sim, onSend, approvalOpen, running }: {
       <div className="receipt-undo">
         {spent ? (
           <p className="receipt-note">
-            The undo has been fired and the rows are back. It is one shot — the engine refuses a
+            The undo has been fired and the rows are back. It is one shot. The engine refuses a
             second run, because replaying it would duplicate rows.
           </p>
         ) : approvalOpen ? (
@@ -246,7 +284,7 @@ export function Receipt({ sim, onSend, approvalOpen, running }: {
                 /* Nothing is queued — the control cannot send while a turn is in
                    flight. "The order will wait" promises a queue that does not exist
                    and leaves the operator waiting for an undo never requested. */
-                ? 'the agent is still working; this sends nothing yet — wait for the turn to finish'
+                ? 'the agent is still working; this sends nothing yet. Wait for the turn to finish.'
                 : 'sends the order; you will countersign the restore.'}
             </p>
           </>

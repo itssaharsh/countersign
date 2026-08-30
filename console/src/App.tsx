@@ -8,6 +8,7 @@ import { useFreshness } from './experience/useFreshness'
 import { Header } from './shell/Header'
 import { Transcript } from './transcript/Transcript'
 import { Dossier } from './shell/Dossier'
+import { Cover } from './shell/Cover'
 import { GateBar } from './gate/GateBar'
 
 export default function App() {
@@ -31,6 +32,26 @@ export default function App() {
     }).catch(() => {})
   }, [])
 
+  // Nothing has been said in this browser. Either it is a cold open, or the page
+  // was loaded against an engine that already holds a run — a reload, a second
+  // tab, a judge opening the URL after the demo. Both leave the transcript with
+  // nothing in it, and a 380px column reserved for one grey sentence beside a
+  // full-height dossier is dead space, not a layout.
+  const noFeed = feed.length === 0 && pending.length === 0
+  // The cold open is the one that gets the claim. A loaded run is not cold: that
+  // operator has a receipt to read, not a pitch.
+  const cover = noFeed && phase === 'IDLE'
+  const dossier = (
+    <Dossier
+      phase={phase}
+      sim={sim}
+      running={running}
+      approvalOpen={pending.some((a) => a.kind !== 'question')}
+      questionOpen={pending.some((a) => a.kind === 'question')}
+      onSend={send}
+    />
+  )
+
   return (
     <div className="console">
       <Header
@@ -42,16 +63,25 @@ export default function App() {
         canStartOver={feed.length > 0 || pending.length > 0}
         onStartOver={startOver}
       />
-      <div className="console-body">
-        <Transcript feed={feed} pending={pending} />
-        <Dossier
-          phase={phase}
-          sim={sim}
-          running={running}
-          approvalOpen={pending.some((a) => a.kind !== 'question')}
-          questionOpen={pending.some((a) => a.kind === 'question')}
-          onSend={send}
-        />
+      <div className={`console-body${noFeed ? ' is-solo' : ''}${cover ? ' is-cover' : ''}`}>
+        {/* Two columns are the working layout: a transcript beside the evidence it
+            produced. The second column arrives with the first agent event. */}
+        {!noFeed && <Transcript feed={feed} pending={pending} />}
+        {cover ? (
+          <Cover>{dossier}</Cover>
+        ) : (
+          <>
+            {/* Not cold, but nothing in this browser said it: say where the record
+                came from rather than showing an empty transcript heading beside it. */}
+            {noFeed && (
+              <p className="loaded-note">
+                Loaded from the engine. The agent transcript belongs to a session this browser
+                does not have, so only the record is shown.
+              </p>
+            )}
+            {dossier}
+          </>
+        )}
       </div>
       <GateBar
         sim={sim}

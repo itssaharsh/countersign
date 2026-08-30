@@ -3,7 +3,8 @@
 Timings are measured from runs against the live stack on `main`, not estimated. The model's
 thinking time varies between takes; the observed spread is recorded where it matters.
 
-No narration here. Clip lengths are what they are; the voiceover is written against them.
+No narration here. Clip lengths are what they are; the voiceover is written against them in
+[SCRIPT.md](SCRIPT.md), which is the beat-by-beat script this file supports.
 
 ---
 
@@ -41,8 +42,11 @@ wait ten minutes before filming any replay-based shot.
 ### 1 · Empty
 **Trigger.** Reseed, load `http://localhost:5199/`.
 **Duration.** Static, hold as long as you like.
-**On screen.** Submit field with the placeholder that actually runs · *Nothing runs until you
-countersign* · gate bar `waiting: nothing submitted yet` · all three phase segments in `--rule`.
+**On screen.** The cover: the claim at Display 44, the submit field with the placeholder that
+actually runs, *Nothing runs until you countersign*, and the three measurements listed as
+pending. Gate bar `waiting: nothing submitted yet`, all three phase segments in `--rule`.
+**Hold it for two seconds before speaking** (SCRIPT.md beat 2). One column here; the
+transcript column arrives with the first agent event.
 **Reset after.** None — nothing has run.
 
 ### 2 · Investigating
@@ -54,9 +58,10 @@ Simulate, verify the undo, evaluate policy, then commit.
 ```
 
 **Duration.** ~0.9s to the first transcript line, then **18–43s of the agent working**.
-**On screen, in order.** Phase track lights INVESTIGATING and the header reads `working` →
-the model's reasoning appears in the transcript → `run_investigation` with an elapsed counter
-climbing → nothing else moves until the tool returns.
+**On screen, in order.** The layout splits into two columns → phase track lights INVESTIGATING
+and the header reads `working` → the model's reasoning appears in the transcript →
+`run_investigation` with an elapsed counter climbing → the dossier lists the three pending
+measurements → nothing else moves until the tool returns.
 **Reset after.** Reseed — a simulation now exists.
 
 ### 3 · Deciding
@@ -72,7 +77,9 @@ in `--proof` → the countersign control materialises last, the red arriving aft
 **Duration.** Receipt appears ~8s after the hold begins — the agent resumes, then commits —
 and finishes printing ~1.2s later.
 **On screen, in order.** Control fills left to right → `COUNTERSIGNED` → gate clears → ground
-shifts to the `--proof` tint → receipt prints line by line → `UNDO ARMED · verified`.
+shifts to the `--proof` tint → receipt prints line by line → `UNDO ARMED · verified`. The 37
+`SET NULL` tables are collapsed to one line; click it once if you want the full list on
+camera.
 **Reset after.** **Mandatory reseed.** 6,000 users are actually gone.
 
 ### 5a · Refused, policy failure

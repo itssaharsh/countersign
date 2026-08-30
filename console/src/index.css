@@ -11,20 +11,29 @@
 
 :root {
   /* ── §2 color — six values, no others ───────────────────────────────────
-     Contrast on --bone: ink 17.6:1 · graphite 4.9:1 · seal 5.7:1 · proof 10.0:1
-     All ≥ 4.5:1. Do not lighten --graphite. */
-  --bone:     #F2EFE6;  /* page ground — paper */
+     Contrast on --bone: ink 16.1:1 · graphite 4.8:1 · seal 5.7:1 · proof 9.9:1
+     All ≥ 4.5:1. Do not lighten --graphite.
+
+     --bone was #F2EFE6, a warm cream. Re-struck cool at the same lightness:
+     a warm off-white is the reflex "tasteful" AI surface (impeccable's
+     cream-palette detector fires on any light ground with r ≥ g ≥ b and
+     6 ≤ r-b ≤ 48, which #F2EFE6 sat in the middle of), and the counterfoil
+     this console is named for is ledger stock, not cream stationery. The
+     role, the lightness and every contrast figure are unchanged; the hue is
+     deliberate rather than default. --rule follows it cool for the same
+     reason: a warm tan hairline on a cool ground reads as a mistake. */
+  --bone:     #EBEDE8;  /* page ground — ledger paper, cool */
   --ink:      #14120E;  /* primary text, hairline rules at 100% */
   --graphite: #6B675C;  /* secondary text, labels, inactive phase */
-  --rule:     #D8D2C2;  /* hairlines, table rules, card edges */
+  --rule:     #D7DAD2;  /* hairlines, table rules, card edges */
   --seal:     #B3241C;  /* DESTRUCTIVE ONLY — one element at a time */
   --proof:    #1F3A5F;  /* verified / undo-proven / receipt ink */
 
   /* The ground the console is printed on. Not a seventh colour: an alias that
      resolves to --bone everywhere except WITNESSING, where §5 shifts it to a
      2% --proof tint. Both values are struck from the six. Contrast on the
-     tint: ink 15.7:1 · graphite 4.7:1 · seal 5.5:1 · proof 9.6:1 — all still
-     clear of §8's 4.5:1 floor. */
+     tint (#E7E9E5): ink 15.3:1 · graphite 4.6:1 · seal 5.4:1 · proof 9.4:1 —
+     all still clear of §8's 4.5:1 floor. */
   --ground: var(--bone);
 
   /* ── §2 type — three roles ───────────────────────────────────────────── */
@@ -59,13 +68,14 @@
    The three ink-adjacent roles cannot keep their light values on an --ink
    ground and still clear 4.5:1 (graphite would land at 3.4:1, seal 2.9:1,
    proof 1.7:1). They are re-struck at the same role, lighter:
-   graphite 5.2:1 · seal 5.2:1 · proof 9.0:1 on --ink. */
+   graphite 5.7:1 · seal 5.1:1 · proof 8.8:1 on --ink. The dark ground and its
+   hairline are cool for the same reason the light pair is (§2 above). */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bone:     #14120E;
-    --ink:      #F2EFE6;
-    --graphite: #8B8578;
-    --rule:     #2E2A22;
+    --bone:     #111310;
+    --ink:      #EBEDE8;
+    --graphite: #8B8F84;
+    --rule:     #282B26;
     --seal:     #E4574C;
     --proof:    #8FB6E0;
   }
@@ -311,7 +321,11 @@ button, input, textarea, select { font: inherit; color: inherit; }
 /* A number changing, not an animation (§6). Pushed to the right edge of the line so
    it sits in one place as it ticks. */
 .tx-elapsed { margin-left: auto; padding-left: 8px; color: var(--graphite); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tx-arrow { flex: 0 0 auto; color: var(--rule); }
+/* --graphite, not --rule: §2 gives --rule no text role, and this arrow is text
+   that carries meaning (the line below is the result of the call above it). At
+   --rule it measured 1.2:1 against the ground, which §8's 4.5:1 floor calls
+   non-negotiable. Same correction the phase track's inactive label took. */
+.tx-arrow { flex: 0 0 auto; color: var(--graphite); }
 
 /* §2's type rule: harness and database output in mono (inherited from the column),
    the interface's own words in the body face. */
@@ -421,6 +435,70 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 .panel-empty { font-size: var(--t-13); color: var(--graphite); max-width: 46ch; }
 .dossier-sql { font-size: var(--t-13); color: var(--ink); margin-bottom: 16px; word-break: break-word; }
 
+/* ── the cold open ────────────────────────────────────────────────────────
+   One column, because there is no transcript yet to put beside the form. The
+   claim is the only Display-size type in the console outside the ledger total,
+   and it is the only place the interface argues rather than reports. */
+/* One column: nothing has been said in this browser, so there is no transcript
+   to put beside the dossier. is-solo is the layout; is-cover is the cold open,
+   which is also solo and additionally fills the frame. */
+.console-body.is-solo { grid-template-columns: minmax(0, 1fr); }
+.console-body.is-cover {
+  /* Fill the frame the header and the gate bar leave, so the claim is not a
+     small block at the top of an empty page. */
+  min-height: calc(100svh - var(--header-h) - var(--gate-h-actual) - var(--section-gap));
+  align-content: center;
+}
+/* A record with no transcript beside it takes the width the transcript is not
+   using. Left-aligned like everything else: the console is a document, and
+   centring one screen of it would be the only centred screen in the console. */
+.console-body.is-solo:not(.is-cover) .receipt { max-width: 92ch; }
+
+.cover { display: grid; gap: var(--section-gap); }
+.cover-claim {
+  margin: 0;
+  /* Fluid between the two viewports §8 names, capped at the scale's 44. 76 is
+     the ledger total's size and stays the ledger total's alone. */
+  font-size: clamp(var(--t-25), 3.4vw, var(--t-44));
+  color: var(--ink);
+  text-wrap: balance;
+}
+/* The working console's own split, one screen early: the operator's column on
+   the left, the engine's on the right. */
+.cover-band {
+  display: grid;
+  /* The left column is the wider one: §5's placeholder is a 49-character
+     statement set in Plex Mono at 20px, and an even split clipped its closing
+     quote. The statement a stranger is meant to copy has to fit. */
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: var(--section-gap);
+  align-items: start;
+}
+.cover-act { display: grid; gap: 24px; align-content: start; }
+.cover-lead { font-size: var(--t-16); color: var(--graphite); max-width: 54ch; }
+/* The form is §5's, unchanged; inside the cover it is ruled off above so it
+   reads as the control the claim hands the operator. */
+.cover .submit { max-width: none; padding-top: 24px; border-top: 1px solid var(--rule); }
+.cover-proofs { display: grid; gap: 16px; align-content: start; }
+.cover-proof-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.cover-proof {
+  display: grid; grid-template-columns: 15ch minmax(0, 1fr); gap: 16px;
+  align-items: baseline; font-size: var(--t-13);
+}
+.cover-proof-label { color: var(--ink); }
+/* Capped in the element's own 13px measure: in the dossier column this list is
+   nearly twice as wide as it is on the cover, and uncapped it set ~100
+   characters to the line. */
+.cover-proof-body { color: var(--graphite); max-width: 70ch; }
+.cover-foot { font-size: var(--t-13); color: var(--graphite); }
+
+@media (max-width: 900px) {
+  .console-body.is-cover { min-height: 0; align-content: start; }
+  .cover { gap: 24px; }
+  .cover-band { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .cover-proof { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
+
 /* §5 empty state — the one screen a stranger has to be able to drive. */
 .submit { display: grid; gap: 12px; max-width: 72ch; }
 /* Once a simulation exists the form is a footer to the dossier, not its subject. */
@@ -428,8 +506,11 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 .submit.is-compact .submit-input { font-size: var(--t-16); }
 .submit-input:disabled { color: var(--graphite); border-bottom-color: var(--rule); }
 
-/* transcript lines — minimal until the transcript proper lands */
-.tx { max-height: 60vh; overflow-y: auto; }
+/* transcript lines. The `.tx { max-height: 60vh }` that used to head this block
+   was left over from the placeholder transcript: declared after both the §3 rule
+   and the 900px override, it won at equal specificity and left the transcript
+   506px tall at 390 instead of the 22vh the breakpoint asks for, pushing the
+   dossier down the page. The height belongs to .tx above, in one place. */
 .tx-line { font-family: var(--mono); font-size: var(--t-13); line-height: 1.5; color: var(--graphite); padding: 6px 0; border-top: 1px solid var(--rule); word-break: break-word; }
 .tx-line:first-child { border-top: 0; }
 .tx-you, .tx-tool { color: var(--ink); }
@@ -445,7 +526,10 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 }
 .submit-input::placeholder { color: var(--graphite); }
 .submit-input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.submit-note { font-size: var(--t-13); color: var(--graphite); }
+/* The form is 72ch measured at 16px; this note sets at 13px, so it inherits a
+   line ~100 characters long. Its own ch unit puts it back inside the 65–75
+   band that §8's reading floor asks for. */
+.submit-note { font-size: var(--t-13); color: var(--graphite); max-width: 62ch; }
 .submit-go {
   justify-self: start; font-family: var(--sans); font-weight: 500; font-size: var(--t-13);
   letter-spacing: 0.08em; text-transform: uppercase;
@@ -502,7 +586,9 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
   font-size: var(--t-16); font-weight: 400; color: var(--ink);
   text-align: left; word-break: break-word;
 }
-.ledger-branch { color: var(--rule); margin-right: 8px; }
+/* Foreign-key depth is information, not decoration, so the branch glyph takes a
+   colour with a text role (§8's 4.5:1 floor). At --rule it was 1.2:1. */
+.ledger-branch { color: var(--graphite); margin-right: 8px; }
 .ledger-count {
   font-size: var(--t-20); color: var(--ink);
   text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums;
@@ -591,6 +677,30 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 }
 
 .panel-note { font-size: var(--t-13); color: var(--graphite); margin-bottom: 16px; max-width: 60ch; }
+
+/* ── INVESTIGATING, before the tool returns ─────────────────────────────────
+   The three measurements listed as pending. Borrowed wholesale from the cover's
+   list: the same three facts, in the same words and the same shape, so the
+   promise and the report on it are visibly one thing. */
+.measuring { display: grid; gap: 0; }
+.measuring .cover-proof-list { margin: 4px 0 0; }
+.measuring .cover-proof.is-pending .cover-proof-label { color: var(--graphite); }
+.proof-mark { display: inline-block; width: 1.5ch; color: var(--graphite); }
+.measuring-foot { margin: 20px 0 0; }
+
+/* A run loaded from the engine with no session behind it: a reload, a second tab,
+   the URL opened after the demo. Stated once, above the record. */
+.loaded-note {
+  font-size: var(--t-13); color: var(--graphite); max-width: 62ch;
+  padding-bottom: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--rule);
+}
+
+/* A total is bigger than the lines it sums. Without this the receipt is 11, 13
+   and 16px throughout and the figure the whole run exists to produce sets at the
+   same size as the rollback-statement count. One step, not a Display size: §5
+   keeps the receipt printed matter, and 76 is the ledger total's alone. */
+.receipt-line.is-total .r-fig { font-size: var(--t-25); }
+.receipt-line.is-total .r-name { font-size: var(--t-16); }
 /* ── §5 WITNESSING — the receipt ──────────────────────────────────────────
    Printed matter. Mono throughout, because everything on it came out of the
    database (§2's type rule); the two prose lines are the only place the
@@ -604,11 +714,19 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 }
 /* Persistent, never printed away — the undo is armed for as long as this screen
    is up and the operator should not have to wait for a line to learn it. */
+/* Two spans, not one string: §7 rations 0.08em tracking to short uppercase
+   labels, and "UNDO ARMED · verified" as a single tracked run is 21 characters
+   of mixed-case text — tracked body copy, which §2 does not have a role for.
+   The label is tracked, the value it reports is not. */
 .receipt-chip {
-  font-size: var(--t-11); letter-spacing: 0.08em;
-  color: var(--proof); border: 1px solid var(--proof); border-radius: var(--radius);
+  display: inline-flex; align-items: baseline; gap: 6px;
+  border: 1px solid var(--proof); border-radius: var(--radius);
   padding: 3px 8px; white-space: nowrap;
 }
+.receipt-chip .chip-label {
+  font-size: var(--t-11); letter-spacing: 0.08em; text-transform: uppercase; color: var(--proof);
+}
+.receipt-chip .chip-value { font-size: var(--t-11); color: var(--proof); }
 .receipt-body { display: block; }
 .receipt-section { margin: 20px 0 6px; }
 .receipt-section:first-child { margin-top: 0; }
@@ -630,6 +748,27 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 
 .receipt-note { font-size: var(--t-13); color: var(--graphite); margin-top: 8px; max-width: 52ch; }
 
+/* The collapsed SET NULL block, styled to match the ledger's own so the two
+   readings of the same fact look like the same fact. */
+.receipt-group { padding: 2px 0; }
+.receipt-toggle {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  background: transparent; border: 0; padding: 2px 0; text-align: left;
+  font-family: var(--sans); font-size: var(--t-13); color: var(--graphite);
+}
+.receipt-toggle .t-data { color: var(--ink); font-size: var(--t-13); }
+.receipt-toggle:hover { color: var(--ink); }
+.receipt-chevron { color: var(--graphite); }
+.receipt-sub { margin: 6px 0 2px; display: grid; gap: 2px; }
+.receipt-sub > li {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 46%);
+  column-gap: 16px; align-items: baseline; padding: 2px 0; font-size: var(--t-13);
+}
+.receipt-sub .r-name { color: var(--graphite); min-width: 0; overflow-wrap: anywhere; }
+.receipt-sub .r-val { display: grid; grid-template-columns: minmax(0, 1fr) 76px; column-gap: 12px; align-items: baseline; }
+.receipt-sub .r-fig { text-align: right; color: var(--proof); overflow-wrap: anywhere; }
+.receipt-sub .r-note { font-size: var(--t-11); color: var(--graphite); }
+
 /* §5 — the undo control: a plain --ink outline button, deliberately undramatic,
    because the whole thesis is that the undo is boring and certain. It sends an
    order; the gate bar re-arms with HOLD TO RESTORE (§4, A8). */
@@ -645,8 +784,10 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
 .receipt-undo .receipt-note { margin-top: 8px; }
 
 @media (max-width: 900px) {
-  .receipt-line { grid-template-columns: minmax(0, 1fr) minmax(0, 42%); column-gap: 12px; }
-  .receipt-line .r-val { grid-template-columns: minmax(0, 1fr) 62px; column-gap: 8px; }
+  .receipt-line, .receipt-sub > li { grid-template-columns: minmax(0, 1fr) minmax(0, 42%); column-gap: 12px; }
+  .receipt-line .r-val, .receipt-sub .r-val { grid-template-columns: minmax(0, 1fr) 62px; column-gap: 8px; }
+  /* The expander is a thumb target on a phone, not a pointer target (§8). */
+  .receipt-toggle { padding: 8px 0; }
 }
 
 /* A spent one-shot reads as done, not as armed. Still --proof: restoring rows is

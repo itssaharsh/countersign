@@ -463,3 +463,35 @@ Two of these — A2 and A3 — could be made literally true by exposing the engi
 `onProgress` stages over a progress channel. That is a real feature, not a workaround, and
 if it is built this spec should be revised to describe it. Until then the spec describes
 what the console can actually observe.
+
+---
+
+## 10. The review pass (design audit, Aug 30)
+
+The spec above was written before the components existed. Once all six screens were running,
+they were audited against two external design skills rather than against this file alone:
+
+- **[impeccable](https://github.com/pbakaus/impeccable)** — 61 deterministic detector rules,
+  run headlessly against the live console at 390, 1280 and 1920 with no model in the loop
+  (`impeccable detect http://localhost:5199/`). Findings below are its exact rule ids.
+- **[taste-skill](https://github.com/leonxlnx/taste-skill)** — its AI-tells list (§9). Scoped
+  to landing pages and portfolios rather than product UI, so it was used as a checklist, not
+  as a direction. Only two of its rules bound here: the em-dash ban and the middle-dot
+  ration.
+
+The console source itself scanned clean (`detect console/src` — zero findings). Every finding
+was against the rendered page, which is the only place layout defects exist.
+
+| # | Finding | What was wrong | Decision |
+| --- | --- | --- | --- |
+| B1 | `first-viewport-column-overflow` | The cold open ran §5 literally: one input in a two-column grid, with a 72px transcript beside it and the rest of the viewport blank. On a reload against a committed run, the dossier ran 2,251px beside a 72px sibling. | §5 gains a cold-open cover: one column until the first agent event, the claim at Display 44, and the three measurements listed as pending. The second column arrives with the transcript. |
+| B2 | `flat-type-hierarchy` (11/13/16px) | Nothing above 16px was on screen before a simulation existed. The scale has seven steps; the cold open used three adjacent ones. | The claim is Display 44. **76 stays the ledger total's alone** — §5 gives it one moment and a second 76 would spend it. |
+| B3 | `cream-palette` | `--bone: #F2EFE6` sat in the middle of the detector's warm off-white band (`r ≥ g ≥ b`, `6 ≤ r-b ≤ 48`). A warm cream page is the reflex "tasteful" AI surface. | Re-struck cool at the same lightness: `#EBEDE8`, with `--rule` following to `#D7DAD2`. Every contrast figure in §2 was recomputed, not assumed: ink 16.1, graphite 4.8, seal 5.7, proof 9.9. Dark mode re-struck to match. |
+| B4 | `wide-tracking` | `UNDO ARMED · verified` was 21 characters of mixed-case text at 0.08em. §7 rations that tracking to short uppercase labels, and the chip was neither short nor uppercase in CSS. | The chip is two spans: a tracked uppercase label and an untracked value. |
+| B5 | `line-length` (~102 ch) | `.submit` is 72ch measured at 16px; the note under it sets at 13px and inherited a 100-character line. | Capped in the note's own measure. The same trap was caught in the new proof list before it shipped. |
+| B6 | *(not a detector rule)* | The receipt printed all 37 `SET NULL` tables in full: 1,878px of identical rows between the death count and the fingerprint, the two figures the screen exists for. §5 already collapses them on the ledger; the receipt did not follow its own doctrine. | The receipt collapses them behind the same expander, with the same words. The list is one click away, so the record is intact. |
+| B7 | *(not a detector rule)* | INVESTIGATING is the longest state in the run — 18 to 43 seconds — and it was one grey sentence in an empty column. Nothing on screen said whether it had hung. | A pending panel naming the three measurements. It says explicitly that nothing publishes until the tool returns, because A2 above means the console cannot honestly imply a stream. No bar, no spinner, no percentage: the elapsed counter on the open call is the only real progress signal and it was already there. |
+| B8 | taste-skill §9.G | Seven em-dashes in user-visible copy. | Removed. The dash is not a design element and the spec's own prose is not the product's voice. Comments in this repo keep them. |
+
+After the pass: **zero findings at 390, 1280 and 1920.** The detector is a floor, not a
+verdict — B6, B7 and the composition of the cover are judgement, and it caught none of them.

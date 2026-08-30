@@ -179,8 +179,8 @@ export function GateBar(p: Props) {
               )}
               {state === 'STALE' && (
                 <span className="gate-note">
-                  these rows were counted {duration(p.freshnessElapsed)} ago. The count is no longer current —
-                  deny this gate, then send the order again for a fresh measurement.
+                  these rows were counted {duration(p.freshnessElapsed)} ago. The count is no longer current.
+                  Deny this gate, then send the order again for a fresh measurement.
                 </span>
               )}
               {state === 'ARMED' && !isUndo && p.freshnessLeft <= 30 && (
@@ -259,11 +259,11 @@ function RefusalDetail({ sim, isUndo }: { sim?: Simulation; isUndo: boolean }) {
     const restored = Number((sim.undo.report as { restored_rows?: unknown }).restored_rows ?? 0)
     const expected = sim.fingerprint?.count ?? 0
     line = expected
-      ? `NOT RESTORED BY THE GENERATED ROLLBACK — ${(expected - restored).toLocaleString()} of ${expected.toLocaleString()} rows did not come back in shadow. Countersign is unavailable. Deny this gate and resubmit; the agent will re-measure.`
+      ? `NOT RESTORED BY THE GENERATED ROLLBACK. ${(expected - restored).toLocaleString()} of ${expected.toLocaleString()} rows did not come back in shadow. Countersign is unavailable. Deny this gate and resubmit; the agent will re-measure.`
       : 'NOT RESTORED BY THE GENERATED ROLLBACK. Countersign is unavailable.'
   } else if (sim.policy?.verdict === 'FAIL') {
     const failed = sim.policy.rules.find((r) => !r.pass)
-    line = failed ? `Policy failed — ${failed.rule}: ${failed.detail}` : 'Policy failed.'
+    line = failed ? `Policy failed on ${failed.rule}: ${failed.detail}` : 'Policy failed.'
   } else if (!sim.undo.verified) {
     line = 'The undo has not been verified against committed shadow state yet, so there is nothing proven to countersign against.'
   }

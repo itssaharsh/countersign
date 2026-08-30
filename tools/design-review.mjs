@@ -40,8 +40,7 @@ const VIEWPORTS = [
 ];
 
 // The screens a stranger can reach with no engine running. Replay fixtures are
-// the recorded real-model run (simulation cdac3df6), so nothing here is drawn
-// from invented data.
+// the recorded real-model run, so nothing here is drawn from invented data.
 const SCREENS = [
   ['idle', '/'],
   ['deciding', '/?replayEvents=/fixtures/real-run.jsonl&replay=/fixtures/state-investigating.json'],
@@ -75,6 +74,10 @@ const AUDIT = () => {
   for (const el of document.querySelectorAll('h1,h2,h3,p,span,button,label,a,li,div')) {
     if (!vis(el)) continue;
     if (el.hasAttribute('data-allow-clip')) continue;
+    // .vh is the visually-hidden helper: a 1px box with clip-path, whose whole
+    // job is to cut its text off for sighted readers while a screen reader still
+    // announces it. Clipping is the feature, not the defect.
+    if (el.classList.contains('vh')) continue;
     // Only leaves: a wrapper's scrollWidth is its children's business.
     if ([...el.children].some((c) => c.nodeType === 1 && (c.textContent || '').trim())) continue;
     const cs = getComputedStyle(el);
@@ -90,8 +93,24 @@ const AUDIT = () => {
     for (let n = el; n; n = n.parentElement) if (getComputedStyle(n).position === 'fixed') return true;
     return false;
   };
+  /* Scrolled out of its own scroller is not overlapping the page. A line that
+     has scrolled above the transcript's viewport keeps a rect up where the
+     dossier is, and pairing it with the form below reported a collision that no
+     reader can see. Only the part of a scrolled element still inside its
+     scroller counts. */
+  const scrolledOut = (el) => {
+    for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      if (!/auto|scroll/.test(cs.overflowY + cs.overflowX)) continue;
+      const c = n.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      const inside = Math.min(r.bottom, c.bottom) - Math.max(r.top, c.top);
+      if (inside < Math.min(r.height, 12)) return true;
+    }
+    return false;
+  };
   const SEL = 'h1,h2,h3,p,.receipt-line,.receipt-chip,.brand,.rig,.phase-track,.submit,.col-transcript';
-  const blocks = [...document.querySelectorAll(SEL)].filter((el) => vis(el) && !fixed(el))
+  const blocks = [...document.querySelectorAll(SEL)].filter((el) => vis(el) && !fixed(el) && !scrolledOut(el))
     .map((el) => ({ el, r: el.getBoundingClientRect() }));
   for (let i = 0; i < blocks.length; i++) for (let j = i + 1; j < blocks.length; j++) {
     const a = blocks[i], b = blocks[j];
@@ -253,7 +272,7 @@ async function tabTo(page, sel, max = 40) {
    own HTTP surface (POST /api/v1/sessions, POST …/turns as SSE) and the /state
    the console polls. Every figure comes from the recorded fixtures; the script
    only decides when each one is on screen. */
-function harness() {
+function harness(simulationId) {
   const s = { phase: 'empty', turns: 0, posts: [], approvalsResolved: [] };
   const ev = (n, o) => `id: ${n}\ndata: ${JSON.stringify(o)}\n\n`;
   const now = () => new Date().toISOString();
@@ -275,7 +294,7 @@ function harness() {
         tool_calls: [{
           id: callId, type: 'function',
           tool_info: { type: 'mcp', name: 'call_tool', server_id: 'countersign', server_name: 'countersign' },
-          function: { name: 'call_tool', arguments: JSON.stringify({ mcp_server: 'countersign', tool_name: tool, input: { simulation_id: 'cdac3df6' } }) },
+          function: { name: 'call_tool', arguments: JSON.stringify({ mcp_server: 'countersign', tool_name: tool, input: { simulation_id: simulationId } }) },
         }],
       });
       body += ev(++n, {
@@ -337,6 +356,11 @@ const report = {};
 const investigating = await (await fetch(`${base}/fixtures/state-investigating.json`)).json();
 const witnessing = await (await fetch(`${base}/fixtures/state-witnessing.json`)).json();
 const FIXTURES = { empty: { simulations: [], backends: {} }, measured: investigating, committed: witnessing };
+const SIM_ID = investigating.simulations?.[0]?.simulation_id;
+if (!SIM_ID) {
+  console.error('fixtures/state-investigating.json carries no simulation; the gate cannot be reviewed.');
+  process.exit(1);
+}
 
 for (const [vname, viewport] of VIEWPORTS) {
   const context = await browser.newContext({ viewport });
@@ -378,7 +402,10 @@ for (const [vname, viewport] of VIEWPORTS) {
   /* the full keyboard path, against the scripted harness */
   const kpage = await context.newPage();
   kpage.on('pageerror', (e) => errors.push(`keyboard: pageerror ${String(e).slice(0, 160)}`));
-  const mock = harness();
+  // Read off the fixture, never hard-coded: the console refuses a gate whose
+  // simulation_id it has not loaded, so a re-recorded fixture used to leave this
+  // tool waiting forever on a control the console was right not to render.
+  const mock = harness(SIM_ID);
   await installHarness(kpage, mock, FIXTURES);
   const stops = [];
   const step = async (name, sel, note) => {

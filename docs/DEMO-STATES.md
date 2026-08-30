@@ -30,9 +30,14 @@ cannot be fixed from this repo.
 
 **Steps:** reseed, load `http://localhost:5199/`.
 
-**On screen:** the submit field with the placeholder that actually runs, the note *Nothing
-runs until you countersign*, and a gate bar reading `waiting: nothing submitted yet`. All
-three phase segments are `--rule`: nothing has been reached.
+**On screen:** the cold-open cover. One column, because there is no transcript to put beside
+it yet: the claim at Display 44 (*Every approval gate shows you the command. This one shows
+you the consequence.*), the submit field with the placeholder that actually runs, the note
+*Nothing runs until you countersign*, and the three measurements listed as pending. The gate
+bar reads `waiting: nothing submitted yet` and all three phase segments are `--rule`:
+nothing has been reached.
+
+The second column arrives with the first agent event, not before.
 
 Screenshot: `state-1-empty.png`
 
@@ -48,7 +53,9 @@ Simulate, verify the undo, evaluate policy, then commit.
 ```
 
 **On screen:** the track lights INVESTIGATING and the header says `working`. The transcript
-shows the model's reasoning, then `run_investigation` with an elapsed counter climbing.
+shows the model's reasoning, then `run_investigation` with an elapsed counter climbing. The
+dossier names the three measurements as pending and says plainly that nothing publishes
+until the tool returns: the counts arrive complete or not at all.
 
 **Duration: 20–40 seconds**, and the engine publishes nothing until the tool returns. The
 elapsed counter is the only thing moving, and it is the honest answer to "is it stuck?".
