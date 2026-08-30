@@ -31,7 +31,14 @@ function useRoute(): [string, (p: string) => void] {
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
-  return [path, (p: string) => { window.history.pushState({}, '', p); setPath(p) }]
+  return [path, (p: string) => {
+    window.history.pushState({}, '', p)
+    // A navigation starts at the top. Without this the console opens at whatever
+    // depth the landing was scrolled to, which puts the reader halfway down a
+    // section they have not seen the top of.
+    window.scrollTo(0, 0)
+    setPath(p)
+  }]
 }
 
 export default function App() {
