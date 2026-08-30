@@ -37,6 +37,33 @@ wait ten minutes before filming any replay-based shot.
 
 ---
 
+## Where things are on screen
+
+Measured at **1440x900** against current `main`. The empty state is one centred column; the
+transcript column arrives with the first agent event and everything on the right shifts.
+
+| Control | State 1 (empty) | After the send |
+| --- | --- | --- |
+| Order input | **(435, 520)** | (848, 484) |
+| **Measure it** | **(167, 610)** | (564, 590) |
+| `HOLD TO COUNTERSIGN` | — | **(1227, 857)**, 265x54 |
+| Deny | — | (1060, 857), 38x36 |
+| Fingerprint (read-only) | — | (172, 857) |
+| The 43,413 total | — | (893, 496) |
+| Collapsed SET NULL line | — | (930, 374) — click to expand |
+| Transcript column | — | x 104-484, full height |
+| Phase track | (954, 27) | (860, 27) |
+
+In WITNESSING the receipt is 1054px tall, so **the undo control at (655, 1162) is below the
+fold**. Scrolling is required to reach it; the gate bar stays fixed while everything else
+moves. Decide before rolling whether a take includes that scroll.
+
+**Let the page settle for five seconds before the first click.** The stage canvas is fixed
+behind the console and, for a moment after load, takes the click before the button does. A
+first click on **Measure it** that appears to do nothing is this, not a broken app.
+
+---
+
 ## The six states
 
 ### 1 · Empty
