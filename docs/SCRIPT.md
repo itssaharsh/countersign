@@ -5,24 +5,27 @@ on screen. Verified shot by shot against the deployed build.
 
 Read it flat. Every line is a statement of fact about something visible.
 
+Nine shots, covering the four things the submission asks for, in this order: what the project
+is (1), a working demo (2 to 7), the stack and architecture (8), and what building it taught
+(9). 451 words, which is 2:54 read at a normal pace.
+
 ---
 
 ### 1 · The landing, still
 
 > Countersign is an approval layer for destructive database changes.
 >
-> When an AI agent wants to delete something from your database, it asks a person first. Every
-> harness asks the same way: a tool name, some JSON, allow or deny.
+> When an agent wants to delete from your database it asks first, and every harness asks the
+> same way: a tool name, some JSON, allow or deny.
 >
-> Nobody can answer that honestly. The person clicking becomes the safety layer with nothing
-> to be safe with.
+> Nobody can answer that honestly. The click becomes the safety layer, with nothing behind it.
 
 ---
 
 ### 2 · The statement field, then click Watch the recorded run
 
-> Here is one real statement against one real database. Delete the users who have not logged
-> in since the start of last year.
+> One real statement, against one real database. Delete the users who have not logged in since
+> the start of last year.
 >
 > Six thousand users. That is what it says.
 
@@ -32,25 +35,20 @@ Read it flat. Every line is a statement of fact about something visible.
 
 > Forty three thousand four hundred and thirteen.
 >
-> The extra thirty seven thousand are orders those users placed, and payments on those
-> orders, reached through foreign keys the prompt never mentioned.
+> The extra thirty seven thousand are orders those users placed, and payments on those orders,
+> reached through foreign keys the prompt never mentioned.
 >
-> Depth down the page is foreign key depth. Solid means the rows are gone. The hatched band is
-> thirty seven tables that keep their rows but lose a reference, which is a different thing,
-> and separating those two is the entire product.
->
-> None of it is predicted. The statement ran for real, inside a transaction that was rolled back.
+> Solid means the rows are gone. Hatched means they survive and lose a reference, and
+> separating those two is the whole product.
 
 ---
 
 ### 4 · The revision block
 
-> Blast radius measured across forty one tables.
+> None of it is predicted. The statement ran for real on a shadow copy, in a transaction that
+> was rolled back. Then the undo ran, and six thousand of six thousand rows came back.
 >
-> Rollback proven. The undo ran against a committed copy and six thousand of six thousand
-> rows came back.
->
-> Policy passed. Four rules, evaluated by code. No model anywhere in that verdict.
+> Policy passed. Four rules, evaluated by code. No model in that verdict.
 
 ---
 
@@ -58,9 +56,9 @@ Read it flat. Every line is a statement of fact about something visible.
 
 > Only now is there a button.
 >
-> It was not greyed out a moment ago. It was absent, and the bar said what was missing.
+> A moment ago it was not greyed out. It was absent, and the bar said what was missing.
 >
-> And it is a hold, not a click, because a stray click should not be able to do this.
+> And it is a hold, because a stray click should not do this.
 
 ---
 
@@ -68,56 +66,47 @@ Read it flat. Every line is a statement of fact about something visible.
 
 > It deleted by that exact key list and nothing else. A row that started matching while I read
 > would have voided the approval instead of dying with it.
->
-> The undo is armed and already proven. Firing it gets countersigned the same way.
 
 ---
 
-### 7 · Fresh tab, this URL, wait about twelve seconds
+### 7 · Two clips, cut together. First this URL, waiting about twelve seconds; then the run from shot 5 left alone until the window runs out
 
 ```
 https://countersign-xi.vercel.app/run?replayEvents=/fixtures/real-run.jsonl
 ```
 
-Point the camera at the empty space where the button was in shot 5.
+Point the camera at the empty space where the button was.
 
-> This is the same console, refusing.
+> The same console, refusing. The agent is still asking, but the measurement is gone, so there
+> is nothing to countersign.
 >
-> The agent is still asking, but the measurement behind the request is gone. There is nothing
-> to countersign, and the only control here is deny.
+> And here it simply got old. The button withdrew on its own: a count you read two minutes ago
+> is not a count.
 
 ---
 
-### 8 · The expired gate. Reach the gate, then leave it alone until the window runs out
+### 8 · Back to the landing. Show the connect fields, then click show the resolved environment
 
-> And here the measurement simply got old.
+> The stack is those four fields.
 >
-> The button withdrew on its own, because a count you read two minutes ago is not a count.
+> The agent runs in a TrueForge harness. When it reaches a destructive tool, the harness stops
+> and asks. That pause is where the work happens.
 >
-> Nothing is lost. Ask again and it measures again.
+> A Node MCP server does it: a transaction on a shadow Postgres, the statement run for real,
+> the foreign keys walked out of Postgres's own catalog, then a rollback. It fingerprints the
+> rows, runs the policy file, and sends only the verdict to the browser.
+>
+> To run it on yours: two connection strings, a rules file, and one line in the agent config
+> naming the irreversible tools. It reads your foreign keys, not my schema, and credentials
+> never leave the engine.
 
 ---
 
-### 9 · Back to the landing. Show the connect fields, then click show the resolved environment and let the variables sit on screen
+### 9 · The section, held still on the number
 
-> Here is what it takes to run this against your own database.
+> What I got wrong first was trusting the count in the request. Six thousand is not a lie. It
+> is just the only number the agent can see.
 >
-> Two connection strings. One for the database the change would touch, one for a copy where
-> the rollback gets proven.
->
-> A short file of your rules: how many rows may die, which tables must never lose any.
->
-> And one line in the agent's config, pinning the irreversible tools so the harness stops and
-> asks.
->
-> None of the measurement is written against my schema, so it works on yours. It reads your
-> database's own foreign keys. And your credentials stay in the engine. They never reach the
-> browser, and they never reach the model.
-
----
-
-### 10 · The section, held still on the number
-
 > An agent asking permission is not safety. Showing you the consequence before you answer is.
 >
 > We only delete what we can prove we can restore.
@@ -129,10 +118,13 @@ Point the camera at the empty space where the button was in shot 5.
 - Record the voiceover separately and cut the picture to the words. On the deployed build the
   gate arrives about two seconds after the click, so the edit holds still frames while the
   narration runs.
-- Shots 7 and 8 are separate recordings. Neither can be reached from the run in shots 2 to 6.
+- Shot 7 is two separate recordings. Neither can be reached from the run in shots 2 to 6.
+- Shot 8 is the longest block of narration over the least motion. Cut between the connect
+  fields and the resolved environment reveal partway through it.
 - Do not speed up the hold in shot 5. That second and a half is the most legible moment in
   the video.
-- Leave the gaps silent.
+- The narration is continuous. It fits three minutes with about six seconds to spare, so cut
+  the picture underneath it rather than pausing between shots.
 
 ## Before export
 
