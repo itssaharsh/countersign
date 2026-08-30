@@ -79,6 +79,12 @@ The UI is a *window* onto the gate, not the gate itself: `commit_change` refuses
 server-side without a verified-undo token, a policy PASS, and a still-fresh fingerprint;
 bypassing the button changes nothing.
 
+## Demo video
+
+<!-- Replace this line with the video link before submitting. -->
+**[Demo video →](ADD_LINK)** — about three minutes: an agent measures a destructive change,
+the harness pauses, and the change commits only after a human countersigns it.
+
 ## Try it
 
 **[Live demo →](https://countersign-xi.vercel.app)** — no keys, no setup, nothing to install.

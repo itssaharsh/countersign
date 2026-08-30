@@ -2,8 +2,12 @@
 
 **Project name:** Countersign
 
-**One-liner:** The approval layer for destructive database changes — the Approve button
-does not exist until the agent has measured exactly what dies and proven the rollback.
+**Live demo:** https://countersign-xi.vercel.app (no keys, replays a recorded run of the real agent)
+
+**Repository:** https://github.com/itssaharsh/countersign
+
+**One-liner:** The approval layer for destructive database changes. The approve button does
+not exist until the agent has measured exactly what dies and proven the rollback.
 
 **Write-up (what it does + how it uses TrueForge):**
 
