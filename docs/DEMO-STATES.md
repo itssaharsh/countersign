@@ -153,13 +153,14 @@ Screenshot: `state-5-refused.png`
 **On screen:** a countdown appears in the gate bar at 30 seconds remaining. At zero the
 control **withdraws** — it does not grey out — and the bar reads:
 
-> these rows were counted 2m 2s ago. The count is no longer current — deny this gate, then
+> these rows were counted 2m 2s ago. The count is no longer current. Deny this gate, then
 > send the order again for a fresh measurement.
 
-Recorded from the live run, at 2m 2s. The ledger stays on screen so you can see exactly what
-expired.
+The ledger stays on screen so you can see exactly what expired.
 
-Screenshots: `state-6-countdown.png`, `state-6-stale.png`
+Screenshots: `state-6-countdown.png`, `state-6-stale.png`, both from
+`node tools/shot-gate.mjs`, which also takes state 5b. It waits the freshness window out in
+real time, because there is no way to hurry it that would still be true.
 
 **In replay, freshness is anchored to page load** only when the recorded measurement is more
 than ten minutes old. A fixture recorded minutes ago reads STALE immediately — correct for a
