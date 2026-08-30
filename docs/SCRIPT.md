@@ -4,9 +4,17 @@ Written for the deployed demo at **countersign-xi.vercel.app**, which is what is
 [SHOOT.md](SHOOT.md) is the production companion: what triggers each screen, how long it takes,
 what to reset.
 
-**534 words, which is 3:33 read at 150 wpm.** That is over the three minute target on purpose:
-read it at 165 to 170 and it lands at 3:05, or drop beat 2 entirely and it lands at 2:50. Beat
-2 is the argument, not the demonstration, so it is the one to lose if the cut runs long.
+**622 words, which is 4:09 read at 150 wpm.** The hackathon asks for about three minutes, so
+this needs cutting and here is the order to cut in:
+
+1. **Drop beat 2** (the consent form). It is the argument, not the demonstration, and beat 1
+   already implies it. Saves about 20 seconds.
+2. **Halve beat 4's middle paragraph**, the one explaining solid versus hatched. Keep the first
+   and last lines. Saves about 15 seconds.
+3. **Read at 165 wpm** rather than 150. Saves about 25 seconds.
+
+All three together land it at roughly 2:55. Do not cut beat 9: it is the only part that tells a
+viewer how to use the thing, and a demo that never says that is a trailer.
 
 Record the voiceover separately from the screen and cut the picture to the words.
 
@@ -125,23 +133,38 @@ in the video.
 
 ---
 
-## Beat 9 · On your own database 2:40 to 2:56
+## Beat 9 · How you point it at your own database, 2:40 to 3:20
 
-**On screen.** The connect screen on the landing, then the repository.
+**On screen, in this order.** Scroll back to the landing. Show the connect fields. Click
+**show the resolved environment** so the block of variables appears on screen. Then cut to the
+repository README.
 
-> None of this is written against my schema. It reads the database's own constraints, so it
-> measures whatever yours declares.
+The variables are the whole answer, so let them sit long enough to read.
+
+> Here is what it takes to run this against your own database.
 >
-> To point it at yours: two connection strings, one for the database the change would touch
-> and one for a copy where the rollback gets proven, and a short file of your rules. Your
-> credentials stay in the engine. The model only ever sees measurements.
+> Two connection strings. One for the database the change would touch. One for a copy of it,
+> where the rollback gets proven before you are asked to approve anything.
+>
+> A short file of your rules. How many rows may die. Which tables must never lose any.
+>
+> And one line in the agent's config, pinning the two irreversible tools so the harness stops
+> and asks.
+>
+> That is the whole setup. Nothing in the measurement is written against my schema, so it
+> works on yours: it reads your database's own foreign keys and measures what they say.
+>
+> Your credentials stay in the engine's environment. They never reach the browser and they
+> never reach the model. The model sees measurements and a single use token, and that is all.
 
 ---
 
-## Beat 10 · Close 2:56 to 3:00
+## Beat 10 · Close, 3:20 to 3:30
 
-**On screen.** The section, held.
+**On screen.** Back to the section, held still on the 43,413.
 
+> An agent asking permission is not safety. Showing you the consequence before you answer is.
+>
 > We only delete what we can prove we can restore.
 
 ---
@@ -154,6 +177,9 @@ in the video.
   most legible second in the video. If anything, hold a beat after it completes.
 - **Beat 8 is two separate takes** cut together. Neither can be reached from the run in beats
   3 to 7. SHOOT.md has the URLs.
+- **Beat 9 needs the environment block visible.** The connect screen has a *show the resolved
+  environment* link that prints the variables. That block is the proof the setup is four lines
+  rather than a rewrite, so hold it long enough for a viewer to read it.
 - Leave the gaps silent. Roughly a third of the runtime has no narration and that is deliberate.
 
 ## Before export
