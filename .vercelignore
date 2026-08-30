@@ -1,0 +1,20 @@
+# Only the console is deployed. Everything below is either a local runtime, a
+# build input Vercel recreates itself, or evidence that belongs in the repo but
+# not in a bundle.
+node_modules
+**/node_modules
+pglite-data
+evidence
+logs
+*.log
+.claude
+.git
+docs/screenshots
+prompts
+skills
+server
+agent
+db
+catalog
+assets
+tools

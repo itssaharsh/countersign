@@ -81,7 +81,7 @@ bypassing the button changes nothing.
 
 ## Try it
 
-**[Live demo →](https://countersign.vercel.app)** — no keys, no setup, nothing to install.
+**[Live demo →](https://countersign-xi.vercel.app)** — no keys, no setup, nothing to install.
 
 The demo replays a recorded run of the real agent: the same event stream through the same
 reducer, holding at the approval TrueForge actually raised. Press **Watch the recorded run**,
