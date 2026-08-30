@@ -88,8 +88,13 @@ on the left, and on the right *waiting: this approval is missing its evidence* w
 reason box and Deny. Frame the bottom right, where HOLD TO COUNTERSIGN was in shot 5.
 
 **Second**, get back to the armed gate from shot 5 and leave it completely alone for two
-minutes. The freshness window is 120 seconds. The hold control withdraws by itself. Start
-this tab before you record anything else and let it age in the background.
+minutes. The freshness window is 120 seconds. Two things change on their own: the 43,413 turns
+red, and HOLD TO COUNTERSIGN disappears. The bottom bar then reads *these rows were counted
+2m 17s ago. The count is no longer current. Deny this gate, then send the order again for a
+fresh measurement*, with only Deny beside it.
+
+Start this tab before you record anything else and let it age in the background, or it is two
+dead minutes on the clock.
 
 > The same console, refusing. The agent is still asking, but the measurement is gone, so there
 > is nothing to countersign.
