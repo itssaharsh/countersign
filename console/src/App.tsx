@@ -94,6 +94,7 @@ export default function App() {
       running={running}
       approvalOpen={pending.some((a) => a.kind !== 'question')}
       questionOpen={pending.some((a) => a.kind === 'question')}
+      demo={demo}
       onSend={send}
     />
   )

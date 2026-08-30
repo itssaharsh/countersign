@@ -266,9 +266,9 @@ export function Receipt({ sim, onSend, approvalOpen, running, demo = false }: {
       <div className="receipt-undo">
         {demo ? (
           <p className="receipt-note">
-            This is a recorded run, so the undo cannot be fired from here. In a live session the
-            control below sends the order and the gate re arms with hold to restore. Clone the
-            repository to run it against a database.
+            This is a recorded run, so the undo cannot be fired from here. In a live session
+            there is a control here: it sends the order, and the gate re arms with hold to
+            restore. Clone the repository to run it against a database.
           </p>
         ) : spent ? (
           <p className="receipt-note">
