@@ -38,7 +38,7 @@ export function Section({ sim }: { sim: Simulation }) {
 
   return (
     <section className="section-draw" aria-label="Blast radius by foreign-key depth">
-      <h2 className="t-label">Section — blast radius by foreign-key depth</h2>
+      <h2 className="t-label">Blast radius by foreign key depth</h2>
 
       <div className="grade">
         <span className="grade-lbl t-data">grade · the table you named</span>
@@ -125,7 +125,7 @@ export function Revisions({ sim }: { sim: Simulation }) {
       label: sim.policy?.verdict === 'PASS' ? 'Policy passed' : 'Policy failed',
       meas: sim.policy?.verdict === 'PASS'
         ? `${sim.policy.rules.length} rules, 0 blocking`
-        : failing ? `${failing.rule} — ${failing.detail}` : 'not evaluated',
+        : failing ? `${failing.rule}: ${failing.detail}` : 'not evaluated',
     },
   ]
 

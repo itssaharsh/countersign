@@ -33,44 +33,51 @@ export function Landing({ onEnter, demo = false }: Props) {
     <main className="landing">
       {demo && (
         <p className="demo-banner">
-          <b>Demo.</b> This deployment replays a recorded run of the real agent — the same
-          event stream through the same reducer, holding at the approval TrueForge actually
-          raised. It is not connected to a database. To run it against your own, see the
-          repository.
+          <b>Demo.</b> This deployment replays a recorded run of the real agent: the same event
+          stream, through the same code, holding at the approval the harness actually raised. It is
+          not connected to a database. To run it against yours, see the repository.
         </p>
       )}
       <section className="landing-claim">
-        <p className="landing-eyebrow">The approval layer for destructive database changes</p>
+        <p className="landing-eyebrow">Countersign</p>
         <h1>
-          An approval that shows you the command instead of the consequence
-          is <em>a consent form</em>.
+          You approved six thousand rows.
+          It took <em>43,413</em>.
         </h1>
         <p className="landing-stand">
-          Countersign runs your statement inside a shadow transaction, counts every row it would
-          take through the real foreign keys, proves the rollback against committed state, and only
-          then lets an approve control exist.
+          That is one real statement against one real database. The extra 37,413 rows were orders
+          placed by those users, and payments made against those orders, reached through foreign
+          keys the approval prompt never mentioned. Every agent harness ships the same prompt: a
+          tool name, a JSON blob, allow or deny. Nobody can answer that honestly.
+        </p>
+        <p className="landing-stand">
+          Countersign answers it for you. Before an approve button exists, it runs your statement
+          on your database inside a transaction it rolls back, counts what actually dies through
+          every foreign key your schema declares, writes the rollback and proves it restores the
+          exact rows, and checks the result against rules you wrote. If any of that fails, there is
+          no button.
         </p>
       </section>
 
       <section className="landing-connect">
         <h2 className="t-label">Connect your database</h2>
         <p className="landing-note">
-          The engine reads these from its own environment — nothing typed here is sent anywhere,
-          stored, or shown to the model. The fields are pre-filled with dummy values, so this screen
-          can be read without a real credential on it{demo ? ', and this deployment has no engine to configure' : ''}.
+          The engine reads these from its own environment. Nothing typed here is sent anywhere,
+          stored, or shown to the model. The fields hold dummy values so this screen can be read
+          without a real credential on it{demo ? ', and this deployment has no engine to configure' : ''}.
         </p>
 
         <div className="connect-grid">
           <label className="connect-field">
             <span className="t-label">Live database</span>
             <input className="t-data" value={live} onChange={(e) => setLive(e.target.value)} spellCheck={false} />
-            <span className="connect-hint">where the change would land</span>
+            <span className="connect-hint">the database the change would touch</span>
           </label>
 
           <label className="connect-field">
             <span className="t-label">Shadow database</span>
             <input className="t-data" value={shadow} onChange={(e) => setShadow(e.target.value)} spellCheck={false} />
-            <span className="connect-hint">a copy — the undo is replayed here against committed state</span>
+            <span className="connect-hint">a copy, where the rollback is proven</span>
           </label>
 
           <label className="connect-field">
@@ -118,44 +125,46 @@ export function Landing({ onEnter, demo = false }: Props) {
         <h2 className="t-label">What it does</h2>
         <div className="about-grid">
           <div>
-            <h3>It measures instead of estimating</h3>
+            <h3>It measures, it does not estimate</h3>
             <p>
-              The statement runs for real inside <span className="t-data">BEGIN … ROLLBACK</span> on
-              your database. Per-table counts come from the executed plan, walked through every
-              foreign key the schema actually declares, each edge labelled with its real
-              <span className="t-data"> ON DELETE</span> semantics. Nothing is predicted.
+              Your statement runs for real inside <span className="t-data">BEGIN … ROLLBACK</span>.
+              The per table counts come from what the database actually did, walked through every
+              foreign key your schema declares, each one labelled <span className="t-data">CASCADE</span>,
+              <span className="t-data"> SET NULL</span> or <span className="t-data">RESTRICT</span>.
+              Nothing here is a guess about what might happen.
             </p>
           </div>
           <div>
-            <h3>It proves the undo before the commit</h3>
+            <h3>It proves the undo before you commit</h3>
             <p>
-              The rollback is generated from pre-image snapshots, then tested like code: the change
-              is applied to a shadow copy and committed, the undo runs against that committed state,
-              and the exact primary keys have to come back. If they do not, the console says so and
-              no approve control appears.
+              The rollback is built from snapshots of the rows before they change, then tested like
+              code. On a copy of your database, the change is applied and committed, the rollback
+              runs against that committed state, and the exact primary keys have to come back. If
+              twelve of six thousand fail to return, the screen says so and no button appears.
             </p>
           </div>
           <div>
             <h3>Code decides, not the model</h3>
             <p>
-              A deterministic rules engine reads the measurement and returns pass or fail — row
-              limits, protected tables, undo verification. There is no model anywhere in the verdict
-              path. The agent proposes; only code blesses.
+              Your rules are a short file: how many rows may die, which tables must never lose any,
+              whether a verified rollback is required. A deterministic engine reads the measurement
+              and returns pass or fail. No model sits anywhere in that path. The agent proposes and
+              only code approves.
             </p>
           </div>
           <div>
-            <h3>The approval is a fingerprint, not a click</h3>
+            <h3>You sign specific rows, not a command</h3>
             <p>
               What you countersign is a hash of the exact rows you were shown, and the commit deletes
-              by that key list alone. Rows that started matching after the measurement void the
-              approval instead of dying with it. It expires, because a count you read two minutes ago
-              is not a count.
+              by that key list alone. A row that started matching your <span className="t-data">WHERE</span>
+              clause while you were reading voids the approval instead of dying with it. The signature
+              expires after two minutes, because a count you read two minutes ago is not a count.
             </p>
           </div>
         </div>
         <p className="landing-note">
           Your database credentials stay in the engine process. The model receives measurements and a
-          one-shot token — never a connection string.
+          single use token. It never sees a connection string.
         </p>
       </section>
     </main>
