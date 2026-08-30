@@ -977,3 +977,14 @@ a, button, .hit { transition: color var(--t-base) var(--ease), background-color 
   .revision { grid-template-columns: 18px 1fr; }
   .rev-m { grid-column: 2; text-align: left; }
 }
+
+/* The explainer sits at the end of the landing: what it does, in four claims a
+   reader can check against the console they are about to see. */
+.landing-about { display: grid; gap: 18px; }
+.about-grid { display: grid; gap: 26px 40px; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+.about-grid h3 {
+  font-family: var(--display); font-weight: 700; font-size: var(--t-16);
+  letter-spacing: -0.005em; margin: 0 0 8px; color: var(--ink);
+}
+.about-grid p { margin: 0; color: var(--graphite); font-size: var(--t-13); line-height: 1.6; max-width: 46ch; }
+.about-grid .t-data { color: var(--ink); font-size: 0.94em; }

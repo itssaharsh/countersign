@@ -105,6 +105,51 @@ export function Landing({ onEnter }: Props) {
         </form>
         <p className="landing-note">Nothing runs until you countersign.</p>
       </section>
+
+      <section className="landing-about">
+        <h2 className="t-label">What it does</h2>
+        <div className="about-grid">
+          <div>
+            <h3>It measures instead of estimating</h3>
+            <p>
+              The statement runs for real inside <span className="t-data">BEGIN … ROLLBACK</span> on
+              your database. Per-table counts come from the executed plan, walked through every
+              foreign key the schema actually declares, each edge labelled with its real
+              <span className="t-data"> ON DELETE</span> semantics. Nothing is predicted.
+            </p>
+          </div>
+          <div>
+            <h3>It proves the undo before the commit</h3>
+            <p>
+              The rollback is generated from pre-image snapshots, then tested like code: the change
+              is applied to a shadow copy and committed, the undo runs against that committed state,
+              and the exact primary keys have to come back. If they do not, the console says so and
+              no approve control appears.
+            </p>
+          </div>
+          <div>
+            <h3>Code decides, not the model</h3>
+            <p>
+              A deterministic rules engine reads the measurement and returns pass or fail — row
+              limits, protected tables, undo verification. There is no model anywhere in the verdict
+              path. The agent proposes; only code blesses.
+            </p>
+          </div>
+          <div>
+            <h3>The approval is a fingerprint, not a click</h3>
+            <p>
+              What you countersign is a hash of the exact rows you were shown, and the commit deletes
+              by that key list alone. Rows that started matching after the measurement void the
+              approval instead of dying with it. It expires, because a count you read two minutes ago
+              is not a count.
+            </p>
+          </div>
+        </div>
+        <p className="landing-note">
+          Your database credentials stay in the engine process. The model receives measurements and a
+          one-shot token — never a connection string.
+        </p>
+      </section>
     </main>
   )
 }
